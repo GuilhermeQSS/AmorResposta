@@ -5,6 +5,7 @@ const Styled = {
     Card: styled.div`
         width: 30%;
         border: black 1px solid;
+        padding: 10px;
         & h2{
             border-bottom: black 1px solid;
         }
