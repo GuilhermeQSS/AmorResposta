@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
 import Styled from './styles'
 import logo from '../../assets/logo perfil oaear.png'
+import Sociais from "../Sociais";
 
 function Header(){
     return (
-        <Styled.Header>
+        <Styled.Container>
             <Link to={'/'}><img src={logo}/></Link>
             <Styled.Atalhos>
-                <li><Link>Tabelas</Link></li>
-                <li>Coisa2</li>
+                <li><Link>Institucional</Link></li>
+                <li><Link>Projetos</Link></li>
+                <li><Link>Doação</Link></li>
+                <li><Link>Portal da Transparência</Link></li>
+                <li><Link>Sobre</Link></li>
             </Styled.Atalhos>
-        </Styled.Header>
+            <Sociais/>
+        </Styled.Container>
     )
 }
 

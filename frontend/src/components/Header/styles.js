@@ -2,11 +2,13 @@ import styled from "styled-components";
 
 
 const Styled = {
-    Header: styled.div`
+    Container: styled.div`
         display: flex;
         justify-content: space-between;
         padding:20px;
-        height: 100px;
+        height: 150px;
+        border-bottom: 5px solid red;
+        border-radius: 15px;
         & img{
             height: 100%;
         }
@@ -15,9 +17,10 @@ const Styled = {
         display: flex;
         align-items: center;
         list-style: none;
-        gap: 10px;
+        gap: 30px;
         & li a{
             text-decoration: none;
+            font-weight: bold;
             color: black;
         }
     `
