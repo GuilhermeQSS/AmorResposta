@@ -13,6 +13,7 @@ function Header(){
                 <li><Link>Doação</Link></li>
                 <li><Link>Portal da Transparência</Link></li>
                 <li><Link>Sobre</Link></li>
+                <li><Link>Tabelas</Link></li>
             </Styled.Atalhos>
             <Sociais/>
         </Styled.Container>
