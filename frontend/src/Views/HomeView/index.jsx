@@ -2,7 +2,7 @@ import Header from "../../components/Header"
 import Footer from "../../components/Footer"
 import Styled from "./styles";
 
-function Home() {
+function HomeView() {
     return(
         <>
             <Header/>
@@ -29,4 +29,4 @@ function Home() {
     )   
 }
 
-export default Home;
+export default HomeView;

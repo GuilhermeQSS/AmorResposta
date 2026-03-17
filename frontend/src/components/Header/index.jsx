@@ -1,19 +1,32 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import Styled from './styles'
 import logo from '../../assets/logo perfil oaear.png'
 import Sociais from "../Sociais";
 
 function Header(){
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     return (
         <Styled.Container>
             <Link to={'/'}><img src={logo}/></Link>
             <Styled.Atalhos>
-                <li><Link>Institucional</Link></li>
-                <li><Link>Projetos</Link></li>
-                <li><Link>Doação</Link></li>
-                <li><Link>Portal da Transparência</Link></li>
-                <li><Link>Sobre</Link></li>
-                <li><Link>Tabelas</Link></li>
+                <li><Link to={'/'}>Página inicial</Link></li>
+                <li><Link to={'/institucional'}>Institucional</Link></li>
+                <li><Link to={'/projetos'}>Projetos</Link></li>
+                <li><Link to={'/doacao'}>Doação</Link></li>
+                <li><Link to={'/portal'}>Portal da Transparência</Link></li>
+                <li><Link to={'/sobre'}>Sobre</Link></li>
+                <li
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                    <p>Tabelas v</p>
+                    {dropdownOpen && (
+                        <div>
+                            <Link to="/tabelas/funcionario">Funcionários</Link>
+                            <Link to="/tabelas/beneficiario">Beneficiario</Link>
+                        </div>
+                    )}
+                </li>
             </Styled.Atalhos>
             <Sociais/>
         </Styled.Container>
