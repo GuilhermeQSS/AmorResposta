@@ -1,3 +1,5 @@
+import connection from "../db/connection.js"
+
 class Funcionario{
     constructor(id, nome, usuario, senha, cargo){
         this.id = id;
@@ -6,29 +8,26 @@ class Funcionario{
         this.senha = senha;
         this.cargo = cargo;
     }
-    
-    static listar(req,res){
-        connection.query('select * from funcionarios', 
-        (err, results) => {
-            if (err) throw err;
-                res.send(results);
-            }
-        );
+
+    static async listar() {
+        const [funcionarios] = await connection.query("SELECT * FROM funcionarios");
+        return funcionarios;
     }
 
-    gravar(req,res){
-        let queryString = 'insert into funcionarios values(#1,#2,#3,#4,#5);';
-        queryString.replace('#1',this.id);
-        queryString.replace('#2',this.nome);
-        queryString.replace('#3',this.usuario);
-        queryString.replace('#4',this.senha);
-        queryString.replace('#5',this.cargo);
-        connection.query(queryString, 
-        (err, results) => {
-            if (err) throw err;
-                return results;
-            }
-        );
+    async gravar(){
+        let queryString = `insert into funcionarios(
+            fun_nome,
+            fun_usuario,
+            fun_senha,
+            fun_cargo
+        )values(
+            '${this.nome}',
+            '${this.usuario}',
+            '${this.senha}',
+            '${this.cargo}'
+        );`;
+        const [coisa] = await connection.query(queryString);
+        return coisa
     }
 }
 
