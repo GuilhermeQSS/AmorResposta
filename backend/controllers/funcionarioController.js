@@ -4,23 +4,66 @@ class FuncionarioController{
     static async listar(req,res){
         try{
             let resp = await Funcionario.listar(req.query.filtro);
-            return res.json(resp);
+            return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
         }
     }
 
+    static async buscarPorId(req,res){
+        try{
+            let resp = await Funcionario.buscarPorId(req.query.id);
+            if(!resp){
+                return res.status(500).json({Erro:`Não existe funcionario com id ${req.query.id}`})
+            }else{
+                return res.status(200).json(resp);
+            }
+        }catch(err){
+            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"})
+        }
+    }
+
+    static async alterar(req, res){
+        try {
+            const { id, nome, usuario, senha, cargo } = req.body;
+            const funcionario = new Funcionario(
+                id,
+                nome,
+                usuario,
+                senha,
+                cargo
+            );
+            const resultado = await funcionario.alterar();
+            res.status(200).json(resultado);
+        } catch (error) {
+            res.status(500).json({ erro: "Erro ao alterar funcionário" });
+        }
+    }
+
+    static async excluir(req, res){
+        try {
+            const { id } = req.body;
+            const funcionario = new Funcionario(id);
+            const resultado = await funcionario.excluir();
+            res.status(200).json(resultado);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ erro: "Erro ao excluir funcionário" });
+        }
+    }
+
     static async cadastrar(req,res){
         try{
+            const {nome, usuario, senha, cargo } = req.body;
             let funcionario = new Funcionario(
                 0,
-                req.body.nome,
-                req.body.usuario,
-                req.body.senha,
-                req.body.cargo
+                nome,
+                usuario,
+                senha,
+                cargo
             );
             let resp = await funcionario.gravar();
-            return res.json(resp);
+            return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de gravar"})
         }

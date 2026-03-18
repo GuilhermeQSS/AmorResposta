@@ -4,21 +4,21 @@ import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function fetchFuncionarioLista(filtro){
-    return fetch(`http://localhost:3000/funcionarios/listar?filtro=${filtro}`, {
-        method: "GET"
-    })
-    .then((response) =>  response.json())
-    .catch((error) => alert(error));
-}
 
 
 function FuncionariosView() {
+    function fetchFuncionarioLista(filtro){
+        return fetch(`http://localhost:3000/funcionarios/listar?filtro=${filtro}`, {
+            method: "GET"
+        })
+        .then((response) =>  response.json())
+        .catch((error) => alert(error));
+    }
     const [funcionarios, setFuncionarios] = useState([]);
     const [visibleId, setVisibleId] = useState(null);
     const [filtro, setFiltro] = useState("");
     const navigate = useNavigate();
-
+    
     useEffect(() => {
         async function carregar(){
             const data = await fetchFuncionarioLista(filtro);
@@ -26,7 +26,7 @@ function FuncionariosView() {
         }
         carregar();
     }, [filtro]);
-
+    
     return(
         <>
             <Header/>
@@ -46,14 +46,14 @@ function FuncionariosView() {
                     </thead>
                     <tbody>
                         {
-                            funcionarios.map((funcionario) => (
+                            funcionarios.map((f) => (
                                 <tr 
-                                    onClick={() => navigate(`/funcionarios/${funcionario.fun_id}`)}
+                                    onClick={() => navigate(`/funcionarios/${f.id}`)}
                                 >
-                                    <td>{funcionario.fun_id}</td>
-                                    <td>{funcionario.fun_nome}</td>
-                                    <td>{funcionario.fun_usuario}</td>
-                                    <td>{funcionario.fun_cargo}</td>
+                                    <td>{f.id}</td>
+                                    <td>{f.nome}</td>
+                                    <td>{f.usuario}</td>
+                                    <td>{f.cargo}</td>
                                 </tr>
                             ))
                         }

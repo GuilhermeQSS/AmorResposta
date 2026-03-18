@@ -2,114 +2,178 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+
 
 
 function EditarFuncionarioView() {
-    const navigate = useNavigate();
-
-    const [form, setForm] = useState({
-        fun_nome: "João",
-        fun_usuario: "joao123",
-        fun_senha: "123456",
-        fun_cargo: "Admin"
-    });
-
-    const [original, setOriginal] = useState(form);
-    const [editando, setEditando] = useState(false);
-
-    function handleChange(e) {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value
-        });
+    function fetchFuncionario(id){
+        return fetch(`http://localhost:3000/funcionarios/buscar?id=${id}`, {
+            method: "GET"
+        })
+        .then((response) =>  response.json())
+        .catch((error) => alert(error));
     }
 
-    function houveAlteracao() {
-        return JSON.stringify(form) !== JSON.stringify(original);
-    }
-
-    async function handleSalvar() {
-        console.log("Salvando:", form);
-
-        setOriginal(form);
-        setEditando(false);
-    }
-
-    function handleEditar() {
-        setEditando(true);
-    }
-
-    function handleExcluir() {
-        const confirmar = window.confirm("Tem certeza que deseja excluir?");
-        if (confirmar) {
-            console.log("Excluir funcionário");
-            navigate("/");
+    async function fetchAlterarFuncionario(){
+        try {
+            await fetch("http://localhost:3000/funcionarios/alterar", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id: form.id,
+                    nome: form.nome,
+                    usuario: form.usuario,
+                    senha: form.senha,
+                    cargo: form.cargo
+                })
+            });
+            setFormOriginal(form);
+        } catch (error) {
+            alert("Erro ao atualizar");
         }
     }
+
+    async function fetchExcluirFuncionario(){
+        const confirmar = confirm("Tem certeza que deseja excluir?");
+        if(!confirmar) return;
+
+        try {
+            await fetch("http://localhost:3000/funcionarios/excluir", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id: form.id
+                })
+            });
+            navigate("/tabelas/funcionarios");
+        } catch (error) {
+            alert("Erro ao excluir");
+        }
+    }
+
+    function atualizarForm(e){
+        const { name, value } = e.target;
+        setForm((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    }
+    function isAlterado(){
+        return JSON.stringify(form) !== JSON.stringify(formOriginal);
+    }
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const navigate = useNavigate();
+    const {id} = useParams();
+    const [form, setForm] = useState({
+        id:0,
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: ""
+    });
+    const [formOriginal, setFormOriginal] = useState({
+        id:0,
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: ""
+    });
+    const [editado, setEditado] = useState(false);
+
+    useEffect(() => {
+        async function carregar(){
+            const data = await fetchFuncionario(id);
+            setForm(data)
+            setFormOriginal(data);
+        }
+        carregar();
+    }, []);
+
+    useEffect(() => {
+        if (JSON.stringify(form) !== JSON.stringify(formOriginal)) {
+            setEditado(true);
+        } else {
+            setEditado(false);
+        }
+    }, [form, formOriginal]);
 
     return (
         <>
             <Header/>
             <main>
-                <Styled.Container>
-                    <form>
-                        <input
-                            name="fun_nome"
-                            value={form.fun_nome}
-                            onChange={handleChange}
-                            disabled={!editando}
-                        />
-
-                        <input
-                            name="fun_usuario"
-                            value={form.fun_usuario}
-                            onChange={handleChange}
-                            disabled={!editando}
-                        />
-
-                        <input
-                            name="fun_senha"
-                            value={form.fun_senha}
-                            onChange={handleChange}
-                            disabled={!editando}
-                        />
+                <Styled.BackBtn>
+                    <Link to={'/tabelas/funcionarios'}>
                         <div>
-                            <label htmlFor="fun_cargo">Cargo</label>
+                            Voltar
+                        </div>
+                    </Link>
+                </Styled.BackBtn>
+                <Styled.Form>
+                        <div>
+                            <label htmlFor="nome">Nome: </label>
                             <input
-                                name="fun_cargo"
-                                value={form.fun_cargo}
-                                onChange={handleChange}
-                                disabled={!editando}
+                                name="nome"
+                                value={form.nome}
+                                onChange={atualizarForm}
                             />
                         </div>
 
-                        <Styled.ButtonGroup>
-                            {!editando && (
-                                <button type="button" onClick={handleEditar}>
-                                    Editar
-                                </button>
-                            )}
+                        <div>
+                            <label htmlFor="usuario">Usuário: </label>
+                            <input
+                                name="usuario"
+                                value={form.usuario}
+                                onChange={atualizarForm}
+                            />
+                        </div>
 
-                            {editando && (
-                                <button
-                                    type="button"
-                                    onClick={handleSalvar}
-                                    disabled={!houveAlteracao()}
-                                >
-                                    Salvar
-                                </button>
-                            )}
-
+                        <div>
+                            <label htmlFor="senha">Senha: </label>
+                            <input
+                                type={mostrarSenha ? "text" : "password"}
+                                name="senha"
+                                value={form.senha}
+                                onChange={atualizarForm}
+                                disabled={!mostrarSenha}
+                            />
                             <button
                                 type="button"
-                                onClick={handleExcluir}
+                                onClick={() => setMostrarSenha(!mostrarSenha)}
                             >
-                                Excluir
+                                {mostrarSenha ? "Ocultar" : "Ver senha"}
                             </button>
-                        </Styled.ButtonGroup>
-                    </form>
-                </Styled.Container>
+                        </div>
+
+                        <div>
+                            <label htmlFor="cargo">Cargo: </label>
+                            <input
+                                name="cargo"
+                                value={form.cargo}
+                                onChange={atualizarForm}
+                            />
+                        </div>
+
+                        <button
+                            type="button" 
+                            disabled={!editado}
+                            onClick={fetchAlterarFuncionario}
+                        >
+                            Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={fetchExcluirFuncionario}
+                        >
+                            Excluir
+                        </button>
+                </Styled.Form>
             </main>
             <Footer/>
         </>
