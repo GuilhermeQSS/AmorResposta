@@ -10,7 +10,7 @@ import PortalView from './Views/PortalView'
 import SobreView from './Views/SobreView'
 import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
 import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
-import BeneficiarioView from './Views/Tabelas/BeneficiarioView'
+import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFuncionarioView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -23,8 +23,8 @@ createRoot(document.getElementById('root')).render(
         <Route Component={PortalView} path='/portal'/>
         <Route Component={SobreView} path='/sobre'/>
         <Route Component={FuncionariosView} path='/tabelas/funcionarios'/>
-        <Route Component={EditarFuncionarioView}path="/funcionarios/:id" />
-        <Route Component={BeneficiarioView} path='/tabelas/beneficiarios'/>
+        <Route Component={EditarFuncionarioView} path="/funcionarios/:id" />
+        <Route Component={CadastrarFuncionarioView} path="/funcionarios/cadastro" />
       </Routes>
     </BrowserRouter>
   </StrictMode>

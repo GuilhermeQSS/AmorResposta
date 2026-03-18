@@ -10,12 +10,31 @@ const Styled = {
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
+    Actions: styled.div`
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 15px;
+
+        button{
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+
+            &:hover{
+                opacity: 0.8;
+            }
+        }
+    `,
 
     Table: styled.table`
         width: 90%;
         margin: 40px auto;
         border-collapse: collapse;
-        font-family: "Segoe UI", sans-serif;
         background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
         border-radius: 16px;
         overflow: hidden;

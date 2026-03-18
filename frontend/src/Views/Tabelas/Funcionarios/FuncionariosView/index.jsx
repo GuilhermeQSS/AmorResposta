@@ -15,7 +15,6 @@ function FuncionariosView() {
         .catch((error) => alert(error));
     }
     const [funcionarios, setFuncionarios] = useState([]);
-    const [visibleId, setVisibleId] = useState(null);
     const [filtro, setFiltro] = useState("");
     const navigate = useNavigate();
     
@@ -35,13 +34,18 @@ function FuncionariosView() {
                     placeholder="Buscar funcionário..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}/>
+                <Styled.Actions>
+                    <button onClick={() => navigate("/funcionarios/cadastro")}>
+                        + Cadastrar Funcionário
+                    </button>
+                </Styled.Actions>
                 <Styled.Table>
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>fun_nome</th>
-                            <th>fun_usuario</th>
-                            <th>fun_cargo</th>
+                            <th>nome</th>
+                            <th>usuario</th>
+                            <th>cargo</th>
                         </tr>
                     </thead>
                     <tbody>
