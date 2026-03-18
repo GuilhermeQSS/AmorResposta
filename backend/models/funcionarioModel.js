@@ -9,8 +9,12 @@ class Funcionario{
         this.cargo = cargo;
     }
 
-    static async listar() {
-        const [funcionarios] = await connection.query("SELECT * FROM funcionarios");
+    static async listar(filtro) {
+        let queryString = `select * from funcionarios`
+        if (filtro) {
+            queryString += ` where fun_nome like '%${filtro}%'`;
+        }
+        const [funcionarios] = await connection.query(queryString);
         return funcionarios;
     }
 
@@ -29,6 +33,7 @@ class Funcionario{
         const [coisa] = await connection.query(queryString);
         return coisa
     }
+    static 
 }
 
 export default Funcionario;

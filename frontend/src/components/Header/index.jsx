@@ -19,11 +19,11 @@ function Header(){
                 <li
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
-                    <p>Tabelas v</p>
+                    <p>Tabelas</p>
                     {dropdownOpen && (
                         <div>
-                            <Link to="/tabelas/funcionario">Funcionários</Link>
-                            <Link to="/tabelas/beneficiario">Beneficiario</Link>
+                            <Link to="/tabelas/funcionarios">Funcionários</Link>
+                            <Link to="/tabelas/beneficiarios">Beneficiario</Link>
                         </div>
                     )}
                 </li>

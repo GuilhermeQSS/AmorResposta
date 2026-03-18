@@ -3,7 +3,7 @@ import Funcionario from "../models/funcionarioModel.js";
 class FuncionarioController{
     static async listar(req,res){
         try{
-            let resp = await Funcionario.listar();
+            let resp = await Funcionario.listar(req.query.filtro);
             return res.json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})

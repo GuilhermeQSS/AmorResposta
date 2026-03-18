@@ -8,7 +8,8 @@ import ProjetosView from './Views/ProjetosView'
 import DoacaoView from './Views/DoacaoView'
 import PortalView from './Views/PortalView'
 import SobreView from './Views/SobreView'
-import FuncionarioView from './Views/Tabelas/FuncionarioView'
+import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
+import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
 import BeneficiarioView from './Views/Tabelas/BeneficiarioView'
 
 createRoot(document.getElementById('root')).render(
@@ -21,8 +22,9 @@ createRoot(document.getElementById('root')).render(
         <Route Component={DoacaoView} path='/doacao'/>
         <Route Component={PortalView} path='/portal'/>
         <Route Component={SobreView} path='/sobre'/>
-        <Route Component={FuncionarioView} path='/tabelas/funcionario'/>
-        <Route Component={BeneficiarioView} path='/tabelas/beneficiario'/>
+        <Route Component={FuncionariosView} path='/tabelas/funcionarios'/>
+        <Route Component={EditarFuncionarioView}path="/funcionarios/:id" />
+        <Route Component={BeneficiarioView} path='/tabelas/beneficiarios'/>
       </Routes>
     </BrowserRouter>
   </StrictMode>

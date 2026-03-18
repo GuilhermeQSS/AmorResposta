@@ -10,7 +10,7 @@ app.use(e.urlencoded({extended:true}));
 app.use(e.static("public"));
 app.use("/funcionarios",funcionarioRoutes);
 
-app.get("/",(req,res)=>{
+app.get("/",(req,res)=>{    
     res.redirect("index.html");
 });
 
