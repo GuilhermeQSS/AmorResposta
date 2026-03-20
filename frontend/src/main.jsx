@@ -11,6 +11,9 @@ import SobreView from './Views/SobreView'
 import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
 import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
 import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFuncionarioView'
+import BeneficiariosView from './Views/Tabelas/Beneficiarios/BeneficiariosView'
+import EditarBeneficiarioView from './Views/Tabelas/Beneficiarios/EditarBeneficiarioView'
+import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBeneficiarioView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -25,6 +28,9 @@ createRoot(document.getElementById('root')).render(
         <Route Component={FuncionariosView} path='/tabelas/funcionarios'/>
         <Route Component={EditarFuncionarioView} path="/funcionarios/:id" />
         <Route Component={CadastrarFuncionarioView} path="/funcionarios/cadastro" />
+        <Route Component={BeneficiariosView} path='/tabelas/beneficiarios'/>
+        <Route Component={EditarBeneficiarioView} path="/beneficiarios/:id" />
+        <Route Component={CadastrarBeneficiarioView} path="/beneficiarios/cadastro" />
       </Routes>
     </BrowserRouter>
   </StrictMode>
