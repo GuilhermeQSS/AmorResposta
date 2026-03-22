@@ -24,6 +24,7 @@ function Header(){
                         <div>
                             <Link to="/tabelas/funcionarios">Funcionários</Link>
                             <Link to="/tabelas/beneficiarios">Beneficiarios</Link>
+                            <Link to="/tabelas/doacoes">Doacoes</Link>
                         </div>
                     )}
                 </li>

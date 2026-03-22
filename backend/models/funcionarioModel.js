@@ -83,7 +83,6 @@ class Funcionario{
         const [coisa] = await connection.query(queryString);
         return coisa
     }
-    static 
 }
 
 export default Funcionario;

@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS `amorresposta` DEFAULT CHARACTER SET utf8;
 USE `amorresposta` ;
 
 CREATE TABLE IF NOT EXISTS `funcionarios` (
-	`fun_id` INT NOT NULL,
+	`fun_id` INT NOT NULL AUTO_INCREMENT,
 	`fun_nome` VARCHAR(45) NULL,
 	`fun_usuario` VARCHAR(45) NULL,
 	`fun_senha` VARCHAR(45) NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
   );
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-	`ben_id` INT NOT NULL,
+	`ben_id` INT NOT NULL AUTO_INCREMENT,
 	`ben_nome` VARCHAR(45) NULL,
 	`ben_endereco` VARCHAR(100) NULL,
 	`ben_telefone` VARCHAR(20) NULL,
@@ -21,16 +21,20 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
 );
 
 CREATE TABLE IF NOT EXISTS `documentos` (
-  	`doc_id` INT NOT NULL,
+  	`doc_id` INT NOT NULL AUTO_INCREMENT,
   	`doc_caminho` VARCHAR(45) NULL,
 	PRIMARY KEY (`doc_id`)
 );
 
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
-  	`doa_id` INT NOT NULL,
-  	`doa_doadorNome` VARCHAR(45) NULL,
-  	`doc_dataEntrega` DATE NULL,
+  	`doa_id` INT NOT NULL AUTO_INCREMENT,
+  	`doa_doadorNome` VARCHAR(100) NULL,
+  	`doa_dataEntrega` DATE NULL,
+  	`doa_origem` VARCHAR(100) NULL,
+  	`doa_formaEntrega` VARCHAR(45) NULL,
+  	`doa_tipo` VARCHAR(45) NULL,
+  	`doa_observacao` VARCHAR(255) NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`doa_id`)
 );
