@@ -44,6 +44,7 @@ const Styled = {
 
         tbody tr {
             transition: 0.2s;
+            cursor: pointer;
         }
 
         tbody tr:hover {

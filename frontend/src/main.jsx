@@ -16,6 +16,7 @@ import EditarBeneficiarioView from './Views/Tabelas/Beneficiarios/EditarBenefici
 import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBeneficiarioView'
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
+import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')).render(
         <Route Component={CadastrarBeneficiarioView} path="/beneficiarios/cadastro" />
         <Route Component={DoacoesView} path='/tabelas/doacoes'/>
         <Route Component={CadastrarDoacaoView} path="/doacoes/cadastro" />
+        <Route Component={EditarDoacaoView} path="/doacoes/:id" />
       </Routes>
     </BrowserRouter>
   </StrictMode>

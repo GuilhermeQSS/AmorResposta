@@ -56,7 +56,10 @@ function DoacoesView() {
                     </thead>
                     <tbody>
                         {doacoes.map((doacao) => (
-                            <tr key={doacao.id}>
+                            <tr
+                                key={doacao.id}
+                                onClick={() => navigate(`/doacoes/${doacao.id}`)}
+                            >
                                 <td>{doacao.id}</td>
                                 <td>{doacao.doadorNome || "Nao informado"}</td>
                                 <td>{doacao.tipo}</td>

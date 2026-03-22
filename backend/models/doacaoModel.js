@@ -34,6 +34,25 @@ class Doacao {
         ));
     }
 
+    static async buscarPorId(id) {
+        const queryString = "select * from doacoes where doa_id = ?";
+        const [[doacao]] = await connection.query(queryString, [id]);
+
+        if (!doacao) {
+            return null;
+        }
+
+        return new Doacao(
+            doacao.doa_id,
+            doacao.doa_doadorNome,
+            doacao.doa_dataEntrega,
+            doacao.doa_origem,
+            doacao.doa_formaEntrega,
+            doacao.doa_tipo,
+            doacao.doa_observacao
+        );
+    }
+
     async gravar() {
         const queryString = `
             insert into doacoes(
@@ -55,6 +74,37 @@ class Doacao {
             this.observacao || null
         ]);
 
+        return resultado;
+    }
+
+    async alterar() {
+        const queryString = `
+            update doacoes set
+                doa_doadorNome = ?,
+                doa_dataEntrega = ?,
+                doa_origem = ?,
+                doa_formaEntrega = ?,
+                doa_tipo = ?,
+                doa_observacao = ?
+            where doa_id = ?;
+        `;
+
+        const [resultado] = await connection.query(queryString, [
+            this.doadorNome || null,
+            this.dataEntrega,
+            this.origem || null,
+            this.formaEntrega,
+            this.tipo,
+            this.observacao || null,
+            this.id
+        ]);
+
+        return resultado;
+    }
+
+    async excluir() {
+        const queryString = "delete from doacoes where doa_id = ?";
+        const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;
     }
 }
