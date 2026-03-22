@@ -1,0 +1,118 @@
+import Header from "../../../../components/Header";
+import Footer from "../../../../components/Footer";
+import Styled from "./styles";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+function CadastrarBeneficiarioView() {
+    async function fetchCadastrarBeneficiario(){
+        try {
+            await fetch("http://localhost:3000/beneficiarios/gravar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nome: form.nome,
+                    endereco: form.endereco,
+                    telefone: form.telefone,
+                    usuario: form.usuario,
+                    senha: form.senha
+                })
+            });
+            navigate("/tabelas/beneficiarios");
+        } catch (error) {
+            alert("Erro ao atualizar");
+        }
+    }
+
+    function atualizarForm(e){
+        const { name, value } = e.target;
+        setForm((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    }
+
+    const [form, setForm] = useState({
+        id:0,
+        nome: "",
+        endereco: "",
+        telefone: "",
+        usuario: "",
+        senha: ""
+    });
+    const navigate = useNavigate();
+
+    return (
+        <>
+            <Header/>
+            <main>
+                <Styled.BackBtn>
+                    <Link to={'/tabelas/beneficiarios'}>
+                        <div>
+                            Voltar
+                        </div>
+                    </Link>
+                </Styled.BackBtn>
+                <Styled.Form>
+                    <div>
+                        <label htmlFor="nome">Nome: </label>
+                        <input
+                            name="nome"
+                            value={form.nome}
+                            onChange={atualizarForm}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="endereco">Endereco: </label>
+                        <input
+                            name="endereco"
+                            value={form.endereco}
+                            onChange={atualizarForm}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="telefone">Telefone: </label>
+                        <input
+                            name="telefone"
+                            value={form.telefone}
+                            onChange={atualizarForm}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="usuario">Usuario: </label>
+                        <input
+                            name="usuario"
+                            value={form.usuario}
+                            onChange={atualizarForm}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="senha">Senha: </label>
+                        <input
+                            type="password"
+                            name="senha"
+                            value={form.senha}
+                            onChange={atualizarForm}
+                        />
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={fetchCadastrarBeneficiario}
+                    >
+                        Cadastrar
+                    </button>
+                </Styled.Form>
+            </main>
+            <Footer/>
+        </>
+    );
+}
+
+export default CadastrarBeneficiarioView;
