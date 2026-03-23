@@ -5,6 +5,15 @@ import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function EditarBeneficiarioView() {
+    async function lerMensagemErro(response) {
+        try {
+            const data = await response.json();
+            return data.erro || data.Erro || "Nao foi possivel alterar o beneficiario";
+        } catch {
+            return "Nao foi possivel alterar o beneficiario";
+        }
+    }
+
     function fetchBeneficiario(id){
         return fetch(`http://localhost:3000/beneficiarios/buscar?id=${id}`, {
             method: "GET"
@@ -13,25 +22,47 @@ function EditarBeneficiarioView() {
         .catch((error) => alert(error));
     }
 
-    async function fetchAlterarBeneficiario(){
+    function validarFormulario() {
+        return Object.entries(form)
+            .filter(([campo, valor]) => campo !== "id" && !`${valor}`.trim())
+            .map(([campo]) => campo);
+    }
+
+    async function fetchAlterarBeneficiario(event){
+        event.preventDefault();
+
+        const camposInvalidos = validarFormulario();
+        if (camposInvalidos.length > 0) {
+            alert("Preencha todos os campos antes de editar.");
+            return;
+        }
+
+        const payload = {
+            id: form.id,
+            nome: form.nome.trim(),
+            endereco: form.endereco.trim(),
+            telefone: form.telefone.trim(),
+            usuario: form.usuario.trim(),
+            senha: form.senha.trim()
+        };
+
         try {
-            await fetch("http://localhost:3000/beneficiarios/alterar", {
+            const response = await fetch("http://localhost:3000/beneficiarios/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    id: form.id,
-                    nome: form.nome,
-                    endereco: form.endereco,
-                    telefone: form.telefone,
-                    usuario: form.usuario,
-                    senha: form.senha
-                })
+                body: JSON.stringify(payload)
             });
-            setFormOriginal(form);
+
+            if (!response.ok) {
+                throw new Error(await lerMensagemErro(response));
+            }
+
+            setForm(payload);
+            setFormOriginal(payload);
         } catch (error) {
-            alert("Erro ao atualizar");
+            alert(error.message || "Erro ao atualizar");
         }
     }
 
@@ -110,40 +141,48 @@ function EditarBeneficiarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form>
+                <Styled.Form onSubmit={fetchAlterarBeneficiario}>
                     <div>
                         <label htmlFor="nome">Nome: </label>
                         <input
+                            id="nome"
                             name="nome"
                             value={form.nome}
                             onChange={atualizarForm}
+                            required
                         />
                     </div>
 
                     <div>
                         <label htmlFor="endereco">Endereco: </label>
                         <input
+                            id="endereco"
                             name="endereco"
                             value={form.endereco}
                             onChange={atualizarForm}
+                            required
                         />
                     </div>
 
                     <div>
                         <label htmlFor="telefone">Telefone: </label>
                         <input
+                            id="telefone"
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            required
                         />
                     </div>
 
                     <div>
                         <label htmlFor="usuario">Usuario: </label>
                         <input
+                            id="usuario"
                             name="usuario"
                             value={form.usuario}
                             onChange={atualizarForm}
+                            required
                         />
                     </div>
 
@@ -151,16 +190,17 @@ function EditarBeneficiarioView() {
                         <label htmlFor="senha">Senha: </label>
                         <input
                             type="password"
+                            id="senha"
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
+                            required
                         />
                     </div>
 
                     <button
-                        type="button" 
+                        type="submit"
                         disabled={!editado}
-                        onClick={fetchAlterarBeneficiario}
                     >
                         Editar
                     </button>
