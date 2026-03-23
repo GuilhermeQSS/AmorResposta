@@ -1,23 +1,44 @@
 import connection from "../db/connection.js";
 
 class Doacao {
-    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, observacao) {
+    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao) {
         this.id = id;
-        this.doadorNome = doadorNome;
+        this.doadorNome = Doacao.normalizarDoadorNome(doadorNome);
         this.dataEntrega = dataEntrega;
-        this.origem = origem;
+        this.origem = Doacao.normalizarTextoLivre(origem);
         this.formaEntrega = formaEntrega;
         this.tipo = tipo;
-        this.observacao = observacao;
+        this.quantidadeItens = Doacao.normalizarQuantidadeItens(quantidadeItens);
+        this.observacao = Doacao.normalizarTextoLivre(observacao);
     }
 
-    static async listar(filtro) {
+    static normalizarDoadorNome(doadorNome) {
+        const nome = String(doadorNome || "").trim();
+        return nome || "anonimo";
+    }
+
+    static normalizarTextoLivre(valor) {
+        const texto = String(valor || "").trim();
+        return texto || null;
+    }
+
+    static normalizarQuantidadeItens(quantidadeItens) {
+        const quantidade = Number(quantidadeItens);
+        return Number.isInteger(quantidade) && quantidade > 0 ? quantidade : null;
+    }
+
+    static async listar(filtro, tipoFiltro = "doador") {
         let queryString = "select * from doacoes";
         const params = [];
 
         if (filtro) {
-            queryString += " where doa_doadorNome like ?";
-            params.push(`%${filtro}%`);
+            if (tipoFiltro === "data") {
+                queryString += " where doa_dataEntrega = ?";
+                params.push(filtro);
+            } else {
+                queryString += " where coalesce(doa_doadorNome, 'anonimo') like ?";
+                params.push(`%${filtro}%`);
+            }
         }
 
         queryString += " order by doa_dataEntrega desc, doa_id desc";
@@ -30,6 +51,7 @@ class Doacao {
             d.doa_origem,
             d.doa_formaEntrega,
             d.doa_tipo,
+            d.doa_quantidadeItens,
             d.doa_observacao
         ));
     }
@@ -49,6 +71,7 @@ class Doacao {
             doacao.doa_origem,
             doacao.doa_formaEntrega,
             doacao.doa_tipo,
+            doacao.doa_quantidadeItens,
             doacao.doa_observacao
         );
     }
@@ -61,17 +84,19 @@ class Doacao {
                 doa_origem,
                 doa_formaEntrega,
                 doa_tipo,
+                doa_quantidadeItens,
                 doa_observacao
-            ) values (?, ?, ?, ?, ?, ?);
+            ) values (?, ?, ?, ?, ?, ?, ?);
         `;
 
         const [resultado] = await connection.query(queryString, [
-            this.doadorNome || null,
+            this.doadorNome,
             this.dataEntrega,
-            this.origem || null,
+            this.origem,
             this.formaEntrega,
             this.tipo,
-            this.observacao || null
+            this.quantidadeItens,
+            this.observacao
         ]);
 
         return resultado;
@@ -85,17 +110,19 @@ class Doacao {
                 doa_origem = ?,
                 doa_formaEntrega = ?,
                 doa_tipo = ?,
+                doa_quantidadeItens = ?,
                 doa_observacao = ?
             where doa_id = ?;
         `;
 
         const [resultado] = await connection.query(queryString, [
-            this.doadorNome || null,
+            this.doadorNome,
             this.dataEntrega,
-            this.origem || null,
+            this.origem,
             this.formaEntrega,
             this.tipo,
-            this.observacao || null,
+            this.quantidadeItens,
+            this.observacao,
             this.id
         ]);
 

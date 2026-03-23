@@ -14,4 +14,9 @@ ALTER TABLE doacoes
     ADD COLUMN doa_origem VARCHAR(100) NULL AFTER doa_dataEntrega,
     ADD COLUMN doa_formaEntrega VARCHAR(45) NULL AFTER doa_origem,
     ADD COLUMN doa_tipo VARCHAR(45) NULL AFTER doa_formaEntrega,
-    ADD COLUMN doa_observacao VARCHAR(255) NULL AFTER doa_tipo;
+    ADD COLUMN doa_quantidadeItens INT NOT NULL DEFAULT 1 AFTER doa_tipo,
+    ADD COLUMN doa_observacao VARCHAR(255) NULL AFTER doa_quantidadeItens;
+
+UPDATE doacoes
+SET doa_doadorNome = 'anonimo'
+WHERE doa_doadorNome IS NULL OR TRIM(doa_doadorNome) = '';

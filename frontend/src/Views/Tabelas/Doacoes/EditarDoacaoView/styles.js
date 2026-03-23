@@ -4,7 +4,7 @@ const fieldStyle = `
     width: 100%;
     padding: 10px;
     border-radius: 10px;
-    border: none;
+    border: 2px solid transparent;
     outline: none;
     background: white;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -55,6 +55,18 @@ const Styled = {
             select:focus,
             textarea:focus {
                 box-shadow: 0 0 0 2px #ff6f91;
+            }
+
+            &[data-error="true"] label {
+                color: #c62828;
+                font-weight: 600;
+            }
+
+            &[data-error="true"] input,
+            &[data-error="true"] select,
+            &[data-error="true"] textarea {
+                border-color: #d32f2f;
+                box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.15);
             }
         }
 

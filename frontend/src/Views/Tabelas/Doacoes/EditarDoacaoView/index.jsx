@@ -1,12 +1,60 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function EditarDoacaoView() {
-    function fetchDoacao(id) {
-        return fetch(`http://localhost:3000/doacoes/buscar?id=${id}`, {
+    function validarFormulario(dados) {
+        const novosErros = {};
+
+        if (!dados.dataEntrega) {
+            novosErros.dataEntrega = "Informe a data de entrada.";
+        }
+
+        if (!dados.tipo) {
+            novosErros.tipo = "Selecione o tipo da doacao.";
+        }
+
+        if (!dados.origem.trim()) {
+            novosErros.origem = "Informe a origem da doacao.";
+        }
+
+        if (!dados.formaEntrega) {
+            novosErros.formaEntrega = "Selecione a forma de entrega.";
+        }
+
+        const quantidade = Number(dados.quantidadeItens);
+        if (!dados.quantidadeItens || !Number.isInteger(quantidade) || quantidade <= 0) {
+            novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
+        }
+
+        return novosErros;
+    }
+
+    function normalizarDoacaoRecebida(dados) {
+        return {
+            id: dados?.id ?? 0,
+            doadorNome: dados?.doadorNome || "anonimo",
+            dataEntrega: dados?.dataEntrega ? String(dados.dataEntrega).slice(0, 10) : "",
+            origem: dados?.origem || "",
+            formaEntrega: dados?.formaEntrega || "",
+            tipo: dados?.tipo || "",
+            quantidadeItens: dados?.quantidadeItens ? String(dados.quantidadeItens) : "",
+            observacao: dados?.observacao || ""
+        };
+    }
+
+    function prepararPayload(dados) {
+        return {
+            ...dados,
+            doadorNome: dados.doadorNome.trim() || "anonimo",
+            quantidadeItens: Number(dados.quantidadeItens)
+        };
+    }
+
+    function fetchDoacao(idDoacao) {
+        return fetch(`http://localhost:3000/doacoes/buscar?id=${idDoacao}`, {
             method: "GET"
         })
             .then((response) => response.json())
@@ -14,23 +62,40 @@ function EditarDoacaoView() {
     }
 
     async function fetchAlterarDoacao() {
-        if (!form.dataEntrega || !form.formaEntrega || !form.tipo) {
-            alert("Preencha data, tipo e forma de entrega.");
+        const novosErros = validarFormulario(form);
+        setErros(novosErros);
+
+        if (Object.keys(novosErros).length > 0) {
+            const primeiroCampoComErro = Object.keys(novosErros)[0];
+            fieldRefs.current[primeiroCampoComErro]?.focus();
             return;
         }
 
         try {
-            await fetch("http://localhost:3000/doacoes/alterar", {
+            const payload = prepararPayload(form);
+            const response = await fetch("http://localhost:3000/doacoes/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(form)
+                body: JSON.stringify(payload)
             });
 
-            setFormOriginal(form);
+            if (!response.ok) {
+                const erro = await response.json();
+                throw new Error(erro.erro || "Erro ao atualizar");
+            }
+
+            setForm({
+                ...payload,
+                quantidadeItens: String(payload.quantidadeItens)
+            });
+            setFormOriginal({
+                ...payload,
+                quantidadeItens: String(payload.quantidadeItens)
+            });
         } catch (error) {
-            alert("Erro ao atualizar");
+            alert(error.message);
         }
     }
 
@@ -39,7 +104,7 @@ function EditarDoacaoView() {
         if (!confirmar) return;
 
         try {
-            await fetch("http://localhost:3000/doacoes/excluir", {
+            const response = await fetch("http://localhost:3000/doacoes/excluir", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -49,18 +114,41 @@ function EditarDoacaoView() {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error("Erro ao excluir");
+            }
+
             navigate("/tabelas/doacoes");
         } catch (error) {
-            alert("Erro ao excluir");
+            alert(error.message);
         }
     }
 
     function atualizarForm(e) {
         const { name, value } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        const nextValue = name === "quantidadeItens" ? value.replace(/\D/g, "") : value;
+        const nextForm = {
+            ...form,
+            [name]: nextValue
+        };
+
+        setForm(nextForm);
+        setErros((prev) => {
+            if (!prev[name]) {
+                return prev;
+            }
+
+            const errosAtualizados = validarFormulario(nextForm);
+            if (!errosAtualizados[name]) {
+                const { [name]: _campoRemovido, ...restante } = prev;
+                return restante;
+            }
+
+            return {
+                ...prev,
+                [name]: errosAtualizados[name]
+            };
+        });
     }
 
     const navigate = useNavigate();
@@ -72,6 +160,7 @@ function EditarDoacaoView() {
         origem: "",
         formaEntrega: "",
         tipo: "",
+        quantidadeItens: "",
         observacao: ""
     });
     const [formOriginal, setFormOriginal] = useState({
@@ -81,19 +170,23 @@ function EditarDoacaoView() {
         origem: "",
         formaEntrega: "",
         tipo: "",
+        quantidadeItens: "",
         observacao: ""
     });
+    const [erros, setErros] = useState({});
     const [editado, setEditado] = useState(false);
+    const fieldRefs = useRef({});
 
     useEffect(() => {
         async function carregar() {
             const data = await fetchDoacao(id);
-            setForm(data);
-            setFormOriginal(data);
+            const doacaoNormalizada = normalizarDoacaoRecebida(data);
+            setForm(doacaoNormalizada);
+            setFormOriginal(doacaoNormalizada);
         }
 
         carregar();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         setEditado(JSON.stringify(form) !== JSON.stringify(formOriginal));
@@ -110,30 +203,40 @@ function EditarDoacaoView() {
                 </Styled.BackBtn>
 
                 <Styled.Form>
-                    <div>
-                        <label htmlFor="doadorNome">Doador:</label>
+                    <div data-error={Boolean(erros.doadorNome)}>
+                        <label htmlFor="doadorNome">Doador (opcional):</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.doadorNome = elemento;
+                            }}
                             name="doadorNome"
-                            value={form.doadorNome || ""}
+                            value={form.doadorNome}
                             onChange={atualizarForm}
+                            placeholder="Se vazio, sera registrado como anonimo"
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.dataEntrega)}>
                         <label htmlFor="dataEntrega">Data de entrada:</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.dataEntrega = elemento;
+                            }}
                             type="date"
                             name="dataEntrega"
-                            value={form.dataEntrega ? String(form.dataEntrega).slice(0, 10) : ""}
+                            value={form.dataEntrega}
                             onChange={atualizarForm}
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.tipo)}>
                         <label htmlFor="tipo">Tipo:</label>
                         <select
+                            ref={(elemento) => {
+                                fieldRefs.current.tipo = elemento;
+                            }}
                             name="tipo"
-                            value={form.tipo || ""}
+                            value={form.tipo}
                             onChange={atualizarForm}
                         >
                             <option value="">Selecione</option>
@@ -145,20 +248,26 @@ function EditarDoacaoView() {
                         </select>
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.origem)}>
                         <label htmlFor="origem">Origem:</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.origem = elemento;
+                            }}
                             name="origem"
-                            value={form.origem || ""}
+                            value={form.origem}
                             onChange={atualizarForm}
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.formaEntrega)}>
                         <label htmlFor="formaEntrega">Forma de entrega:</label>
                         <select
+                            ref={(elemento) => {
+                                fieldRefs.current.formaEntrega = elemento;
+                            }}
                             name="formaEntrega"
-                            value={form.formaEntrega || ""}
+                            value={form.formaEntrega}
                             onChange={atualizarForm}
                         >
                             <option value="">Selecione</option>
@@ -169,11 +278,30 @@ function EditarDoacaoView() {
                         </select>
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.quantidadeItens)}>
+                        <label htmlFor="quantidadeItens">Quantidade de itens:</label>
+                        <input
+                            ref={(elemento) => {
+                                fieldRefs.current.quantidadeItens = elemento;
+                            }}
+                            type="number"
+                            min="1"
+                            step="1"
+                            name="quantidadeItens"
+                            value={form.quantidadeItens}
+                            onChange={atualizarForm}
+                            placeholder="Informe a quantidade"
+                        />
+                    </div>
+
+                    <div data-error={Boolean(erros.observacao)}>
                         <label htmlFor="observacao">Observacao:</label>
                         <textarea
+                            ref={(elemento) => {
+                                fieldRefs.current.observacao = elemento;
+                            }}
                             name="observacao"
-                            value={form.observacao || ""}
+                            value={form.observacao}
                             onChange={atualizarForm}
                             rows="4"
                         />

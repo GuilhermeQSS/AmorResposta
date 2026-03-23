@@ -1,19 +1,36 @@
 import styled from "styled-components";
 
+const filterFieldStyle = `
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: white;
+    font-size: 14px;
+`;
+
 const Styled = {
+    Filters: styled.div`
+        width: 90%;
+        margin: 0 auto 20px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+    `,
+    FilterSelect: styled.select`
+        ${filterFieldStyle}
+        min-width: 220px;
+    `,
     Busca: styled.input`
-        display: block;
-        margin: 0 auto;
-        padding: 10px 15px;
-        width: 50%;
-        border-radius: 10px;
-        border: 1px solid #ccc;
+        ${filterFieldStyle}
+        width: min(100%, 420px);
     `,
     Actions: styled.div`
-        width: 100%;
+        width: 90%;
         display: flex;
         justify-content: flex-end;
-        margin-bottom: 15px;
+        margin: 0 auto 15px;
 
         button{
             padding: 10px 16px;

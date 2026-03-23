@@ -5,37 +5,61 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function DoacoesView() {
-    function fetchDoacoes(filtro) {
-        return fetch(`http://localhost:3000/doacoes/listar?filtro=${filtro}`, {
+    function fetchDoacoes(filtroAtual, tipoFiltroAtual) {
+        const params = new URLSearchParams();
+
+        if (filtroAtual) {
+            params.set("filtro", filtroAtual);
+        }
+
+        params.set("tipoFiltro", tipoFiltroAtual);
+
+        return fetch(`http://localhost:3000/doacoes/listar?${params.toString()}`, {
             method: "GET"
         })
             .then((response) => response.json())
             .catch((error) => alert(error));
     }
 
+    function handleTipoFiltroChange(e) {
+        setTipoFiltro(e.target.value);
+        setFiltro("");
+    }
+
     const [doacoes, setDoacoes] = useState([]);
     const [filtro, setFiltro] = useState("");
+    const [tipoFiltro, setTipoFiltro] = useState("doador");
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const data = await fetchDoacoes(filtro);
+            const data = await fetchDoacoes(filtro, tipoFiltro);
             setDoacoes(Array.isArray(data) ? data : []);
         }
 
         carregar();
-    }, [filtro]);
+    }, [filtro, tipoFiltro]);
 
     return (
         <>
             <Header />
             <main>
-                <Styled.Busca
-                    type="text"
-                    placeholder="Buscar doacao por doador..."
-                    value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)}
-                />
+                <Styled.Filters>
+                    <Styled.FilterSelect
+                        value={tipoFiltro}
+                        onChange={handleTipoFiltroChange}
+                    >
+                        <option value="doador">Pesquisar por doador</option>
+                        <option value="data">Pesquisar por data</option>
+                    </Styled.FilterSelect>
+
+                    <Styled.Busca
+                        type={tipoFiltro === "data" ? "date" : "text"}
+                        placeholder={tipoFiltro === "data" ? "" : "Buscar doacao por doador..."}
+                        value={filtro}
+                        onChange={(e) => setFiltro(e.target.value)}
+                    />
+                </Styled.Filters>
 
                 <Styled.Actions>
                     <button onClick={() => navigate("/doacoes/cadastro")}>
@@ -49,6 +73,7 @@ function DoacoesView() {
                             <th>#</th>
                             <th>doador</th>
                             <th>tipo</th>
+                            <th>quantidade</th>
                             <th>data</th>
                             <th>origem</th>
                             <th>entrega</th>
@@ -61,8 +86,9 @@ function DoacoesView() {
                                 onClick={() => navigate(`/doacoes/${doacao.id}`)}
                             >
                                 <td>{doacao.id}</td>
-                                <td>{doacao.doadorNome || "Nao informado"}</td>
+                                <td>{doacao.doadorNome || "anonimo"}</td>
                                 <td>{doacao.tipo}</td>
+                                <td>{doacao.quantidadeItens || "-"}</td>
                                 <td>{doacao.dataEntrega ? new Date(doacao.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "-"}</td>
                                 <td>{doacao.origem || "-"}</td>
                                 <td>{doacao.formaEntrega}</td>

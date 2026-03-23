@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
   	`doa_origem` VARCHAR(100) NULL,
   	`doa_formaEntrega` VARCHAR(45) NULL,
   	`doa_tipo` VARCHAR(45) NULL,
+  	`doa_quantidadeItens` INT NOT NULL,
   	`doa_observacao` VARCHAR(255) NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`doa_id`)

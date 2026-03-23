@@ -1,23 +1,63 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function CadastrarDoacaoView() {
+    function validarFormulario(dados) {
+        const novosErros = {};
+
+        if (!dados.dataEntrega) {
+            novosErros.dataEntrega = "Informe a data de entrada.";
+        }
+
+        if (!dados.tipo) {
+            novosErros.tipo = "Selecione o tipo da doacao.";
+        }
+
+        if (!dados.origem.trim()) {
+            novosErros.origem = "Informe a origem da doacao.";
+        }
+
+        if (!dados.formaEntrega) {
+            novosErros.formaEntrega = "Selecione a forma de entrega.";
+        }
+
+        const quantidade = Number(dados.quantidadeItens);
+        if (!dados.quantidadeItens || !Number.isInteger(quantidade) || quantidade <= 0) {
+            novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
+        }
+
+        return novosErros;
+    }
+
+    function prepararPayload(dados) {
+        return {
+            ...dados,
+            doadorNome: dados.doadorNome.trim() || "anonimo",
+            quantidadeItens: Number(dados.quantidadeItens)
+        };
+    }
+
     async function fetchCadastrarDoacao() {
-        if (!form.dataEntrega || !form.formaEntrega || !form.tipo) {
-            alert("Preencha data, tipo e forma de entrega.");
+        const novosErros = validarFormulario(form);
+        setErros(novosErros);
+
+        if (Object.keys(novosErros).length > 0) {
+            const primeiroCampoComErro = Object.keys(novosErros)[0];
+            fieldRefs.current[primeiroCampoComErro]?.focus();
             return;
         }
 
         try {
+            const payload = prepararPayload(form);
             const response = await fetch("http://localhost:3000/doacoes/gravar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(form)
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -33,10 +73,29 @@ function CadastrarDoacaoView() {
 
     function atualizarForm(e) {
         const { name, value } = e.target;
-        setForm((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        const nextValue = name === "quantidadeItens" ? value.replace(/\D/g, "") : value;
+        const nextForm = {
+            ...form,
+            [name]: nextValue
+        };
+
+        setForm(nextForm);
+        setErros((prev) => {
+            if (!prev[name]) {
+                return prev;
+            }
+
+            const errosAtualizados = validarFormulario(nextForm);
+            if (!errosAtualizados[name]) {
+                const { [name]: _campoRemovido, ...restante } = prev;
+                return restante;
+            }
+
+            return {
+                ...prev,
+                [name]: errosAtualizados[name]
+            };
+        });
     }
 
     const [form, setForm] = useState({
@@ -45,8 +104,11 @@ function CadastrarDoacaoView() {
         origem: "",
         formaEntrega: "",
         tipo: "",
+        quantidadeItens: "",
         observacao: ""
     });
+    const [erros, setErros] = useState({});
+    const fieldRefs = useRef({});
     const navigate = useNavigate();
 
     return (
@@ -60,19 +122,25 @@ function CadastrarDoacaoView() {
                 </Styled.BackBtn>
 
                 <Styled.Form>
-                    <div>
-                        <label htmlFor="doadorNome">Doador:</label>
+                    <div data-error={Boolean(erros.doadorNome)}>
+                        <label htmlFor="doadorNome">Doador (opcional):</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.doadorNome = elemento;
+                            }}
                             name="doadorNome"
                             value={form.doadorNome}
                             onChange={atualizarForm}
-                            placeholder="Nome do doador ou empresa"
+                            placeholder="Se vazio, sera registrado como anonimo"
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.dataEntrega)}>
                         <label htmlFor="dataEntrega">Data de entrada:</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.dataEntrega = elemento;
+                            }}
                             type="date"
                             name="dataEntrega"
                             value={form.dataEntrega}
@@ -80,9 +148,12 @@ function CadastrarDoacaoView() {
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.tipo)}>
                         <label htmlFor="tipo">Tipo:</label>
                         <select
+                            ref={(elemento) => {
+                                fieldRefs.current.tipo = elemento;
+                            }}
                             name="tipo"
                             value={form.tipo}
                             onChange={atualizarForm}
@@ -96,9 +167,12 @@ function CadastrarDoacaoView() {
                         </select>
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.origem)}>
                         <label htmlFor="origem">Origem:</label>
                         <input
+                            ref={(elemento) => {
+                                fieldRefs.current.origem = elemento;
+                            }}
                             name="origem"
                             value={form.origem}
                             onChange={atualizarForm}
@@ -106,9 +180,12 @@ function CadastrarDoacaoView() {
                         />
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.formaEntrega)}>
                         <label htmlFor="formaEntrega">Forma de entrega:</label>
                         <select
+                            ref={(elemento) => {
+                                fieldRefs.current.formaEntrega = elemento;
+                            }}
                             name="formaEntrega"
                             value={form.formaEntrega}
                             onChange={atualizarForm}
@@ -121,9 +198,28 @@ function CadastrarDoacaoView() {
                         </select>
                     </div>
 
-                    <div>
+                    <div data-error={Boolean(erros.quantidadeItens)}>
+                        <label htmlFor="quantidadeItens">Quantidade de itens:</label>
+                        <input
+                            ref={(elemento) => {
+                                fieldRefs.current.quantidadeItens = elemento;
+                            }}
+                            type="number"
+                            min="1"
+                            step="1"
+                            name="quantidadeItens"
+                            value={form.quantidadeItens}
+                            onChange={atualizarForm}
+                            placeholder="Informe a quantidade"
+                        />
+                    </div>
+
+                    <div data-error={Boolean(erros.observacao)}>
                         <label htmlFor="observacao">Observacao:</label>
                         <textarea
+                            ref={(elemento) => {
+                                fieldRefs.current.observacao = elemento;
+                            }}
                             name="observacao"
                             value={form.observacao}
                             onChange={atualizarForm}

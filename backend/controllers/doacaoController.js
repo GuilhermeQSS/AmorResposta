@@ -1,9 +1,19 @@
 import Doacao from "../models/doacaoModel.js";
 
 class DoacaoController {
+    static quantidadeItensValida(quantidadeItens) {
+        const quantidade = Number(quantidadeItens);
+        return Number.isInteger(quantidade) && quantidade > 0;
+    }
+
+    static textoObrigatorioValido(valor) {
+        return Boolean(String(valor || "").trim());
+    }
+
     static async listar(req, res) {
         try {
-            const resp = await Doacao.listar(req.query.filtro);
+            const tipoFiltro = req.query.tipoFiltro === "data" ? "data" : "doador";
+            const resp = await Doacao.listar(req.query.filtro, tipoFiltro);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de listar doacoes" });
@@ -26,11 +36,17 @@ class DoacaoController {
 
     static async cadastrar(req, res) {
         try {
-            const { doadorNome, dataEntrega, origem, formaEntrega, tipo, observacao } = req.body;
+            const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao } = req.body;
 
-            if (!dataEntrega || !formaEntrega || !tipo) {
+            if (
+                !dataEntrega ||
+                !DoacaoController.textoObrigatorioValido(origem) ||
+                !formaEntrega ||
+                !tipo ||
+                !DoacaoController.quantidadeItensValida(quantidadeItens)
+            ) {
                 return res.status(400).json({
-                    erro: "Data, forma de entrega e tipo sao obrigatorios"
+                    erro: "Origem, data, forma de entrega, tipo e quantidade de itens sao obrigatorios"
                 });
             }
 
@@ -41,6 +57,7 @@ class DoacaoController {
                 origem,
                 formaEntrega,
                 tipo,
+                quantidadeItens,
                 observacao
             );
 
@@ -53,11 +70,17 @@ class DoacaoController {
 
     static async alterar(req, res) {
         try {
-            const { id, doadorNome, dataEntrega, origem, formaEntrega, tipo, observacao } = req.body;
+            const { id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao } = req.body;
 
-            if (!dataEntrega || !formaEntrega || !tipo) {
+            if (
+                !dataEntrega ||
+                !DoacaoController.textoObrigatorioValido(origem) ||
+                !formaEntrega ||
+                !tipo ||
+                !DoacaoController.quantidadeItensValida(quantidadeItens)
+            ) {
                 return res.status(400).json({
-                    erro: "Data, forma de entrega e tipo sao obrigatorios"
+                    erro: "Origem, data, forma de entrega, tipo e quantidade de itens sao obrigatorios"
                 });
             }
 
@@ -68,6 +91,7 @@ class DoacaoController {
                 origem,
                 formaEntrega,
                 tipo,
+                quantidadeItens,
                 observacao
             );
 
