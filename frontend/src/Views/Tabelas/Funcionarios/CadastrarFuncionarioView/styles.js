@@ -32,7 +32,7 @@ const Styled = {
                 font-size: 14px;
             }
 
-            input {
+            input, select {
                 width: 100%;
                 padding: 10px;
                 border-radius: 10px;
@@ -43,11 +43,10 @@ const Styled = {
                 font-size: 14px;
                 transition: 0.2s;
             }
-            input:focus {
+            input:focus,
+            select:focus{
                 box-shadow: 0 0 0 2px #ff6f91;
             }
-
-            
         }
 
         button{

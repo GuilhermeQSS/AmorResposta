@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
 	`fun_nome` VARCHAR(45) NULL,
 	`fun_usuario` VARCHAR(45) NULL,
 	`fun_senha` VARCHAR(45) NULL,
-	`fun_cargo` CHAR(1) NULL,
+	`fun_cargo` CHAR(45) NULL,
 	PRIMARY KEY (`fun_id`)
   );
 
@@ -28,8 +28,12 @@ CREATE TABLE IF NOT EXISTS `documentos` (
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
   	`doa_id` INT NOT NULL auto_increment,
-  	`doa_doadorNome` VARCHAR(45) NULL,
-  	`doc_dataEntrega` DATE NULL,
+  	`doa_doadorNome` VARCHAR(100) NULL,
+  	`doa_dataEntrega` DATE NULL,
+	`doa_origem` VARCHAR(100) NULL,
+    `doa_formaEntrega` VARCHAR(45) NULL,
+    `doa_tipo` VARCHAR(45) NULL,
+    `doa_observacao` VARCHAR(255) NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`doa_id`)
 );

@@ -25,7 +25,7 @@ class FuncionarioController{
 
     static async alterar(req, res){
         try {
-            const { id, nome, usuario, senha, cargo } = req.body;
+            const { id, nome, usuario, senha, cargo, camposAlterados } = req.body;
             if (!nome || !usuario || !senha || !cargo) {
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
@@ -37,8 +37,8 @@ class FuncionarioController{
                     }
                 });
             }
-            if(await Funcionario.buscarPorUsuario(usuario)){
-                return res.status(500).json({ 
+            if(camposAlterados.usuario && await Funcionario.buscarPorUsuario(usuario) ){
+                return res.status(500).json({
                     err: "Usuario já exite",
                 });
             }
@@ -50,9 +50,9 @@ class FuncionarioController{
                 cargo
             );
             const resultado = await funcionario.alterar();
-            res.status(200).json(resultado);
+            return res.status(200).json(resultado);
         } catch (error) {
-            res.status(500).json({ erro: "Erro ao alterar funcionário" });
+            return res.status(500).json({ erro: "Erro ao alterar funcionário" });
         }
     }
 

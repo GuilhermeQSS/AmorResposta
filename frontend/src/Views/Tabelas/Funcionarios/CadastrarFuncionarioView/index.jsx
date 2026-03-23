@@ -97,13 +97,17 @@ function CadastrarFuncionarioView() {
                         </div>
 
                         <div>
-                            <label htmlFor="cargo">Cargo: </label>
-                            <input
+                            <label htmlFor="cargo">Cargo:</label>
+                            <select
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
                                 style={{ border: erros.fun_cargo ? "2px solid red" : "" }}
-                            />
+                            >
+                                <option value="" disabled>Selecione</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Voluntario">Voluntário</option>
+                            </select>
                         </div>
 
                         <button
