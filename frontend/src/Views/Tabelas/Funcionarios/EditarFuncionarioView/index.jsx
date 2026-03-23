@@ -18,7 +18,7 @@ function EditarFuncionarioView() {
 
     async function fetchAlterarFuncionario(){
         try {
-            await fetch("http://localhost:3000/funcionarios/alterar", {
+            const response = await fetch("http://localhost:3000/funcionarios/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -31,7 +31,13 @@ function EditarFuncionarioView() {
                     cargo: form.cargo
                 })
             });
-            setFormOriginal(form);
+            if(response.ok){
+                setFormOriginal(form);
+            }else{
+                const json = await response.json(); 
+                setErros(json.campos || {});
+                alert(json.err || 'Erro desconhecido no servidor');
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -67,6 +73,7 @@ function EditarFuncionarioView() {
     function isAlterado(){
         return JSON.stringify(form) !== JSON.stringify(formOriginal);
     }
+    const [erros,setErros] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const navigate = useNavigate();
     const {id} = useParams();

@@ -26,6 +26,22 @@ class FuncionarioController{
     static async alterar(req, res){
         try {
             const { id, nome, usuario, senha, cargo } = req.body;
+            if (!nome || !usuario || !senha || !cargo) {
+                return res.status(500).json({ 
+                    err: "Algum campo está vazio" ,
+                    campos:{
+                        fun_nome: !nome,
+                        fun_usuario: !usuario,
+                        fun_senha: !senha,
+                        fun_cargo: !cargo
+                    }
+                });
+            }
+            if(await Funcionario.buscarPorUsuario(usuario)){
+                return res.status(500).json({ 
+                    err: "Usuario já exite",
+                });
+            }
             const funcionario = new Funcionario(
                 id,
                 nome,
@@ -54,7 +70,23 @@ class FuncionarioController{
 
     static async cadastrar(req,res){
         try{
-            const {nome, usuario, senha, cargo } = req.body;
+            const {nome, usuario, senha, cargo} = req.body;
+            if (!nome || !usuario || !senha || !cargo) {
+                return res.status(500).json({ 
+                    err: "Algum campo está vazio" ,
+                    campos:{
+                        fun_nome: !nome,
+                        fun_usuario: !usuario,
+                        fun_senha: !senha,
+                        fun_cargo: !cargo
+                    }
+                });
+            }
+            if(await Funcionario.buscarPorUsuario(usuario)){
+                return res.status(500).json({ 
+                    err: "Usuario já exite",
+                });
+            }
             let funcionario = new Funcionario(
                 0,
                 nome,
@@ -65,7 +97,7 @@ class FuncionarioController{
             let resp = await funcionario.gravar();
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de gravar"})
+            return res.status(500).json(err);
         }
         
     }

@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS `amorresposta` DEFAULT CHARACTER SET utf8;
 USE `amorresposta` ;
 
 CREATE TABLE IF NOT EXISTS `funcionarios` (
-	`fun_id` INT NOT NULL,
+	`fun_id` INT NOT NULL auto_increment,
 	`fun_nome` VARCHAR(45) NULL,
 	`fun_usuario` VARCHAR(45) NULL,
 	`fun_senha` VARCHAR(45) NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
   );
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-	`ben_id` INT NOT NULL,
+	`ben_id` INT NOT NULL auto_increment,
 	`ben_nome` VARCHAR(45) NULL,
 	`ben_endereco` VARCHAR(100) NULL,
 	`ben_telefone` VARCHAR(20) NULL,
@@ -21,14 +21,13 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
 );
 
 CREATE TABLE IF NOT EXISTS `documentos` (
-  	`doc_id` INT NOT NULL,
+  	`doc_id` INT NOT NULL auto_increment,
   	`doc_caminho` VARCHAR(45) NULL,
 	PRIMARY KEY (`doc_id`)
 );
 
-
 CREATE TABLE IF NOT EXISTS `doacoes` (
-  	`doa_id` INT NOT NULL,
+  	`doa_id` INT NOT NULL auto_increment,
   	`doa_doadorNome` VARCHAR(45) NULL,
   	`doc_dataEntrega` DATE NULL,
   	`doc_id` INT NULL,
@@ -36,14 +35,14 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
 );
 
 CREATE TABLE IF NOT EXISTS `despesas` (
-  	`des_id` INT NOT NULL,
+  	`des_id` INT NOT NULL auto_increment,
   	`des_descricao` VARCHAR(45) NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`des_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontros` (
-  	`enc_id` INT NOT NULL,
+  	`enc_id` INT NOT NULL auto_increment,
   	`enc_data` DATE NULL,
   	`enc_disponibilidade` CHAR(1) NULL,
   	`enc_qtdeMax` INT NULL,
@@ -67,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `responsaveis` (
 );
 
 CREATE TABLE IF NOT EXISTS `itens` (
-  	`item_id` INT NOT NULL,
+  	`item_id` INT NOT NULL auto_increment,
   	`item_descricao` VARCHAR(45) NULL,
   	`item_qtde` INT NULL,
   	`item_validade` DATE NULL,

@@ -11,7 +11,7 @@ function CadastrarFuncionarioView() {
 
     async function fetchCadastrarFuncionario(){
         try {
-            await fetch("http://localhost:3000/funcionarios/gravar", {
+            const response = await fetch("http://localhost:3000/funcionarios/gravar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -23,7 +23,13 @@ function CadastrarFuncionarioView() {
                     cargo: form.cargo
                 })
             });
-            navigate("/tabelas/funcionarios");
+            if(response.ok){
+                navigate("/tabelas/funcionarios");
+            }else{
+                const json = await response.json(); 
+                setErros(json.campos || {});
+                alert(json.err || 'Erro desconhecido no servidor');
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -36,6 +42,8 @@ function CadastrarFuncionarioView() {
             [name]: value
         }));
     }
+    const [isValidated,setIsValidated] = useState(false);
+    const [erros,setErros] = useState({});
     const [form, setForm] = useState({
         id:0,
         nome: "",
@@ -56,13 +64,14 @@ function CadastrarFuncionarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form>
+                <Styled.Form noValidate>
                         <div>
                             <label htmlFor="nome">Nome: </label>
                             <input
                                 name="nome"
                                 value={form.nome}
                                 onChange={atualizarForm}
+                                style={{ border: erros.fun_nome ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -72,6 +81,7 @@ function CadastrarFuncionarioView() {
                                 name="usuario"
                                 value={form.usuario}
                                 onChange={atualizarForm}
+                                style={{ border: erros.fun_usuario ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -82,6 +92,7 @@ function CadastrarFuncionarioView() {
                                 name="senha"
                                 value={form.senha}
                                 onChange={atualizarForm}
+                                style={{ border: erros.fun_senha ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -91,6 +102,7 @@ function CadastrarFuncionarioView() {
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
+                                style={{ border: erros.fun_cargo ? "2px solid red" : "" }}
                             />
                         </div>
 

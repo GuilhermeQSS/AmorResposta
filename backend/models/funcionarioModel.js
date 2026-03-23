@@ -52,6 +52,21 @@ class Funcionario{
         return resultado;
     }
 
+    static async buscarPorUsuario(usuario){
+        let queryString = `select * from funcionarios where fun_usuario = '${usuario}'`
+        const [[funcionario]] = await connection.query(queryString);
+        if(!funcionario){
+            return null;
+        }else{
+            return new Funcionario(
+                funcionario.fun_id,
+                funcionario.fun_nome,
+                funcionario.fun_usuario,
+                funcionario.fun_senha,
+                funcionario.fun_cargo
+            );
+        }
+    }
     static async buscarPorId(id){
         let queryString = `select * from funcionarios where fun_id = ${id}`
         const [[funcionario]] = await connection.query(queryString);
@@ -69,21 +84,24 @@ class Funcionario{
     }
 
     async gravar(){
-        let queryString = `insert into funcionarios(
-            fun_nome,
-            fun_usuario,
-            fun_senha,
-            fun_cargo
-        )values(
-            '${this.nome}',
-            '${this.usuario}',
-            '${this.senha}',
-            '${this.cargo}'
-        );`;
-        const [coisa] = await connection.query(queryString);
-        return coisa
+        let queryString = `
+            insert into funcionarios(
+                fun_nome,
+                fun_usuario,
+                fun_senha,
+                fun_cargo
+            ) values (?, ?, ?, ?);
+        `;
+
+        const [resultado] = await connection.query(queryString, [
+            this.nome,
+            this.usuario,
+            this.senha,
+            this.cargo
+        ]);
+
+        return resultado;
     }
-    static 
 }
 
 export default Funcionario;
