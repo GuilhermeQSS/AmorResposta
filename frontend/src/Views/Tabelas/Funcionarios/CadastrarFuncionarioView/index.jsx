@@ -42,7 +42,6 @@ function CadastrarFuncionarioView() {
             [name]: value
         }));
     }
-    const [isValidated,setIsValidated] = useState(false);
     const [erros,setErros] = useState({});
     const [form, setForm] = useState({
         id:0,
