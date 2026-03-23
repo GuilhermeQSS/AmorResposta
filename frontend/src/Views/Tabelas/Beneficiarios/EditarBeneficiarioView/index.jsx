@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { formatarTelefone } from "../../../../utils/telefone";
 
 function EditarBeneficiarioView() {
     async function lerMensagemErro(response) {
@@ -90,7 +91,7 @@ function EditarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
     }
     const navigate = useNavigate();
@@ -116,8 +117,13 @@ function EditarBeneficiarioView() {
     useEffect(() => {
         async function carregar(){
             const data = await fetchBeneficiario(id);
-            setForm(data)
-            setFormOriginal(data);
+            const telefoneFormatado = formatarTelefone(data.telefone);
+            const dadosFormatados = {
+                ...data,
+                telefone: telefoneFormatado
+            };
+            setForm(dadosFormatados)
+            setFormOriginal(dadosFormatados);
         }
         carregar();
     }, []);
@@ -171,6 +177,9 @@ function EditarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            inputMode="numeric"
+                            placeholder="(00) 00000-0000"
+                            maxLength="15"
                             required
                         />
                     </div>
