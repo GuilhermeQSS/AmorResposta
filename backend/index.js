@@ -1,7 +1,7 @@
 import funcionarioRoutes from "./routes/funcionariosRoute.js"
 import beneficiarioRoutes from "./routes/beneficiariosRoute.js"
 import doacaoRoutes from "./routes/doacoesRoute.js"
-import estoqueRoutes from "./routes/estoqueRoute.js"
+import itensRoutes from "./routes/itensRoute.js"
 import e from "express";
 import cors from "cors";
 const app = e();
@@ -14,7 +14,7 @@ app.use(e.static("public"));
 app.use("/funcionarios",funcionarioRoutes);
 app.use("/beneficiarios",beneficiarioRoutes);
 app.use("/doacoes",doacaoRoutes);
-app.use("/estoque",estoqueRoutes);
+app.use("/itens",itensRoutes);
 
 app.get("/",(req,res)=>{    
     res.redirect("index.html");
