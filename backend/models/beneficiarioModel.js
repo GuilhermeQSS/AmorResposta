@@ -10,31 +10,12 @@ class Beneficiario{
         this.senha = senha;
     }
 
-    static async listar(filtro, telefone) {
-        let queryString = `select * from beneficiarios`;
-        const params = [];
-        const condicoes = [];
-        const filtroNormalizado = `${filtro ?? ""}`.trim();
-        const telefoneNormalizado = `${telefone ?? ""}`.replace(/\D/g, "");
-
-        if (filtroNormalizado) {
-            condicoes.push(`(
-                lower(trim(ben_nome)) like lower(?)
-                or lower(trim(ben_usuario)) like lower(?)
-            )`);
-            params.push(`%${filtroNormalizado}%`, `%${filtroNormalizado}%`);
+    static async listar(filtro) {
+        let queryString = `select * from beneficiarios`
+        if (filtro) {
+            queryString += ` where ben_usuario like '%${filtro}%'`;
         }
-
-        if (telefoneNormalizado) {
-            condicoes.push(`replace(replace(replace(replace(trim(ben_telefone), '(', ''), ')', ''), '-', ''), ' ', '') like ?`);
-            params.push(`%${telefoneNormalizado}%`);
-        }
-
-        if (condicoes.length > 0) {
-            queryString += ` where ${condicoes.join(" and ")}`;
-        }
-
-        const [beneficiarios] = await connection.query(queryString, params);
+        const [beneficiarios] = await connection.query(queryString);
         let beneficiarioList = [];
         beneficiarios.forEach(b => {
             beneficiarioList.push(new Beneficiario(
@@ -52,22 +33,15 @@ class Beneficiario{
     async alterar(){
         let queryString = `
             update beneficiarios set
-                ben_nome = ?,
-                ben_endereco = ?,
-                ben_telefone = ?,
-                ben_usuario = ?,
-                ben_senha = ?
-            where ben_id = ?;
+                ben_nome = '${this.nome}',
+                ben_endereco = '${this.endereco}',
+                ben_telefone = '${this.telefone}',
+                ben_usuario = '${this.usuario}',
+                ben_senha = '${this.senha}'
+            where ben_id = ${this.id};
         `;
 
-        const [resultado] = await connection.query(queryString, [
-            this.nome,
-            this.endereco,
-            this.telefone,
-            this.usuario,
-            this.senha,
-            this.id
-        ]);
+        const [resultado] = await connection.query(queryString);
         return resultado;
     }
 
@@ -82,8 +56,8 @@ class Beneficiario{
     }
 
     static async buscarPorId(id){
-        let queryString = `select * from beneficiarios where ben_id = ?`
-        const [[beneficiario]] = await connection.query(queryString, [id]);
+        let queryString = `select * from beneficiarios where ben_id = ${id}`
+        const [[beneficiario]] = await connection.query(queryString);
         if(!beneficiario){
             return null;
         }else{
@@ -98,63 +72,21 @@ class Beneficiario{
         }
     }
 
-    static async buscarPorUsuario(usuario, excluirId = null) {
-        let queryString = `
-            select * from beneficiarios
-            where lower(trim(ben_usuario)) = lower(trim(?))
-        `;
-        const params = [usuario];
-
-        if (excluirId !== null && excluirId !== undefined) {
-            queryString += ` and ben_id <> ?`;
-            params.push(excluirId);
-        }
-
-        const [[beneficiario]] = await connection.query(queryString, params);
-
-        if(!beneficiario){
-            return null;
-        }
-
-        return new Beneficiario(
-            beneficiario.ben_id,
-            beneficiario.ben_nome,
-            beneficiario.ben_endereco,
-            beneficiario.ben_telefone,
-            beneficiario.ben_usuario,
-            beneficiario.ben_senha
-        );
-    }
-
     async gravar(){
-        const [[{ novo_id }]] = await connection.query(`
-            select coalesce(max(ben_id), 0) + 1 as novo_id
-            from beneficiarios;
-        `);
-
         let queryString = `insert into beneficiarios(
-            ben_id,
             ben_nome,
             ben_endereco,
             ben_telefone,
             ben_usuario,
             ben_senha
         )values(
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?
+            '${this.nome}',
+            '${this.endereco}',
+            '${this.telefone}',
+            '${this.usuario}',
+            '${this.senha}'
         );`;
-        const [coisa] = await connection.query(queryString, [
-            novo_id,
-            this.nome,
-            this.endereco,
-            this.telefone,
-            this.usuario,
-            this.senha
-        ]);
+        const [coisa] = await connection.query(queryString);
         return coisa
     }
 }

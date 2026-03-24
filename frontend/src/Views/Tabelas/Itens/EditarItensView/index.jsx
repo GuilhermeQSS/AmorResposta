@@ -4,43 +4,52 @@ import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-function EditarBeneficiarioView() {
-    function fetchBeneficiario(id){
-        return fetch(`http://localhost:3000/beneficiarios/buscar?id=${id}`, {
+function EditarItensView() {
+    function fetchItens(id){
+        return fetch(`http://localhost:3000/itens/buscar?id=${id}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
         .catch((error) => alert(error));
     }
 
-    async function fetchAlterarBeneficiario(){
+    async function fetchAlterarItem(){
         try {
-            await fetch("http://localhost:3000/beneficiarios/alterar", {
+            const response = await fetch("http://localhost:3000/itens/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     id: form.id,
-                    nome: form.nome,
-                    endereco: form.endereco,
-                    telefone: form.telefone,
-                    usuario: form.usuario,
-                    senha: form.senha
+                    descricao: form.descricao,
+                    qtde: form.qtde,
+                    validade: form.validade || null,
+                    camposAlterados: {
+                        descricao: form.descricao !== formOriginal.descricao,
+                        qtde: form.qtde !== formOriginal.qtde,
+                        validade: form.validade !== formOriginal.validade
+                    }
                 })
             });
-            setFormOriginal(form);
+            if(response.ok){
+                setFormOriginal(form);
+            }else{
+                const json = await response.json(); 
+                setErros(json.campos || {});
+                alert(json.err || 'Erro desconhecido no servidor');
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
     }
 
-    async function fetchExcluirBeneficiario(){
+    async function fetchExcluirItem(){
         const confirmar = confirm("Tem certeza que deseja excluir?");
         if(!confirmar) return;
 
         try {
-            await fetch("http://localhost:3000/beneficiarios/excluir", {
+            await fetch("http://localhost:3000/itens/excluir", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -49,7 +58,7 @@ function EditarBeneficiarioView() {
                     id: form.id
                 })
             });
-            navigate("/tabelas/beneficiarios");
+            navigate("/tabelas/itens");
         } catch (error) {
             alert("Erro ao excluir");
         }
@@ -59,44 +68,50 @@ function EditarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
     }
+    const [erros,setErros] = useState({});
     const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
         id:0,
-        nome: "",
-        endereco: "",
-        telefone: "",
-        usuario: "",
-        senha: ""
+        descricao: "",
+        qtde: "",
+        validade: ""
     });
     const [formOriginal, setFormOriginal] = useState({
         id:0,
-        nome: "",
-        endereco: "",
-        telefone: "",
-        usuario: "",
-        senha: ""
+        descricao: "",
+        qtde: "",
+        validade: ""
     });
     const [editado, setEditado] = useState(false);
 
+    function formataData(data = {})
+    {
+        return {
+            id: data.id ?? 0,
+            descricao: data.descricao ?? "",
+            qtde: data.qtde ?? "",
+            validade: data.validade
+                ? data.validade.split("T")[0]
+                : ""
+        }
+    }
+
     useEffect(() => {
         async function carregar(){
-            const data = await fetchBeneficiario(id);
-            setForm(data)
-            setFormOriginal(data);
+            const data = await fetchItens(id);
+            const dataFormatada = formataData(data);
+            setForm(dataFormatada);
+            setFormOriginal(dataFormatada);
         }
         carregar();
     }, []);
 
     useEffect(() => {
-        if (JSON.stringify(form) !== JSON.stringify(formOriginal)) {
-            setEditado(true);
-        } else {
-            setEditado(false);
-        }
+        setEditado(JSON.stringify(form) !== JSON.stringify(formOriginal));
     }, [form, formOriginal]);
 
     return (
@@ -104,7 +119,7 @@ function EditarBeneficiarioView() {
             <Header/>
             <main>
                 <Styled.BackBtn>
-                    <Link to={'/tabelas/beneficiarios'}>
+                    <Link to={'/tabelas/itens'}>
                         <div>
                             Voltar
                         </div>
@@ -112,47 +127,31 @@ function EditarBeneficiarioView() {
                 </Styled.BackBtn>
                 <Styled.Form>
                     <div>
-                        <label htmlFor="nome">Nome: </label>
+                        <label htmlFor="descricao">Descrição </label>
                         <input
-                            name="nome"
-                            value={form.nome}
+                            type="text"
+                            name="descricao"
+                            value={form.descricao}
                             onChange={atualizarForm}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="endereco">Endereco: </label>
+                        <label htmlFor="qtde">Quantidade: </label>
                         <input
-                            name="endereco"
-                            value={form.endereco}
+                            type="number"
+                            name="qtde"
+                            value={form.qtde}
                             onChange={atualizarForm}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="telefone">Telefone: </label>
+                        <label htmlFor="validade">Validade: </label>
                         <input
-                            name="telefone"
-                            value={form.telefone}
-                            onChange={atualizarForm}
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="usuario">Usuario: </label>
-                        <input
-                            name="usuario"
-                            value={form.usuario}
-                            onChange={atualizarForm}
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="senha">Senha: </label>
-                        <input
-                            type="password"
-                            name="senha"
-                            value={form.senha}
+                            type="date"
+                            name="validade"
+                            value={form.validade}
                             onChange={atualizarForm}
                         />
                     </div>
@@ -160,14 +159,14 @@ function EditarBeneficiarioView() {
                     <button
                         type="button" 
                         disabled={!editado}
-                        onClick={fetchAlterarBeneficiario}
+                        onClick={fetchAlterarItem}
                     >
                         Editar
                     </button>
 
                     <button
                         type="button"
-                        onClick={fetchExcluirBeneficiario}
+                        onClick={fetchExcluirItem}
                     >
                         Excluir
                     </button>
@@ -178,4 +177,4 @@ function EditarBeneficiarioView() {
     );
 }
 
-export default EditarBeneficiarioView;
+export default EditarItensView;

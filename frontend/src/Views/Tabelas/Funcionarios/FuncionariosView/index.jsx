@@ -2,25 +2,26 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function BeneficiariosView() {
-    function fetchBeneficiarioLista(filtro){
-        return fetch(`http://localhost:3000/beneficiarios/listar?filtro=${filtro}`, {
+
+
+function FuncionariosView() {
+    function fetchFuncionarioLista(filtro){
+        return fetch(`http://localhost:3000/funcionarios/listar?filtro=${filtro}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
         .catch((error) => alert(error));
     }
-
-    const [beneficiarios, setBeneficiarios] = useState([]);
+    const [funcionarios, setFuncionarios] = useState([]);
     const [filtro, setFiltro] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
         async function carregar(){
-            const data = await fetchBeneficiarioLista(filtro);
-            setBeneficiarios(data);
+            const data = await fetchFuncionarioLista(filtro);
+            setFuncionarios(data);
         }
         carregar();
     }, [filtro]);
@@ -30,12 +31,12 @@ function BeneficiariosView() {
             <Header/>
             <main>
                 <Styled.Busca type="text"
-                    placeholder="Buscar beneficiario..."
+                    placeholder="Buscar funcionário..."
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}/>
                 <Styled.Actions>
-                    <button onClick={() => navigate("/beneficiarios/cadastro")}>
-                        + Cadastrar Beneficiario
+                    <button onClick={() => navigate("/funcionarios/cadastro")}>
+                        + Cadastrar Funcionário
                     </button>
                 </Styled.Actions>
                 <Styled.Table>
@@ -43,25 +44,20 @@ function BeneficiariosView() {
                         <tr>
                             <th>#</th>
                             <th>nome</th>
-                            <th>endereco</th>
-                            <th>telefone</th>
                             <th>usuario</th>
-                            <th>senha</th>
+                            <th>cargo</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            beneficiarios.map((b) => (
+                            funcionarios.map((f) => (
                                 <tr 
-                                    key={b.id}
-                                    onClick={() => navigate(`/beneficiarios/${b.id}`)}
+                                    onClick={() => navigate(`/funcionarios/${f.id}`)}
                                 >
-                                    <td>{b.id}</td>
-                                    <td>{b.nome}</td>
-                                    <td>{b.endereco}</td>
-                                    <td>{b.telefone}</td>
-                                    <td>{b.usuario}</td>
-                                    <td>{b.senha}</td>
+                                    <td>{f.id}</td>
+                                    <td>{f.nome}</td>
+                                    <td>{f.usuario}</td>
+                                    <td>{f.cargo}</td>
                                 </tr>
                             ))
                         }
@@ -73,4 +69,4 @@ function BeneficiariosView() {
     )   
 }
 
-export default BeneficiariosView;
+export default FuncionariosView;
