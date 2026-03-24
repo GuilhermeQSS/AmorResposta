@@ -1,7 +1,14 @@
 import connection from "../db/connection.js";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes");
 
 class Doacao {
-    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao) {
+    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento = null) {
         this.id = id;
         this.doadorNome = Doacao.normalizarDoadorNome(doadorNome);
         this.dataEntrega = dataEntrega;
@@ -10,6 +17,7 @@ class Doacao {
         this.tipo = tipo;
         this.quantidadeItens = Doacao.normalizarQuantidadeItens(quantidadeItens);
         this.observacao = Doacao.normalizarTextoLivre(observacao);
+        this.documento = Doacao.normalizarDocumento(documento);
     }
 
     static normalizarDoadorNome(doadorNome) {
@@ -25,6 +33,58 @@ class Doacao {
     static normalizarQuantidadeItens(quantidadeItens) {
         const quantidade = Number(quantidadeItens);
         return Number.isInteger(quantidade) && quantidade > 0 ? quantidade : null;
+    }
+
+    static normalizarDocumento(documento) {
+        if (!documento) {
+            return null;
+        }
+
+        const nomeArquivo = String(documento.nomeArquivo || "").trim();
+        const conteudoBase64 = String(documento.conteudoBase64 || "").trim();
+        const tipoMime = String(documento.tipoMime || "").trim() || null;
+
+        if (!nomeArquivo || !conteudoBase64) {
+            return null;
+        }
+
+        return {
+            nomeArquivo,
+            conteudoBase64,
+            tipoMime
+        };
+    }
+
+    static obterExtensaoDocumento(nomeArquivo) {
+        const extensaoOriginal = path.extname(nomeArquivo || "").replace(/[^a-zA-Z0-9.]/g, "").toLowerCase();
+        return extensaoOriginal || ".bin";
+    }
+
+    static async salvarDocumento(documento) {
+        await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
+
+        const extensao = Doacao.obterExtensaoDocumento(documento.nomeArquivo);
+        const nomeSalvo = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${extensao}`;
+        const caminhoRelativo = `uploads/doacoes/${nomeSalvo}`;
+        const caminhoCompleto = path.join(DOCUMENTOS_DIR, nomeSalvo);
+        const conteudo = Buffer.from(documento.conteudoBase64, "base64");
+
+        await fs.writeFile(caminhoCompleto, conteudo);
+
+        try {
+            const [resultadoDocumento] = await connection.query(
+                "insert into documentos(doc_caminho) values (?);",
+                [caminhoRelativo]
+            );
+
+            return {
+                documentoId: resultadoDocumento.insertId,
+                caminhoCompleto
+            };
+        } catch (error) {
+            await fs.unlink(caminhoCompleto).catch(() => null);
+            throw error;
+        }
     }
 
     static async listar(filtro, tipoFiltro = "doador") {
@@ -77,29 +137,50 @@ class Doacao {
     }
 
     async gravar() {
-        const queryString = `
-            insert into doacoes(
-                doa_doadorNome,
-                doa_dataEntrega,
-                doa_origem,
-                doa_formaEntrega,
-                doa_tipo,
-                doa_quantidadeItens,
-                doa_observacao
-            ) values (?, ?, ?, ?, ?, ?, ?);
-        `;
+        let documentoPersistido = null;
 
-        const [resultado] = await connection.query(queryString, [
-            this.doadorNome,
-            this.dataEntrega,
-            this.origem,
-            this.formaEntrega,
-            this.tipo,
-            this.quantidadeItens,
-            this.observacao
-        ]);
+        await connection.beginTransaction();
 
-        return resultado;
+        try {
+            if (this.documento) {
+                documentoPersistido = await Doacao.salvarDocumento(this.documento);
+            }
+
+            const queryString = `
+                insert into doacoes(
+                    doa_doadorNome,
+                    doa_dataEntrega,
+                    doa_origem,
+                    doa_formaEntrega,
+                    doa_tipo,
+                    doa_quantidadeItens,
+                    doa_observacao,
+                    doc_id
+                ) values (?, ?, ?, ?, ?, ?, ?, ?);
+            `;
+
+            const [resultado] = await connection.query(queryString, [
+                this.doadorNome,
+                this.dataEntrega,
+                this.origem,
+                this.formaEntrega,
+                this.tipo,
+                this.quantidadeItens,
+                this.observacao,
+                documentoPersistido?.documentoId || null
+            ]);
+
+            await connection.commit();
+            return resultado;
+        } catch (error) {
+            await connection.rollback();
+
+            if (documentoPersistido?.caminhoCompleto) {
+                await fs.unlink(documentoPersistido.caminhoCompleto).catch(() => null);
+            }
+
+            throw error;
+        }
     }
 
     async alterar() {

@@ -6,6 +6,17 @@ class DoacaoController {
         return Number.isInteger(quantidade) && quantidade > 0;
     }
 
+    static documentoValido(documento) {
+        if (!documento) {
+            return true;
+        }
+
+        return Boolean(
+            String(documento.nomeArquivo || "").trim() &&
+            String(documento.conteudoBase64 || "").trim()
+        );
+    }
+
     static textoObrigatorioValido(valor) {
         return Boolean(String(valor || "").trim());
     }
@@ -36,7 +47,13 @@ class DoacaoController {
 
     static async cadastrar(req, res) {
         try {
-            const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao } = req.body;
+            const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento } = req.body;
+
+            if (!DoacaoController.documentoValido(documento)) {
+                return res.status(400).json({
+                    erro: "Documento invalido"
+                });
+            }
 
             if (
                 !dataEntrega ||
@@ -58,7 +75,8 @@ class DoacaoController {
                 formaEntrega,
                 tipo,
                 quantidadeItens,
-                observacao
+                observacao,
+                documento
             );
 
             const resp = await doacao.gravar();

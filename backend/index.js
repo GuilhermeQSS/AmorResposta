@@ -7,8 +7,8 @@ const app = e();
 const port = 3000
 
 app.use(cors());
-app.use(e.json());
-app.use(e.urlencoded({extended:true}));
+app.use(e.json({ limit: "10mb" }));
+app.use(e.urlencoded({extended:true, limit: "10mb"}));
 app.use(e.static("public"));
 app.use("/funcionarios",funcionarioRoutes);
 app.use("/beneficiarios",beneficiarioRoutes);

@@ -5,6 +5,21 @@ import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function CadastrarDoacaoView() {
+    function arquivoParaBase64(arquivo) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                const conteudo = String(reader.result || "");
+                const [, base64 = ""] = conteudo.split(",");
+                resolve(base64);
+            };
+
+            reader.onerror = () => reject(new Error("Nao foi possivel ler o documento selecionado."));
+            reader.readAsDataURL(arquivo);
+        });
+    }
+
     function validarFormulario(dados) {
         const novosErros = {};
 
@@ -32,11 +47,22 @@ function CadastrarDoacaoView() {
         return novosErros;
     }
 
-    function prepararPayload(dados) {
+    async function prepararPayload(dados) {
+        let documentoPayload = null;
+
+        if (documento) {
+            documentoPayload = {
+                nomeArquivo: documento.name,
+                tipoMime: documento.type || null,
+                conteudoBase64: await arquivoParaBase64(documento)
+            };
+        }
+
         return {
             ...dados,
             doadorNome: dados.doadorNome.trim() || "anonimo",
-            quantidadeItens: Number(dados.quantidadeItens)
+            quantidadeItens: Number(dados.quantidadeItens),
+            documento: documentoPayload
         };
     }
 
@@ -51,7 +77,7 @@ function CadastrarDoacaoView() {
         }
 
         try {
-            const payload = prepararPayload(form);
+            const payload = await prepararPayload(form);
             const response = await fetch("http://localhost:3000/doacoes/gravar", {
                 method: "POST",
                 headers: {
@@ -98,6 +124,12 @@ function CadastrarDoacaoView() {
         });
     }
 
+    function atualizarDocumento(e) {
+        const arquivoSelecionado = e.target.files?.[0] || null;
+        setDocumento(arquivoSelecionado);
+        setNomeDocumento(arquivoSelecionado?.name || "");
+    }
+
     const [form, setForm] = useState({
         doadorNome: "",
         dataEntrega: "",
@@ -107,6 +139,8 @@ function CadastrarDoacaoView() {
         quantidadeItens: "",
         observacao: ""
     });
+    const [documento, setDocumento] = useState(null);
+    const [nomeDocumento, setNomeDocumento] = useState("");
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
@@ -226,6 +260,22 @@ function CadastrarDoacaoView() {
                             rows="4"
                             placeholder="Detalhes importantes da doacao"
                         />
+                    </div>
+
+                    <div data-error={Boolean(erros.documento)}>
+                        <label htmlFor="documento">Documento (opcional):</label>
+                        <input
+                            ref={(elemento) => {
+                                fieldRefs.current.documento = elemento;
+                            }}
+                            type="file"
+                            name="documento"
+                            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                            onChange={atualizarDocumento}
+                        />
+                        <small>
+                            {nomeDocumento || "Voce pode anexar comprovante, recibo ou outro documento."}
+                        </small>
                     </div>
 
                     <button
