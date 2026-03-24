@@ -17,7 +17,7 @@ const Styled = {
             color: #ff6f91;
         }
 
-        div {
+        .form-field {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -44,8 +44,55 @@ const Styled = {
                 box-shadow: 0 0 0 2px #ff6f91;
             }
         }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid black;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:nth-of-type(2) {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
     `,
     CampoSenha: styled.div`
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin-bottom: 20px;
+
+        label {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 0 2px #ff6f91;
+        }
+
         button {
             margin-top: 8px;
             margin-left: auto;
@@ -59,37 +106,6 @@ const Styled = {
 
         input[readonly] {
             background: #f1f1f1;
-            cursor: not-allowed;
-        }
-    `,
-    Acoes: styled.div`
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        width: 100%;
-        margin-top: 10px;
-
-        button {
-            padding: 10px;
-            border: black 1px solid;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button[type="submit"] {
-            background-color: #4caf50;
-            color: white;
-        }
-
-        button[data-variant="danger"] {
-            background-color: #ff0000;
-            color: white;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            color: #666;
             cursor: not-allowed;
         }
     `,

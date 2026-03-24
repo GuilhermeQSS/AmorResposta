@@ -153,7 +153,7 @@ function EditarBeneficiarioView() {
                     </Link>
                 </Styled.BackBtn>
                 <Styled.Form onSubmit={fetchAlterarBeneficiario}>
-                    <div>
+                    <div className="form-field">
                         <label htmlFor="nome">Nome: </label>
                         <input
                             id="nome"
@@ -164,7 +164,7 @@ function EditarBeneficiarioView() {
                         />
                     </div>
 
-                    <div>
+                    <div className="form-field">
                         <label htmlFor="endereco">Endereco: </label>
                         <input
                             id="endereco"
@@ -175,7 +175,7 @@ function EditarBeneficiarioView() {
                         />
                     </div>
 
-                    <div>
+                    <div className="form-field">
                         <label htmlFor="telefone">Telefone: </label>
                         <input
                             id="telefone"
@@ -189,7 +189,7 @@ function EditarBeneficiarioView() {
                         />
                     </div>
 
-                    <div>
+                    <div className="form-field">
                         <label htmlFor="usuario">Usuario: </label>
                         <input
                             id="usuario"
@@ -219,22 +219,19 @@ function EditarBeneficiarioView() {
                         </button>
                     </Styled.CampoSenha>
 
-                    <Styled.Acoes>
-                        <button
-                            type="submit"
-                            disabled={!editado}
-                        >
-                            Editar
-                        </button>
+                    <button
+                        type="submit"
+                        disabled={!editado}
+                    >
+                        Editar
+                    </button>
 
-                        <button
-                            type="button"
-                            data-variant="danger"
-                            onClick={fetchExcluirBeneficiario}
-                        >
-                            Excluir
-                        </button>
-                    </Styled.Acoes>
+                    <button
+                        type="button"
+                        onClick={fetchExcluirBeneficiario}
+                    >
+                        Excluir
+                    </button>
                 </Styled.Form>
             </main>
             <Footer/>
