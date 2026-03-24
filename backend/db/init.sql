@@ -69,37 +69,37 @@ CREATE TABLE IF NOT EXISTS `responsaveis` (
   	PRIMARY KEY (`fun_id`, `enc_id`)
 );
 
-CREATE TABLE IF NOT EXISTS `itens` (
-  	`item_id` INT NOT NULL auto_increment,
-  	`item_descricao` VARCHAR(45) NULL,
-  	`item_qtde` INT NULL,
-  	`item_validade` DATE NULL,
-  	PRIMARY KEY (`item_id`)
+CREATE TABLE IF NOT EXISTS `estoque` (
+  	`est_id` INT NOT NULL auto_increment,
+  	`est_descricao` VARCHAR(45) NULL,
+  	`est_qtde` INT NULL,
+  	`est_validade` DATE NULL,
+  	PRIMARY KEY (`est_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `materiais` (
   	`enc_id` INT NOT NULL,
-  	`item_id` INT NOT NULL,
+  	`est_id` INT NOT NULL,
   	`qtde` INT NULL,
   	`utilizado` CHAR(1) NULL,
-  	PRIMARY KEY (`enc_id`, `item_id`)
+  	PRIMARY KEY (`enc_id`, `est_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `doacoesItens` (
   `doa_id` INT NOT NULL,
-  `item_id` INT NULL,
+  `est_id` INT NULL,
   `qtde` DOUBLE NULL,
   `descricao` VARCHAR(100) NULL,
   `tipo` VARCHAR(1) NULL,
-  PRIMARY KEY (`doa_id`, `item_id`)
+  PRIMARY KEY (`doa_id`, `est_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `itensDoados` (
-  	`item_id` INT NOT NULL,
+  	`est_id` INT NOT NULL,
   	`ben_id` INT NOT NULL,
   	`qtde` INT NULL,
   	`data` DATE NULL,
-  	PRIMARY KEY (`item_id`, `ben_id`)
+  	PRIMARY KEY (`est_id`, `ben_id`)
 );
 
 ALTER TABLE `doacoes`
@@ -126,16 +126,16 @@ ALTER TABLE `materiais`
 	ADD CONSTRAINT `fk_Materiais_Encontros`
     	FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
   	ADD CONSTRAINT `fk_Materiais_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
+    	FOREIGN KEY (`est_id`) REFERENCES `estoque` (`est_id`);
 
 ALTER TABLE `doacoesItens`
 	ADD CONSTRAINT `fk_DoacoesItens_Doacoes`
 	    FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`),
   	ADD CONSTRAINT `fk_DoacoesItens_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
+    	FOREIGN KEY (`est_id`) REFERENCES `estoque` (`est_id`);
 
 ALTER TABLE `itensDoados`
 	ADD CONSTRAINT `fk_ItensDoados_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
+    	FOREIGN KEY (`est_id`) REFERENCES `estoque` (`est_id`),
   	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
     	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);

@@ -17,6 +17,9 @@ import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBe
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
+import CadastrarEstoqueView from './Views/Tabelas/Estoque/CadastrarEstoqueView'
+import EditarEstoqueView from './Views/Tabelas/Estoque/EditarEstoqueView'
+import EstoqueView from './Views/Tabelas/Estoque/EstoqueView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -37,6 +40,9 @@ createRoot(document.getElementById('root')).render(
         <Route Component={DoacoesView} path='/tabelas/doacoes'/>
         <Route Component={CadastrarDoacaoView} path="/doacoes/cadastro" />
         <Route Component={EditarDoacaoView} path="/doacoes/:id" />
+        <Route Component={EstoqueView} path='/tabelas/estoque'/>
+        <Route Component={CadastrarEstoqueView} path="/estoque/cadastro" />
+        <Route Component={EditarEstoqueView} path="/estoque/:id" />
       </Routes>
     </BrowserRouter>
   </StrictMode>
