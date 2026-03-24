@@ -17,6 +17,9 @@ import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBe
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
+import CadastrarEncontroView from './Views/Tabelas/Encontros/CadastrarEncontroView'
+import EditarEncontroView from './Views/Tabelas/Encontros/EditarEncontroView'
+import EncontrosView from './Views/Tabelas/Encontros/EncontrosView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,6 +34,9 @@ createRoot(document.getElementById('root')).render(
         <Route Component={FuncionariosView} path='/tabelas/funcionarios'/>
         <Route Component={EditarFuncionarioView} path="/funcionarios/:id" />
         <Route Component={CadastrarFuncionarioView} path="/funcionarios/cadastro" />
+        <Route Component={EncontrosView} path='/tabelas/encontros'/>
+        <Route Component={EditarEncontroView} path="/encontros/:id" />
+        <Route Component={CadastrarEncontroView} path="/encontros/cadastro" />
         <Route Component={BeneficiariosView} path='/tabelas/beneficiarios'/>
         <Route Component={EditarBeneficiarioView} path="/beneficiarios/:id" />
         <Route Component={CadastrarBeneficiarioView} path="/beneficiarios/cadastro" />
