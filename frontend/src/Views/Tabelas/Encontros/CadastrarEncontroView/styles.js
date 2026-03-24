@@ -17,16 +17,13 @@ const Styled = {
             color: #ff6f91;
         }
 
-        div {
+        .form-field {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             width: 100%;
             margin-bottom: 20px;
 
-            button{
-                margin-left: auto;
-            }
             label {
                 margin-bottom: 5px;
                 font-size: 14px;
@@ -49,23 +46,67 @@ const Styled = {
             }
         }
 
-        button{
+        button {
             margin-top: 10px;
             padding: 10px;
-            border: black 1px solid;
+            border: 1px solid black;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
         }
 
-        button:nth-of-type(2){
+        button:nth-of-type(2) {
             background-color: #ff0000;
             color: white;
         }
 
-        button:disabled{
+        button:disabled {
             background-color: #ccc;
             color: #666;
+            cursor: not-allowed;
+        }
+    `,
+    CampoSenha: styled.div`
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin-bottom: 20px;
+
+        label {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 0 2px #ff6f91;
+        }
+
+        button {
+            margin-top: 8px;
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid black;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: white;
+        }
+
+        input[readonly] {
+            background: #f1f1f1;
             cursor: not-allowed;
         }
     `,

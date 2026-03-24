@@ -22,7 +22,6 @@ function Header(){
                     <p>Tabelas</p>
                     {dropdownOpen && (
                         <div>
-                            <Link to="/tabelas/funcionarios">Funcionários</Link>
                             <Link to="/tabelas/beneficiarios">Beneficiarios</Link>
                             <Link to="/tabelas/doacoes">Doacoes</Link>
                             <Link to="/tabelas/encontros">Encontros</Link>
