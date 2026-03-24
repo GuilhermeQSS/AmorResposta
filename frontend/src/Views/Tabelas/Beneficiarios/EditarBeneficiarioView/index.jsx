@@ -82,7 +82,7 @@ function EditarBeneficiarioView() {
                 })
             });
             navigate("/tabelas/beneficiarios");
-        } catch (error) {
+        } catch {
             alert("Erro ao excluir");
         }
     }
@@ -93,6 +93,9 @@ function EditarBeneficiarioView() {
             ...prev,
             [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
+    }
+    function alternarSenhaVisivel(){
+        setSenhaVisivel((prev) => !prev);
     }
     const navigate = useNavigate();
     const {id} = useParams();
@@ -113,6 +116,7 @@ function EditarBeneficiarioView() {
         senha: ""
     });
     const [editado, setEditado] = useState(false);
+    const [senhaVisivel, setSenhaVisivel] = useState(false);
 
     useEffect(() => {
         async function carregar(){
@@ -122,11 +126,12 @@ function EditarBeneficiarioView() {
                 ...data,
                 telefone: telefoneFormatado
             };
+            setSenhaVisivel(false);
             setForm(dadosFormatados)
             setFormOriginal(dadosFormatados);
         }
         carregar();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         if (JSON.stringify(form) !== JSON.stringify(formOriginal)) {
@@ -195,31 +200,41 @@ function EditarBeneficiarioView() {
                         />
                     </div>
 
-                    <div>
+                    <Styled.CampoSenha>
                         <label htmlFor="senha">Senha: </label>
                         <input
-                            type="password"
+                            type={senhaVisivel ? "text" : "password"}
                             id="senha"
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
+                            readOnly={!senhaVisivel}
                             required
                         />
-                    </div>
+                        <button
+                            type="button"
+                            onClick={alternarSenhaVisivel}
+                        >
+                            {senhaVisivel ? "Ocultar senha" : "Ver senha"}
+                        </button>
+                    </Styled.CampoSenha>
 
-                    <button
-                        type="submit"
-                        disabled={!editado}
-                    >
-                        Editar
-                    </button>
+                    <Styled.Acoes>
+                        <button
+                            type="submit"
+                            disabled={!editado}
+                        >
+                            Editar
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={fetchExcluirBeneficiario}
-                    >
-                        Excluir
-                    </button>
+                        <button
+                            type="button"
+                            data-variant="danger"
+                            onClick={fetchExcluirBeneficiario}
+                        >
+                            Excluir
+                        </button>
+                    </Styled.Acoes>
                 </Styled.Form>
             </main>
             <Footer/>

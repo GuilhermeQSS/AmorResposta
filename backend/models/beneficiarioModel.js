@@ -10,13 +10,30 @@ class Beneficiario{
         this.senha = senha;
     }
 
-    static async listar(filtro) {
-        let queryString = `select * from beneficiarios`
+    static async listar(filtro, telefone) {
+        let queryString = `select * from beneficiarios`;
         const params = [];
-        if (filtro) {
-            queryString += ` where ben_usuario like ?`;
-            params.push(`%${filtro}%`);
+        const condicoes = [];
+        const filtroNormalizado = `${filtro ?? ""}`.trim();
+        const telefoneNormalizado = `${telefone ?? ""}`.replace(/\D/g, "");
+
+        if (filtroNormalizado) {
+            condicoes.push(`(
+                lower(trim(ben_nome)) like lower(?)
+                or lower(trim(ben_usuario)) like lower(?)
+            )`);
+            params.push(`%${filtroNormalizado}%`, `%${filtroNormalizado}%`);
         }
+
+        if (telefoneNormalizado) {
+            condicoes.push(`replace(replace(replace(replace(trim(ben_telefone), '(', ''), ')', ''), '-', ''), ' ', '') like ?`);
+            params.push(`%${telefoneNormalizado}%`);
+        }
+
+        if (condicoes.length > 0) {
+            queryString += ` where ${condicoes.join(" and ")}`;
+        }
+
         const [beneficiarios] = await connection.query(queryString, params);
         let beneficiarioList = [];
         beneficiarios.forEach(b => {

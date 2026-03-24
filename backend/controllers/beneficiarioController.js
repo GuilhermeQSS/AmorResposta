@@ -33,7 +33,7 @@ class BeneficiarioController{
 
     static async listar(req,res){
         try{
-            let resp = await Beneficiario.listar(req.query.filtro);
+            let resp = await Beneficiario.listar(req.query.filtro, req.query.telefone);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})

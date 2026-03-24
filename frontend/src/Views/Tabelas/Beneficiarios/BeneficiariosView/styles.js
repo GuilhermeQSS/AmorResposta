@@ -1,13 +1,23 @@
 import styled from "styled-components";
 
 const Styled = {
+    Filtros: styled.div`
+        width: min(900px, 92%);
+        margin: 0 auto 15px;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+
+        @media (max-width: 720px) {
+            grid-template-columns: 1fr;
+        }
+    `,
     Busca: styled.input`
-        display: block;
-        margin: 0 auto;
+        width: 100%;
         padding: 10px 15px;
-        width: 50%;
         border-radius: 10px;
         border: 1px solid #ccc;
+        background: rgba(255, 255, 255, 0.9);
     `,
     Actions: styled.div`
         width: 100%;

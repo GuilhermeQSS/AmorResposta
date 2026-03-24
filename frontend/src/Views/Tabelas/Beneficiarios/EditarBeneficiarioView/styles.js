@@ -24,9 +24,6 @@ const Styled = {
             width: 100%;
             margin-bottom: 20px;
 
-            button{
-                margin-left: auto;
-            }
             label {
                 margin-bottom: 5px;
                 font-size: 14px;
@@ -47,9 +44,32 @@ const Styled = {
                 box-shadow: 0 0 0 2px #ff6f91;
             }
         }
+    `,
+    CampoSenha: styled.div`
+        button {
+            margin-top: 8px;
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid black;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: white;
+        }
 
-        button{
-            margin-top: 10px;
+        input[readonly] {
+            background: #f1f1f1;
+            cursor: not-allowed;
+        }
+    `,
+    Acoes: styled.div`
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        width: 100%;
+        margin-top: 10px;
+
+        button {
             padding: 10px;
             border: black 1px solid;
             border-radius: 10px;
@@ -57,12 +77,17 @@ const Styled = {
             font-weight: bold;
         }
 
-        button:nth-of-type(2){
+        button[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        button[data-variant="danger"] {
             background-color: #ff0000;
             color: white;
         }
 
-        button:disabled{
+        button:disabled {
             background-color: #ccc;
             color: #666;
             cursor: not-allowed;
