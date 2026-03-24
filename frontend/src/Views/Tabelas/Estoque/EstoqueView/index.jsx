@@ -5,34 +5,56 @@ import { useEffect,useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function EstoqueView() {
-    function fetchEstoqueLista(filtro){
-        return fetch(`http://localhost:3000/estoque/listar?filtro=${filtro}`, {
-            method: "GET"
-        })
-        .then((response) =>  response.json())
+    function fetchEstoqueLista(descricao, dias){
+    return fetch(
+        `http://localhost:3000/estoque/listar?descricao=${descricao}&dias=${dias}`,
+        { method: "GET" }
+        )
+        .then((response) => response.json())
         .catch((error) => alert(error));
     }
 
     const [estoque, setEstoque] = useState([]);
-    const [filtro, setFiltro] = useState("");
+    const [descricao, setDescricao] = useState("");
+    const [dias, setDias] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
-        async function carregar(){
-            const data = await fetchEstoqueLista(filtro);
-            setEstoque(data);
-        }
-        carregar();
-    }, [filtro]);
-    
+    async function carregar(){
+        const data = await fetchEstoqueLista(descricao, dias);
+        setEstoque(data);
+    }
+    carregar();
+    }, [descricao, dias]);
+
     return(
         <>
             <Header/>
             <main>
-                <Styled.Busca type="text"
-                    placeholder="Buscar estoque..."
-                    value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)}/>
+                <Styled.ContainerBusca>
+                    <Styled.Busca type="text"
+                        placeholder="Buscar por descrição..."
+                        value={descricao}
+                        onChange={(e) => setDescricao(e.target.value)}/>
+                    <Styled.Busca type="number"
+                        placeholder="Vence em... dias"
+                        value={dias}
+                        max="365"
+                        onChange={(e) => {
+                            const value = e.target.value;
+
+                            if (value === "") {
+                                setDias("");
+                                return;
+                            }
+
+                            const num = Number(value);
+
+                            if (num >= 1 && num <= 365) {
+                                setDias(num);
+                            }
+                        }}/>
+                </Styled.ContainerBusca>
                 <Styled.Actions>
                     <button onClick={() => navigate("/estoque/cadastro")}>
                         + Cadastrar Estoque

@@ -1,11 +1,15 @@
 import styled from "styled-components";
 
 const Styled = {
+    ContainerBusca: styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* espaço entre os inputs */
+    margin: 20px 0;
+    `,
     Busca: styled.input`
-        display: block;
-        margin: 0 auto;
         padding: 10px 15px;
-        width: 50%;
+        width: 25%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,

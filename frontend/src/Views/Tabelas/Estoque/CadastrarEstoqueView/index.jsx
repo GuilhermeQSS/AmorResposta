@@ -15,7 +15,7 @@ function CadastrarEstoqueView() {
                 body: JSON.stringify({
                     descricao: form.descricao,
                     qtde: form.qtde,
-                    validade: form.validade
+                    validade: form.validade || null
                 })
             });
             if(response.ok){

@@ -26,7 +26,7 @@ function EditarEstoqueView() {
                     id: form.id,
                     descricao: form.descricao,
                     qtde: form.qtde,
-                    validade: form.validade,
+                    validade: form.validade || null,
                     camposAlterados: {
                         descricao: form.descricao !== formOriginal.descricao,
                         qtde: form.qtde !== formOriginal.qtde,
@@ -106,7 +106,7 @@ function EditarEstoqueView() {
         async function carregar(){
             const data = await fetchEstoque(id);
             const dataFormatada = formataData(data)
-            setForm(dataFormatada); 
+            setForm(dataFormatada);
             setFormOriginal(dataFormatada);
         }
         carregar();

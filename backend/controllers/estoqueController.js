@@ -3,7 +3,16 @@ import Estoque from "../models/estoqueModel.js";
 class EstoqueController{
     static async listar(req,res){
         try{
-            let resp = await Estoque.listar(req.query.filtro);
+            const { descricao, dias } = req.query;
+            let resp;
+
+            if (descricao && dias){
+                resp = await Estoque.buscarPorDescricaoEValidade(descricao, dias);
+            } else if (dias){
+                resp = await Estoque.buscarPorValidade(dias);
+            } else {
+                resp = await Estoque.listar(descricao);
+            }
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
@@ -27,13 +36,12 @@ class EstoqueController{
     static async alterar(req, res){
         try {
             const { id, descricao, qtde, validade, camposAlterados } = req.body;
-            if (!descricao || !qtde || !validade) {
+            if (!descricao || qtde === undefined) {
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
                     campos:{
                         est_descricao: !descricao,
-                        est_qtde: !qtde,
-                        est_validade: !validade
+                        est_qtde: !qtde
                     }
                 });
             }
@@ -46,7 +54,6 @@ class EstoqueController{
             const resultado = await estoque.alterar();
             return res.status(200).json(resultado);
         } catch (error) {
-            console.log("body: "+req.body);
             return res.status(500).json({ erro: "Erro ao alterar estoque" });
         }
     }
@@ -66,28 +73,28 @@ class EstoqueController{
     static async cadastrar(req,res){
         try{
             const {descricao, qtde, validade} = req.body;
-            if (!descricao || !qtde || !validade) {
-                return res.status(500).json({ 
-                    err: "Algum campo está vazio" ,
-                    campos:{
-                        est_descricao: !descricao,
-                        est_qtde: !qtde,
-                        est_validade: !validade
-                    }
-                });
-            }
-            /*if (qtde < 0) {
+            if (qtde < 0) {
                 return res.status(500).json({ 
                     err: "Quantidade inválida",
                     campos:{est_qtde: qtde}
                 });
             }
-            if (validade < Date.now()) {
-            return res.status(500).json({ 
-                err: "Validade inválida",
-                campos:{est_validade: validade}
-            });
-            }*/
+            if (!descricao) {
+                return res.status(500).json({ 
+                    err: "Descrição vazia" ,
+                    campos:{
+                        est_descricao: !descricao
+                    }
+                });
+            }
+            if(validade && new Date(validade) < new Date()){
+                return res.status(500).json({ 
+                    err: "Validade inválida" ,
+                    campos:{
+                        est_descricao: !validade
+                    }
+                });
+            }
             let estoque = new Estoque(
                 0,
                 descricao,
