@@ -4,10 +4,10 @@ import Styled from "./styles";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function CadastrarEstoqueView() {
-    async function fetchCadastrarEstoque(){
+function CadastrarItensView() {
+    async function fetchCadastrarItem(){
         try {
-            const response = await fetch("http://localhost:3000/estoque/gravar", {
+            const response = await fetch("http://localhost:3000/itens/gravar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -19,7 +19,7 @@ function CadastrarEstoqueView() {
                 })
             });
             if(response.ok){
-                navigate("/tabelas/estoque");
+                navigate("/tabelas/itens");
             }else{
                 const json = await response.json(); 
                 console.log(json);
@@ -52,7 +52,7 @@ function CadastrarEstoqueView() {
             <Header/>
             <main>
                 <Styled.BackBtn>
-                    <Link to={'/tabelas/estoque'}>
+                    <Link to={'/tabelas/itens'}>
                         <div>
                             Voltar
                         </div>
@@ -94,7 +94,7 @@ function CadastrarEstoqueView() {
 
                     <button
                         type="button"
-                        onClick={fetchCadastrarEstoque}
+                        onClick={fetchCadastrarItem}
                     >
                         Cadastrar
                     </button>
@@ -105,4 +105,4 @@ function CadastrarEstoqueView() {
     );
 }
 
-export default CadastrarEstoqueView;
+export default CadastrarItensView;

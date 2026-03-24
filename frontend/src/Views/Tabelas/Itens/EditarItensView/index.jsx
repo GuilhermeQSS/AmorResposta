@@ -4,20 +4,18 @@ import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-function EditarEstoqueView() {
-    function fetchEstoque(id){
-        return fetch(`http://localhost:3000/estoque/buscar?id=${id}`, {
+function EditarItensView() {
+    function fetchItens(id){
+        return fetch(`http://localhost:3000/itens/buscar?id=${id}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
         .catch((error) => alert(error));
     }
 
-    async function fetchAlterarEstoque(){
+    async function fetchAlterarItem(){
         try {
-            console.log("FORM:", form);
-            console.log("FORM ORIGINAL:", formOriginal);
-            const response = await fetch("http://localhost:3000/estoque/alterar", {
+            const response = await fetch("http://localhost:3000/itens/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -46,12 +44,12 @@ function EditarEstoqueView() {
         }
     }
 
-    async function fetchExcluirEstoque(){
+    async function fetchExcluirItem(){
         const confirmar = confirm("Tem certeza que deseja excluir?");
         if(!confirmar) return;
 
         try {
-            await fetch("http://localhost:3000/estoque/excluir", {
+            await fetch("http://localhost:3000/itens/excluir", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -60,7 +58,7 @@ function EditarEstoqueView() {
                     id: form.id
                 })
             });
-            navigate("/tabelas/estoque");
+            navigate("/tabelas/itens");
         } catch (error) {
             alert("Erro ao excluir");
         }
@@ -104,8 +102,8 @@ function EditarEstoqueView() {
 
     useEffect(() => {
         async function carregar(){
-            const data = await fetchEstoque(id);
-            const dataFormatada = formataData(data)
+            const data = await fetchItens(id);
+            const dataFormatada = formataData(data);
             setForm(dataFormatada);
             setFormOriginal(dataFormatada);
         }
@@ -121,7 +119,7 @@ function EditarEstoqueView() {
             <Header/>
             <main>
                 <Styled.BackBtn>
-                    <Link to={'/tabelas/estoque'}>
+                    <Link to={'/tabelas/itens'}>
                         <div>
                             Voltar
                         </div>
@@ -161,14 +159,14 @@ function EditarEstoqueView() {
                     <button
                         type="button" 
                         disabled={!editado}
-                        onClick={fetchAlterarEstoque}
+                        onClick={fetchAlterarItem}
                     >
                         Editar
                     </button>
 
                     <button
                         type="button"
-                        onClick={fetchExcluirEstoque}
+                        onClick={fetchExcluirItem}
                     >
                         Excluir
                     </button>
@@ -179,4 +177,4 @@ function EditarEstoqueView() {
     );
 }
 
-export default EditarEstoqueView;
+export default EditarItensView;

@@ -1,17 +1,17 @@
-import Estoque from "../models/estoqueModel.js";
+import Itens from "../models/itensModel.js";
 
-class EstoqueController{
+class ItensController{
     static async listar(req,res){
         try{
             const { descricao, dias } = req.query;
             let resp;
 
             if (descricao && dias){
-                resp = await Estoque.buscarPorDescricaoEValidade(descricao, dias);
+                resp = await Itens.buscarPorDescricaoEValidade(descricao, dias);
             } else if (dias){
-                resp = await Estoque.buscarPorValidade(dias);
+                resp = await Itens.buscarPorValidade(dias);
             } else {
-                resp = await Estoque.listar(descricao);
+                resp = await Itens.listar(descricao);
             }
             return res.status(200).json(resp);
         }catch(err){
@@ -21,9 +21,9 @@ class EstoqueController{
 
     static async buscarPorId(req,res){
         try{
-            let resp = await Estoque.buscarPorId(req.query.id);
+            let resp = await Itens.buscarPorId(req.query.id);
             if(!resp){
-                return res.status(500).json({Erro:`Não existe estoque com id ${req.query.id}`})
+                return res.status(500).json({Erro:`Não existe itens com id ${req.query.id}`})
             }else{
                 return res.status(200).json(resp);
             }
@@ -40,33 +40,33 @@ class EstoqueController{
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
                     campos:{
-                        est_descricao: !descricao,
-                        est_qtde: !qtde
+                        item_descricao: !descricao,
+                        item_qtde: !qtde
                     }
                 });
             }
-            const estoque = new Estoque(
+            const itens = new Itens(
                 id,
                 descricao,
                 qtde,
                 validade
             );
-            const resultado = await estoque.alterar();
+            const resultado = await itens.alterar();
             return res.status(200).json(resultado);
         } catch (error) {
-            return res.status(500).json({ erro: "Erro ao alterar estoque" });
+            return res.status(500).json({ erro: "Erro ao alterar itens" });
         }
     }
 
     static async excluir(req, res){
         try {
             const { id } = req.body;
-            const estoque = new Estoque(id);
-            const resultado = await estoque.excluir();
+            const itens = new Itens(id);
+            const resultado = await itens.excluir();
             res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ erro: "Erro ao excluir estoque" });
+            res.status(500).json({ erro: "Erro ao excluir itens" });
         }
     }
     
@@ -76,14 +76,14 @@ class EstoqueController{
             if (qtde < 0) {
                 return res.status(500).json({ 
                     err: "Quantidade inválida",
-                    campos:{est_qtde: qtde}
+                    campos:{item_qtde: qtde}
                 });
             }
             if (!descricao) {
                 return res.status(500).json({ 
                     err: "Descrição vazia" ,
                     campos:{
-                        est_descricao: !descricao
+                        item_descricao: !descricao
                     }
                 });
             }
@@ -91,17 +91,17 @@ class EstoqueController{
                 return res.status(500).json({ 
                     err: "Validade inválida" ,
                     campos:{
-                        est_descricao: !validade
+                        item_descricao: !validade
                     }
                 });
             }
-            let estoque = new Estoque(
+            let itens = new Itens(
                 0,
                 descricao,
                 qtde,
                 validade
             );
-            let resp = await estoque.gravar();
+            let resp = await itens.gravar();
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json(err);
@@ -109,4 +109,4 @@ class EstoqueController{
     }
 }
 
-export default EstoqueController;
+export default ItensController;

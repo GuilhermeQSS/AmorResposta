@@ -4,25 +4,25 @@ import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function EstoqueView() {
-    function fetchEstoqueLista(descricao, dias){
+function ItensView() {
+    function fetchItensLista(descricao, dias){
     return fetch(
-        `http://localhost:3000/estoque/listar?descricao=${descricao}&dias=${dias}`,
+        `http://localhost:3000/itens/listar?descricao=${descricao}&dias=${dias}`,
         { method: "GET" }
         )
         .then((response) => response.json())
         .catch((error) => alert(error));
     }
 
-    const [estoque, setEstoque] = useState([]);
+    const [itens, setItem] = useState([]);
     const [descricao, setDescricao] = useState("");
     const [dias, setDias] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
     async function carregar(){
-        const data = await fetchEstoqueLista(descricao, dias);
-        setEstoque(data);
+        const data = await fetchItensLista(descricao, dias);
+        setItem(data);
     }
     carregar();
     }, [descricao, dias]);
@@ -56,8 +56,8 @@ function EstoqueView() {
                         }}/>
                 </Styled.ContainerBusca>
                 <Styled.Actions>
-                    <button onClick={() => navigate("/estoque/cadastro")}>
-                        + Cadastrar Estoque
+                    <button onClick={() => navigate("/itens/cadastro")}>
+                        + Cadastrar Item
                     </button>
                 </Styled.Actions>
                 <Styled.Table>
@@ -71,10 +71,10 @@ function EstoqueView() {
                     </thead>
                     <tbody>
                         {
-                            estoque.map((e) => (
+                            itens.map((e) => (
                                 <tr 
                                     key={e.id}
-                                    onClick={() => navigate(`/estoque/${e.id}`)}
+                                    onClick={() => navigate(`/itens/${e.id}`)}
                                 >
                                     <td>{e.id}</td>
                                     <td>{e.descricao}</td>
@@ -91,4 +91,4 @@ function EstoqueView() {
     )   
 }
 
-export default EstoqueView;
+export default ItensView;
