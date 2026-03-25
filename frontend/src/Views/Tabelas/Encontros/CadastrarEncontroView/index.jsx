@@ -6,10 +6,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 function CadastrarEncontroView() {
   async function fetchCadastrarEncontro() {
-    if (form.qtde > form.qtdeMax) {
-      alert("Quantidade atual não pode ser maior que a máxima");
-      return;
-    }
     try {
       const response = await fetch("http://localhost:3000/encontros/gravar", {
         method: "POST",
@@ -48,7 +44,7 @@ function CadastrarEncontroView() {
   const [form, setForm] = useState({
     id: 0,
     data: "",
-    disponibilidade: "A",
+    disponibilidade: "",
     qtdeMax: 0,
     qtde: 0,
     local: "",
@@ -82,7 +78,7 @@ function CadastrarEncontroView() {
               name="disponibilidade"
               value={form.disponibilidade}
               onChange={atualizarForm}>
-              <option value="A">Selecione</option>
+              <option value="">Selecione</option>
               <option value="A">Ativo</option>
               <option value="E">Em andamento</option>
               <option value="F">Finalizado</option>

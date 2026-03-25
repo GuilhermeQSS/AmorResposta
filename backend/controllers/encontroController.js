@@ -26,7 +26,31 @@ class EncontroController{
     static async alterar(req, res){
         try {
             const { id, data, disponibilidade, qtdeMax, qtde, local, camposAlterados } = req.body;
-            if (data == null || disponibilidade == null || qtdeMax == null || qtde == null || local == null){
+            if (data == "" || (disponibilidade != 'A' && disponibilidade != 'E' && disponibilidade != 'F') || qtdeMax <= 0 || qtde == null || qtde < 0 || local == ""){
+                if(qtdeMax == 0){
+                     return res.status(500).json({ 
+                    err: "Quantidade maxima não pode ser menor ou igual a 0" ,
+                    campos:{
+                        enc_data: !data,
+                        enc_disponibilidade: !disponibilidade,
+                        enc_qtdeMax: !qtdeMax,
+                        enc_qtde: !qtde,
+                        enc_local: !local
+                    }
+                });
+                }
+                if(qtde < 0){
+                     return res.status(500).json({ 
+                    err: "Quantidade não pode ser menor que 0" ,
+                    campos:{
+                        enc_data: !data,
+                        enc_disponibilidade: !disponibilidade,
+                        enc_qtdeMax: !qtdeMax,
+                        enc_qtde: !qtde,
+                        enc_local: !local
+                    }
+                });
+                }
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
                     campos:{
@@ -38,11 +62,9 @@ class EncontroController{
                     }
                 });
             }
-            // if(await Encontro.buscarPorLocal(local)){
-            //     return res.status(500).json({ 
-            //         err: "Local já exite",
-            //     });
-            // }
+            if (qtde > qtdeMax) {
+                return res.status(500).json({ err: "Quantidade atual não pode ser maior que a máxima" });
+            }
             const encontro = new Encontro(
                 id,
                 data,
@@ -51,10 +73,12 @@ class EncontroController{
                 qtde,
                 local
             );
+            
             const resultado = await encontro.alterar();
             return res.status(200).json(resultado);
+            
         } catch (error) {
-            return res.status(500).json({ erro: "Erro ao alterar encontro" });
+            return res.status(500).json({ err: "Erro ao alterar encontro" });
         }
     }
 
@@ -73,7 +97,31 @@ class EncontroController{
     static async cadastrar(req,res){
         try{
             const {data, disponibilidade, qtdeMax, qtde, local} = req.body;
-            if (data == null || disponibilidade == null || qtdeMax == null || qtde == null || local == null) {
+            if (data == "" || (disponibilidade != 'A' && disponibilidade != 'E' && disponibilidade != 'F') || qtdeMax <= 0 || qtde == null || qtde < 0 || local == ""){
+                if(qtdeMax == 0){
+                     return res.status(500).json({ 
+                    err: "Quantidade maxima não pode ser menor ou igual a 0" ,
+                    campos:{
+                        enc_data: !data,
+                        enc_disponibilidade: !disponibilidade,
+                        enc_qtdeMax: !qtdeMax,
+                        enc_qtde: !qtde,
+                        enc_local: !local
+                    }
+                });
+                }
+                if(qtde < 0){
+                     return res.status(500).json({ 
+                    err: "Quantidade não pode ser menor que 0" ,
+                    campos:{
+                        enc_data: !data,
+                        enc_disponibilidade: !disponibilidade,
+                        enc_qtdeMax: !qtdeMax,
+                        enc_qtde: !qtde,
+                        enc_local: !local
+                    }
+                });
+                }
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
                     campos:{
@@ -90,6 +138,9 @@ class EncontroController{
             //         err: "Local já exite",
             //     });
             // }
+            if (qtde > qtdeMax) {
+                return res.status(500).json({ err: "Quantidade atual não pode ser maior que a máxima" });
+            }
             let encontro = new Encontro(
                 0,
                 data,
