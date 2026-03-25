@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
 
 function EditarBeneficiarioView() {
     function fetchBeneficiario(id){
@@ -24,7 +25,7 @@ function EditarBeneficiarioView() {
                     id: form.id,
                     nome: form.nome,
                     endereco: form.endereco,
-                    telefone: form.telefone,
+                    telefone: limparTelefone(form.telefone),
                     usuario: form.usuario,
                     senha: form.senha
                 })
@@ -59,11 +60,12 @@ function EditarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
     }
     const navigate = useNavigate();
     const {id} = useParams();
+    const [mostrarSenha, setMostrarSenha] = useState(false);
     const [form, setForm] = useState({
         id:0,
         nome: "",
@@ -85,8 +87,15 @@ function EditarBeneficiarioView() {
     useEffect(() => {
         async function carregar(){
             const data = await fetchBeneficiario(id);
-            setForm(data)
-            setFormOriginal(data);
+            if (!data) {
+                return;
+            }
+            const beneficiario = {
+                ...data,
+                telefone: formatarTelefone(data.telefone)
+            };
+            setForm(beneficiario)
+            setFormOriginal(beneficiario);
         }
         carregar();
     }, []);
@@ -132,6 +141,8 @@ function EditarBeneficiarioView() {
                     <div>
                         <label htmlFor="telefone">Telefone: </label>
                         <input
+                            type="tel"
+                            inputMode="numeric"
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
@@ -150,11 +161,18 @@ function EditarBeneficiarioView() {
                     <div>
                         <label htmlFor="senha">Senha: </label>
                         <input
-                            type="password"
+                            type={mostrarSenha ? "text" : "password"}
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
+                            disabled={!mostrarSenha}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setMostrarSenha(!mostrarSenha)}
+                        >
+                            {mostrarSenha ? "Ocultar" : "Ver senha"}
+                        </button>
                     </div>
 
                     <button
