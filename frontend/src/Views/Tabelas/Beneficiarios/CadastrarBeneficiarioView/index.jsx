@@ -3,27 +3,15 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formatarTelefone } from "../../../../utils/telefone";
 
 function CadastrarBeneficiarioView() {
-    async function lerMensagemErro(response) {
-        try {
-            const data = await response.json();
-            return data.erro || data.Erro || "Nao foi possivel cadastrar o beneficiario";
-        } catch {
-            return "Nao foi possivel cadastrar o beneficiario";
-        }
-    }
-
     function validarFormulario() {
         return Object.entries(form)
             .filter(([campo, valor]) => campo !== "id" && !`${valor}`.trim())
             .map(([campo]) => campo);
     }
 
-    async function fetchCadastrarBeneficiario(event){
-        event.preventDefault();
-
+    async function fetchCadastrarBeneficiario(){
         const camposInvalidos = validarFormulario();
         if (camposInvalidos.length > 0) {
             alert("Preencha todos os campos antes de cadastrar.");
@@ -46,7 +34,9 @@ function CadastrarBeneficiarioView() {
             });
 
             if (!response.ok) {
-                throw new Error(await lerMensagemErro(response));
+                const json = await response.json();
+                setErros(json.campos || {});
+                throw new Error(json.err || json.erro || json.Erro || "Nao foi possivel cadastrar o beneficiario");
             }
 
             navigate("/tabelas/beneficiarios");
@@ -59,10 +49,11 @@ function CadastrarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: name === "telefone" ? formatarTelefone(value) : value
+            [name]: value
         }));
     }
 
+    const [erros,setErros] = useState({});
     const [form, setForm] = useState({
         id:0,
         nome: "",
@@ -84,7 +75,7 @@ function CadastrarBeneficiarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form onSubmit={fetchCadastrarBeneficiario}>
+                <Styled.Form noValidate>
                     <div>
                         <label htmlFor="nome">Nome: </label>
                         <input
@@ -92,7 +83,7 @@ function CadastrarBeneficiarioView() {
                             name="nome"
                             value={form.nome}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_nome ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -103,7 +94,7 @@ function CadastrarBeneficiarioView() {
                             name="endereco"
                             value={form.endereco}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_endereco ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -114,10 +105,7 @@ function CadastrarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
-                            inputMode="numeric"
-                            placeholder="(00) 00000-0000"
-                            maxLength="15"
-                            required
+                            style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -128,7 +116,7 @@ function CadastrarBeneficiarioView() {
                             name="usuario"
                             value={form.usuario}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_usuario ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -140,12 +128,13 @@ function CadastrarBeneficiarioView() {
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_senha ? "2px solid red" : "" }}
                         />
                     </div>
 
                     <button
-                        type="submit"
+                        type="button"
+                        onClick={fetchCadastrarBeneficiario}
                     >
                         Cadastrar
                     </button>

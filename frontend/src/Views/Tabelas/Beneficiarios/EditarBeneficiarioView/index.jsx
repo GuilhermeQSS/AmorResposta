@@ -3,18 +3,8 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { formatarTelefone } from "../../../../utils/telefone";
 
 function EditarBeneficiarioView() {
-    async function lerMensagemErro(response) {
-        try {
-            const data = await response.json();
-            return data.erro || data.Erro || "Nao foi possivel alterar o beneficiario";
-        } catch {
-            return "Nao foi possivel alterar o beneficiario";
-        }
-    }
-
     function fetchBeneficiario(id){
         return fetch(`http://localhost:3000/beneficiarios/buscar?id=${id}`, {
             method: "GET"
@@ -29,9 +19,7 @@ function EditarBeneficiarioView() {
             .map(([campo]) => campo);
     }
 
-    async function fetchAlterarBeneficiario(event){
-        event.preventDefault();
-
+    async function fetchAlterarBeneficiario(){
         const camposInvalidos = validarFormulario();
         if (camposInvalidos.length > 0) {
             alert("Preencha todos os campos antes de editar.");
@@ -44,7 +32,14 @@ function EditarBeneficiarioView() {
             endereco: form.endereco.trim(),
             telefone: form.telefone.trim(),
             usuario: form.usuario.trim(),
-            senha: form.senha.trim()
+            senha: form.senha.trim(),
+            camposAlterados: {
+                nome: form.nome !== formOriginal.nome,
+                endereco: form.endereco !== formOriginal.endereco,
+                telefone: form.telefone !== formOriginal.telefone,
+                usuario: form.usuario !== formOriginal.usuario,
+                senha: form.senha !== formOriginal.senha
+            }
         };
 
         try {
@@ -57,11 +52,21 @@ function EditarBeneficiarioView() {
             });
 
             if (!response.ok) {
-                throw new Error(await lerMensagemErro(response));
+                const json = await response.json();
+                setErros(json.campos || {});
+                throw new Error(json.err || json.erro || json.Erro || "Nao foi possivel alterar o beneficiario");
             }
 
             setForm(payload);
-            setFormOriginal(payload);
+            setFormOriginal({
+                id: payload.id,
+                nome: payload.nome,
+                endereco: payload.endereco,
+                telefone: payload.telefone,
+                usuario: payload.usuario,
+                senha: payload.senha
+            });
+            setErros({});
         } catch (error) {
             alert(error.message || "Erro ao atualizar");
         }
@@ -82,7 +87,7 @@ function EditarBeneficiarioView() {
                 })
             });
             navigate("/tabelas/beneficiarios");
-        } catch {
+        } catch (error) {
             alert("Erro ao excluir");
         }
     }
@@ -91,12 +96,11 @@ function EditarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: name === "telefone" ? formatarTelefone(value) : value
+            [name]: value
         }));
     }
-    function alternarSenhaVisivel(){
-        setSenhaVisivel((prev) => !prev);
-    }
+
+    const [erros,setErros] = useState({});
     const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
@@ -116,19 +120,13 @@ function EditarBeneficiarioView() {
         senha: ""
     });
     const [editado, setEditado] = useState(false);
-    const [senhaVisivel, setSenhaVisivel] = useState(false);
 
     useEffect(() => {
         async function carregar(){
             const data = await fetchBeneficiario(id);
-            const telefoneFormatado = formatarTelefone(data.telefone);
-            const dadosFormatados = {
-                ...data,
-                telefone: telefoneFormatado
-            };
-            setSenhaVisivel(false);
-            setForm(dadosFormatados)
-            setFormOriginal(dadosFormatados);
+            setErros({});
+            setForm(data)
+            setFormOriginal(data);
         }
         carregar();
     }, [id]);
@@ -152,76 +150,67 @@ function EditarBeneficiarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form onSubmit={fetchAlterarBeneficiario}>
-                    <div className="form-field">
+                <Styled.Form>
+                    <div>
                         <label htmlFor="nome">Nome: </label>
                         <input
                             id="nome"
                             name="nome"
                             value={form.nome}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_nome ? "2px solid red" : "" }}
                         />
                     </div>
 
-                    <div className="form-field">
+                    <div>
                         <label htmlFor="endereco">Endereco: </label>
                         <input
                             id="endereco"
                             name="endereco"
                             value={form.endereco}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_endereco ? "2px solid red" : "" }}
                         />
                     </div>
 
-                    <div className="form-field">
+                    <div>
                         <label htmlFor="telefone">Telefone: </label>
                         <input
                             id="telefone"
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
-                            inputMode="numeric"
-                            placeholder="(00) 00000-0000"
-                            maxLength="15"
-                            required
+                            style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>
 
-                    <div className="form-field">
+                    <div>
                         <label htmlFor="usuario">Usuario: </label>
                         <input
                             id="usuario"
                             name="usuario"
                             value={form.usuario}
                             onChange={atualizarForm}
-                            required
+                            style={{ border: erros.ben_usuario ? "2px solid red" : "" }}
                         />
                     </div>
 
-                    <Styled.CampoSenha>
+                    <div>
                         <label htmlFor="senha">Senha: </label>
                         <input
-                            type={senhaVisivel ? "text" : "password"}
+                            type="password"
                             id="senha"
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
-                            readOnly={!senhaVisivel}
-                            required
+                            style={{ border: erros.ben_senha ? "2px solid red" : "" }}
                         />
-                        <button
-                            type="button"
-                            onClick={alternarSenhaVisivel}
-                        >
-                            {senhaVisivel ? "Ocultar senha" : "Ver senha"}
-                        </button>
-                    </Styled.CampoSenha>
+                    </div>
 
                     <button
-                        type="submit"
+                        type="button" 
                         disabled={!editado}
+                        onClick={fetchAlterarBeneficiario}
                     >
                         Editar
                     </button>
