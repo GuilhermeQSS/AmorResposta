@@ -3,10 +3,24 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatarTelefone } from "../../../../utils/telefone";
 
 function BeneficiariosView() {
-    function fetchBeneficiarioLista(filtro){
-        return fetch(`http://localhost:3000/beneficiarios/listar?filtro=${filtro}`, {
+    function fetchBeneficiarioLista(filtro, telefone){
+        const params = new URLSearchParams();
+
+        if (filtro.trim()) {
+            params.set("filtro", filtro.trim());
+        }
+
+        const telefoneNumeros = telefone.replace(/\D/g, "");
+        if (telefoneNumeros) {
+            params.set("telefone", telefoneNumeros);
+        }
+
+        const queryString = params.toString();
+
+        return fetch(`http://localhost:3000/beneficiarios/listar${queryString ? `?${queryString}` : ""}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
@@ -15,24 +29,37 @@ function BeneficiariosView() {
 
     const [beneficiarios, setBeneficiarios] = useState([]);
     const [filtro, setFiltro] = useState("");
+    const [telefone, setTelefone] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
         async function carregar(){
-            const data = await fetchBeneficiarioLista(filtro);
+            const data = await fetchBeneficiarioLista(filtro, telefone);
             setBeneficiarios(data);
         }
         carregar();
-    }, [filtro]);
+    }, [filtro, telefone]);
     
     return(
         <>
             <Header/>
             <main>
-                <Styled.Busca type="text"
-                    placeholder="Buscar beneficiario..."
-                    value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)}/>
+                <Styled.Filtros>
+                    <Styled.Busca
+                        type="text"
+                        placeholder="Buscar por nome ou usuario..."
+                        value={filtro}
+                        onChange={(e) => setFiltro(e.target.value)}
+                    />
+                    <Styled.Busca
+                        type="text"
+                        placeholder="Buscar por telefone..."
+                        value={telefone}
+                        onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+                        inputMode="numeric"
+                        maxLength="15"
+                    />
+                </Styled.Filtros>
                 <Styled.Actions>
                     <button onClick={() => navigate("/beneficiarios/cadastro")}>
                         + Cadastrar Beneficiario

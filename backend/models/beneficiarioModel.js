@@ -1,5 +1,3 @@
-import connection from "../db/connection.js"
-
 class Beneficiario{
     constructor(id, nome, endereco, telefone, usuario, senha){
         this.id = id;
@@ -10,12 +8,28 @@ class Beneficiario{
         this.senha = senha;
     }
 
-    static async listar(filtro) {
+    static async listar(connection, filtro, telefone) {
         let queryString = `select * from beneficiarios`
+        let valores = [];
+        const condicoes = [];
+
         if (filtro) {
-            queryString += ` where ben_nome like '%${filtro}%'`;
+            condicoes.push(`(
+                lower(trim(ben_nome)) like lower(?)
+                or lower(trim(ben_usuario)) like lower(?)
+            )`);
+            valores.push(`%${filtro}%`, `%${filtro}%`);
         }
-        const [beneficiarios] = await connection.query(queryString);
+
+        if (telefone) {
+            condicoes.push(`replace(replace(replace(replace(trim(ben_telefone), '(', ''), ')', ''), '-', ''), ' ', '') like ?`);
+            valores.push(`%${telefone}%`);
+        }
+
+        if (condicoes.length > 0) {
+            queryString += ` where ${condicoes.join(" and ")}`;
+        }
+        const [beneficiarios] = await connection.query(queryString,valores);
         let beneficiarioList = [];
         beneficiarios.forEach(b => {
             beneficiarioList.push(new Beneficiario(
@@ -30,34 +44,46 @@ class Beneficiario{
         return beneficiarioList;
     }
     
-    async alterar(){
+    async alterar(connection){
         let queryString = `
             update beneficiarios set
-                ben_nome = '${this.nome}',
-                ben_endereco = '${this.endereco}',
-                ben_telefone = '${this.telefone}',
-                ben_usuario = '${this.usuario}',
-                ben_senha = '${this.senha}'
-            where ben_id = ${this.id};
+                ben_nome = ?,
+                ben_endereco = ?,
+                ben_telefone = ?,
+                ben_usuario = ?,
+                ben_senha = ? 
+            where ben_id = ?;
         `;
-
-        const [resultado] = await connection.query(queryString);
+        let valores = [
+            this.nome,
+            this.endereco,
+            this.telefone,
+            this.usuario,
+            this.senha,
+            this.id
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 
-    async excluir(){
+    async excluir(connection){
         let queryString = `
             delete from beneficiarios
-            where ben_id = ${this.id};
+            where ben_id = ?;
         `;
-
-        const [resultado] = await connection.query(queryString);
+        let valores = [
+            this.id
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 
-    static async buscarPorUsuario(usuario){
-        let queryString = `select * from beneficiarios where ben_usuario = '${usuario}'`
-        const [[beneficiario]] = await connection.query(queryString);
+    static async buscarPorUsuario(connection, usuario){
+        let queryString = `select * from beneficiarios where ben_usuario = ?`
+        let valores = [
+            usuario
+        ];
+        const [[beneficiario]] = await connection.query(queryString,valores);
         if(!beneficiario){
             return null;
         }else{
@@ -72,9 +98,12 @@ class Beneficiario{
         }
     }
 
-    static async buscarPorId(id){
-        let queryString = `select * from beneficiarios where ben_id = ${id}`
-        const [[beneficiario]] = await connection.query(queryString);
+    static async buscarPorId(connection, id){
+        let queryString = `select * from beneficiarios where ben_id = ?`;
+        let valores = [
+            id
+        ];
+        const [[beneficiario]] = await connection.query(queryString,valores);
         if(!beneficiario){
             return null;
         }else{
@@ -89,7 +118,7 @@ class Beneficiario{
         }
     }
 
-    async gravar(){
+    async gravar(connection){
         let queryString = `
             insert into beneficiarios(
                 ben_nome,
@@ -99,15 +128,14 @@ class Beneficiario{
                 ben_senha
             ) values (?, ?, ?, ?, ?);
         `;
-
-        const [resultado] = await connection.query(queryString, [
+        let valores = [
             this.nome,
             this.endereco,
             this.telefone,
             this.usuario,
             this.senha
-        ]);
-
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 }

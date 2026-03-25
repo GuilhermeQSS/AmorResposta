@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { formatarTelefone } from "../../../../utils/telefone";
 
 function CadastrarBeneficiarioView() {
     function validarFormulario() {
@@ -49,7 +50,7 @@ function CadastrarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
     }
 
@@ -105,6 +106,9 @@ function CadastrarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            inputMode="numeric"
+                            placeholder="(00) 00000-0000"
+                            maxLength="15"
                             style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>

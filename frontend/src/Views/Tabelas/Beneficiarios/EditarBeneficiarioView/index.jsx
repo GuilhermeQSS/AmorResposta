@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { formatarTelefone } from "../../../../utils/telefone";
 
 function EditarBeneficiarioView() {
     function fetchBeneficiario(id){
@@ -77,14 +78,8 @@ function EditarBeneficiarioView() {
         if(!confirmar) return;
 
         try {
-            await fetch("http://localhost:3000/beneficiarios/excluir", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    id: form.id
-                })
+            await fetch(`http://localhost:3000/beneficiarios/excluir?id=${form.id}`, {
+                method: "DELETE"
             });
             navigate("/tabelas/beneficiarios");
         } catch (error) {
@@ -96,7 +91,7 @@ function EditarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
     }
 
@@ -127,8 +122,13 @@ function EditarBeneficiarioView() {
             const data = await fetchBeneficiario(id);
             setErros({});
             setMostrarSenha(false);
-            setForm(data)
-            setFormOriginal(data);
+            const telefoneFormatado = formatarTelefone(data.telefone);
+            const dadosFormatados = {
+                ...data,
+                telefone: telefoneFormatado
+            };
+            setForm(dadosFormatados)
+            setFormOriginal(dadosFormatados);
         }
         carregar();
     }, [id]);
@@ -182,6 +182,9 @@ function EditarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            inputMode="numeric"
+                            placeholder="(00) 00000-0000"
+                            maxLength="15"
                             style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>

@@ -1,47 +1,42 @@
 import Beneficiario from "../models/beneficiarioModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class BeneficiarioController{
     static async listar(req,res){
         try{
-            let resp = await Beneficiario.listar(req.query.filtro);
+            const connection = await SingletonDB.getConnection();
+            let resp = await Beneficiario.listar(connection, req.query.filtro, req.query.telefone);
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
+            return res.status(500).json({err: err.message});
         }
     }
 
     static async buscarPorId(req,res){
         try{
-            let resp = await Beneficiario.buscarPorId(req.query.id);
+            const connection = await SingletonDB.getConnection();
+            let resp = await Beneficiario.buscarPorId(connection,req.query.id);
             if(!resp){
-                return res.status(500).json({Erro:`Nao existe beneficiario com id ${req.query.id}`})
+                throw new Error(`Não existe beneficiario com id = ${req.query.id}`);
             }else{
                 return res.status(200).json(resp);
             }
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"})
+            return res.status(500).json({err: err.message});
         }
     }
 
     static async alterar(req, res){
         try {
-            const { id, nome, endereco, telefone, usuario, senha, camposAlterados } = req.body;
-            if (!nome || !endereco || !telefone || !usuario || !senha) {
-                return res.status(500).json({
-                    err: "Algum campo esta vazio",
-                    campos: {
-                        ben_nome: !nome,
-                        ben_endereco: !endereco,
-                        ben_telefone: !telefone,
-                        ben_usuario: !usuario,
-                        ben_senha: !senha
-                    }
-                });
+            const connection = await SingletonDB.getConnection();
+            const { id, nome, endereco, telefone, usuario, senha } = req.body;
+            const beneficiarioOriginal = await Beneficiario.buscarPorId(connection,id);
+            if(!beneficiarioOriginal){
+                throw new Error("Id não existe");
             }
-            if (camposAlterados?.usuario && await Beneficiario.buscarPorUsuario(usuario) ){
-                return res.status(500).json({
-                    err: "Usuario ja exite",
-                });
+            if(beneficiarioOriginal.usuario !== usuario &&
+                await Beneficiario.buscarPorUsuario(connection,usuario) ){
+                throw new Error("Usuario já exite");
             }
             const beneficiario = new Beneficiario(
                 id,
@@ -51,57 +46,46 @@ class BeneficiarioController{
                 usuario,
                 senha
             );
-            const resultado = await beneficiario.alterar();
+            const resultado = await beneficiario.alterar(connection);
             return res.status(200).json(resultado);
-        } catch (error) {
-            return res.status(500).json({ erro: "Erro ao alterar beneficiario" });
+        } catch (err) {
+            return res.status(500).json({err: err.message});
         }
     }
 
     static async excluir(req, res){
         try {
-            const { id } = req.body;
-            const beneficiario = new Beneficiario(id);
-            const resultado = await beneficiario.excluir();
+            const connection = await SingletonDB.getConnection();
+            let beneficiario = await Beneficiario.buscarPorId(connection,req.query.id);
+            if(!beneficiario){
+                throw new Error(`Não existe beneficiario com id = ${req.query.id}`);
+            }
+            const resultado = await beneficiario.excluir(connection);
             res.status(200).json(resultado);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ erro: "Erro ao excluir beneficiario" });
+        } catch (err) {
+            return res.status(500).json({err: err.message});
         }
     }
 
     static async cadastrar(req,res){
         try{
-            const { nome, endereco, telefone, usuario, senha } = req.body;
-            if (!nome || !endereco || !telefone || !usuario || !senha) {
-                return res.status(500).json({
-                    err: "Algum campo esta vazio",
-                    campos: {
-                        ben_nome: !nome,
-                        ben_endereco: !endereco,
-                        ben_telefone: !telefone,
-                        ben_usuario: !usuario,
-                        ben_senha: !senha
-                    }
-                });
-            }
-            if (await Beneficiario.buscarPorUsuario(usuario)) {
-                return res.status(500).json({
-                    err: "Usuario ja exite",
-                });
+            const connection = await SingletonDB.getConnection();
+            const {nome, endereco, telefone, usuario, senha} = req.body;
+            if(await Beneficiario.buscarPorUsuario(connection,usuario)){
+                throw new Error("Usuario já existe");
             }
             let beneficiario = new Beneficiario(
-                0,
+                -1,
                 nome,
                 endereco,
                 telefone,
                 usuario,
                 senha
             );
-            let resp = await beneficiario.gravar();
+            let resp = await beneficiario.gravar(connection);
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json(err);
+            return res.status(500).json({err: err.message});
         }
         
     }
