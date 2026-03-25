@@ -1,12 +1,15 @@
 import styled from "styled-components";
 
 const Styled = {
-
+    ContainerBusca: styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* espaço entre os inputs */
+    margin: 20px 0;
+    `,
     Busca: styled.input`
-    display: block;
-        margin: 0 auto;
         padding: 10px 15px;
-        width: 50%;
+        width: 25%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
@@ -30,7 +33,6 @@ const Styled = {
             }
         }
     `,
-
     Table: styled.table`
         width: 90%;
         margin: 40px auto;
@@ -41,7 +43,7 @@ const Styled = {
         box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
 
         thead {
-        background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
         }
 
         tbody tr {
@@ -55,24 +57,24 @@ const Styled = {
         }
 
         th {
-        padding: 16px;
-        text-align: left;
-        font-size: 14px;
-        letter-spacing: 1px;
+            padding: 16px;
+            text-align: left;
+            font-size: 14px;
+            letter-spacing: 1px;
         }
 
         td {
-        padding: 14px 16px;
-        font-size: 14px;
-        color: #444;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #444;
         }
 
         td:nth-child(4) {
-        cursor: pointer;
+            cursor: pointer;
         }
 
         tbody tr:nth-child(even) {
-        background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.3);
         }
     `
 };
