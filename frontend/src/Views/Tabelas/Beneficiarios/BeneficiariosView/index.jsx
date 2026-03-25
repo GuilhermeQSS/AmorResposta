@@ -64,7 +64,6 @@ function BeneficiariosView() {
                             <th>endereco</th>
                             <th>telefone</th>
                             <th>usuario</th>
-                            <th>senha</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +78,6 @@ function BeneficiariosView() {
                                 <td>{b.endereco}</td>
                                 <td>{formatarTelefone(b.telefone)}</td>
                                 <td>{b.usuario}</td>
-                                <td>{b.senha}</td>
                             </tr>
                         ))
                     }
