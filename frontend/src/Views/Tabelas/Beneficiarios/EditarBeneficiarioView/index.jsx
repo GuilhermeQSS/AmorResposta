@@ -101,6 +101,7 @@ function EditarBeneficiarioView() {
     }
 
     const [erros,setErros] = useState({});
+    const [mostrarSenha, setMostrarSenha] = useState(false);
     const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
@@ -125,6 +126,7 @@ function EditarBeneficiarioView() {
         async function carregar(){
             const data = await fetchBeneficiario(id);
             setErros({});
+            setMostrarSenha(false);
             setForm(data)
             setFormOriginal(data);
         }
@@ -198,13 +200,20 @@ function EditarBeneficiarioView() {
                     <div>
                         <label htmlFor="senha">Senha: </label>
                         <input
-                            type="password"
+                            type={mostrarSenha ? "text" : "password"}
                             id="senha"
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
+                            disabled={!mostrarSenha}
                             style={{ border: erros.ben_senha ? "2px solid red" : "" }}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setMostrarSenha(!mostrarSenha)}
+                        >
+                            {mostrarSenha ? "Ocultar" : "Ver senha"}
+                        </button>
                     </div>
 
                     <button
