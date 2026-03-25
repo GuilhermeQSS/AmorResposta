@@ -8,7 +8,7 @@ import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
 function CadastrarBeneficiarioView() {
     async function fetchCadastrarBeneficiario(){
         try {
-            await fetch("http://localhost:3000/beneficiarios/gravar", {
+            const response = await fetch("http://localhost:3000/beneficiarios/gravar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -21,7 +21,14 @@ function CadastrarBeneficiarioView() {
                     senha: form.senha
                 })
             });
-            navigate("/tabelas/beneficiarios");
+            if(response.ok){
+                setErros({});
+                navigate("/tabelas/beneficiarios");
+            }else{
+                const json = await response.json();
+                setErros(json.campos || {});
+                alert(json.err || "Erro desconhecido no servidor");
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -35,6 +42,7 @@ function CadastrarBeneficiarioView() {
         }));
     }
 
+    const [erros,setErros] = useState({});
     const [form, setForm] = useState({
         id:0,
         nome: "",
@@ -56,13 +64,14 @@ function CadastrarBeneficiarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form>
+                <Styled.Form noValidate>
                     <div>
                         <label htmlFor="nome">Nome: </label>
                         <input
                             name="nome"
                             value={form.nome}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_nome ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -72,6 +81,7 @@ function CadastrarBeneficiarioView() {
                             name="endereco"
                             value={form.endereco}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_endereco ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -83,6 +93,7 @@ function CadastrarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -92,6 +103,7 @@ function CadastrarBeneficiarioView() {
                             name="usuario"
                             value={form.usuario}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_usuario ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -102,6 +114,7 @@ function CadastrarBeneficiarioView() {
                             name="senha"
                             value={form.senha}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_senha ? "2px solid red" : "" }}
                         />
                     </div>
 

@@ -16,7 +16,7 @@ function EditarBeneficiarioView() {
 
     async function fetchAlterarBeneficiario(){
         try {
-            await fetch("http://localhost:3000/beneficiarios/alterar", {
+            const response = await fetch("http://localhost:3000/beneficiarios/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -30,7 +30,14 @@ function EditarBeneficiarioView() {
                     senha: form.senha
                 })
             });
-            setFormOriginal(form);
+            if(response.ok){
+                setErros({});
+                setFormOriginal(form);
+            }else{
+                const json = await response.json();
+                setErros(json.campos || {});
+                alert(json.err || "Erro desconhecido no servidor");
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -65,6 +72,7 @@ function EditarBeneficiarioView() {
     }
     const navigate = useNavigate();
     const {id} = useParams();
+    const [erros,setErros] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [form, setForm] = useState({
         id:0,
@@ -119,13 +127,14 @@ function EditarBeneficiarioView() {
                         </div>
                     </Link>
                 </Styled.BackBtn>
-                <Styled.Form>
+                <Styled.Form noValidate>
                     <div>
                         <label htmlFor="nome">Nome: </label>
                         <input
                             name="nome"
                             value={form.nome}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_nome ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -135,6 +144,7 @@ function EditarBeneficiarioView() {
                             name="endereco"
                             value={form.endereco}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_endereco ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -146,6 +156,7 @@ function EditarBeneficiarioView() {
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_telefone ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -155,6 +166,7 @@ function EditarBeneficiarioView() {
                             name="usuario"
                             value={form.usuario}
                             onChange={atualizarForm}
+                            style={{ border: erros.ben_usuario ? "2px solid red" : "" }}
                         />
                     </div>
 
@@ -166,6 +178,7 @@ function EditarBeneficiarioView() {
                             value={form.senha}
                             onChange={atualizarForm}
                             disabled={!mostrarSenha}
+                            style={{ border: erros.ben_senha ? "2px solid red" : "" }}
                         />
                         <button
                             type="button"

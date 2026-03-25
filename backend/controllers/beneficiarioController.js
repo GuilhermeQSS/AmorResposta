@@ -1,5 +1,13 @@
 import Beneficiario from "../models/beneficiarioModel.js";
 
+function campoVazio(valor){
+    return !valor || !String(valor).trim();
+}
+
+function telefoneVazio(valor){
+    return !String(valor || "").replace(/\D/g, "");
+}
+
 class BeneficiarioController{
     static async listar(req,res){
         try{
@@ -26,6 +34,18 @@ class BeneficiarioController{
     static async alterar(req, res){
         try {
             const { id, nome, endereco, telefone, usuario, senha } = req.body;
+            if (campoVazio(nome) || campoVazio(endereco) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
+                return res.status(500).json({
+                    err: "Algum campo está vazio",
+                    campos: {
+                        ben_nome: campoVazio(nome),
+                        ben_endereco: campoVazio(endereco),
+                        ben_telefone: telefoneVazio(telefone),
+                        ben_usuario: campoVazio(usuario),
+                        ben_senha: campoVazio(senha)
+                    }
+                });
+            }
             const beneficiario = new Beneficiario(
                 id,
                 nome,
@@ -56,6 +76,18 @@ class BeneficiarioController{
     static async cadastrar(req,res){
         try{
             const { nome, endereco, telefone, usuario, senha } = req.body;
+            if (campoVazio(nome) || campoVazio(endereco) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
+                return res.status(500).json({
+                    err: "Algum campo está vazio",
+                    campos: {
+                        ben_nome: campoVazio(nome),
+                        ben_endereco: campoVazio(endereco),
+                        ben_telefone: telefoneVazio(telefone),
+                        ben_usuario: campoVazio(usuario),
+                        ben_senha: campoVazio(senha)
+                    }
+                });
+            }
             let beneficiario = new Beneficiario(
                 0,
                 nome,
