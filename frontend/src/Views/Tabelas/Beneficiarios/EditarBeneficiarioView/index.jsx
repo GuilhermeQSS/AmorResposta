@@ -58,16 +58,18 @@ function EditarBeneficiarioView() {
                 throw new Error(json.err || json.erro || json.Erro || "Nao foi possivel alterar o beneficiario");
             }
 
-            setForm(payload);
-            setFormOriginal({
+            const dadosSalvos = {
                 id: payload.id,
                 nome: payload.nome,
                 endereco: payload.endereco,
                 telefone: payload.telefone,
                 usuario: payload.usuario,
                 senha: payload.senha
-            });
+            };
+            setForm(dadosSalvos);
+            setFormOriginal(dadosSalvos);
             setErros({});
+            alert("Beneficiario atualizado com sucesso");
         } catch (error) {
             alert(error.message || "Erro ao atualizar");
         }
@@ -115,7 +117,6 @@ function EditarBeneficiarioView() {
         usuario: "",
         senha: ""
     });
-    const [editado, setEditado] = useState(false);
 
     useEffect(() => {
         async function carregar(){
@@ -127,19 +128,13 @@ function EditarBeneficiarioView() {
                 ...data,
                 telefone: telefoneFormatado
             };
-            setForm(dadosFormatados)
-            setFormOriginal(dadosFormatados);
+            setForm({ ...dadosFormatados })
+            setFormOriginal({ ...dadosFormatados });
         }
         carregar();
     }, [id]);
 
-    useEffect(() => {
-        if (JSON.stringify(form) !== JSON.stringify(formOriginal)) {
-            setEditado(true);
-        } else {
-            setEditado(false);
-        }
-    }, [form, formOriginal]);
+    const editado = JSON.stringify(form) !== JSON.stringify(formOriginal);
 
     return (
         <>
