@@ -1,11 +1,18 @@
 import styled from "styled-components";
 
 const Styled = {
+    FiltrosContainer: styled.div`
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin: 20px auto;
+        width: 80%;
+        flex-wrap: wrap;
+    `,
     Busca: styled.input`
-        display: block;
-        margin: 0 auto;
+        flex: 1;
+        min-width: 200px;
         padding: 10px 15px;
-        width: 50%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,

@@ -10,10 +10,17 @@ class Documento {
         this.link = link;
     }
 
-    static async listar(filtro) {
-        let queryString = `select * from documentos`
-        if (filtro) {
-            queryString += ` where doc_titulo like '%${filtro}%' or doc_tipo like '%${filtro}%'`;
+    static async listar(filtroTitulo, filtroTipo) {
+        let queryString = `select * from documentos`;
+        const conditions = [];
+        if (filtroTitulo) {
+            conditions.push(`doc_titulo like '%${filtroTitulo}%'`);
+        }
+        if (filtroTipo) {
+            conditions.push(`doc_tipo like '%${filtroTipo}%'`);
+        }
+        if (conditions.length > 0) {
+            queryString += ` where ` + conditions.join(' and ');
         }
         const [documentos] = await connection.query(queryString);
         let documentoList = [];

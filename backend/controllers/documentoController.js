@@ -3,7 +3,7 @@ import Documento from "../models/documentoModel.js";
 class DocumentoController {
     static async listar(req, res) {
         try {
-            let resp = await Documento.listar(req.query.filtro);
+            let resp = await Documento.listar(req.query.filtroTitulo, req.query.filtroTipo);
             return res.status(200).json(resp);
         } catch (err) {
             console.error(err);

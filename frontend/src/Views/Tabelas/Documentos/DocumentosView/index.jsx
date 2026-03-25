@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function DocumentosView() {
-    function fetchDocumentoLista(filtro) {
-        return fetch(`http://localhost:3000/documentos/listar?filtro=${filtro}`, {
+    function fetchDocumentoLista(filtroTitulo, filtroTipo) {
+        const params = new URLSearchParams();
+        if (filtroTitulo) params.append("filtroTitulo", filtroTitulo);
+        if (filtroTipo) params.append("filtroTipo", filtroTipo);
+        return fetch(`http://localhost:3000/documentos/listar?${params.toString()}`, {
             method: "GET"
         })
             .then((response) => response.json())
@@ -14,25 +17,36 @@ function DocumentosView() {
     }
 
     const [documentos, setDocumentos] = useState([]);
-    const [filtro, setFiltro] = useState("");
+    const [filtroTitulo, setFiltroTitulo] = useState("");
+    const [filtroTipo, setFiltroTipo] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const data = await fetchDocumentoLista(filtro);
+            const data = await fetchDocumentoLista(filtroTitulo, filtroTipo);
             setDocumentos(data);
         }
         carregar();
-    }, [filtro]);
+    }, [filtroTitulo, filtroTipo]);
 
     return (
         <>
             <Header />
             <main>
-                <Styled.Busca type="text"
-                    placeholder="Buscar documento..."
-                    value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)} />
+                <Styled.FiltrosContainer>
+                    <Styled.Busca
+                        type="text"
+                        placeholder="Buscar por título..."
+                        value={filtroTitulo}
+                        onChange={(e) => setFiltroTitulo(e.target.value)}
+                    />
+                    <Styled.Busca
+                        type="text"
+                        placeholder="Buscar por tipo (ex: PDF, DOCX)..."
+                        value={filtroTipo}
+                        onChange={(e) => setFiltroTipo(e.target.value)}
+                    />
+                </Styled.FiltrosContainer>
                 <Styled.Actions>
                     <button onClick={() => navigate("/documentos/cadastro")}>
                         + Cadastrar Documento
