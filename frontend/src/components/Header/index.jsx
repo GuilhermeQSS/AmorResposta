@@ -5,7 +5,8 @@ import logo from '../../assets/logo perfil oaear.png'
 import Sociais from "../Sociais";
 
 function Header(){
-    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [dropdownTabela, setDropdownTabela] = useState(false);
+    const [dropdownCadastro, setDropdownCadastro] = useState(false);
     return (
         <Styled.Container>
             <Link to={'/'}><img src={logo}/></Link>
@@ -17,12 +18,22 @@ function Header(){
                 <li><Link to={'/portal'}>Portal da Transparência</Link></li>
                 <li><Link to={'/sobre'}>Sobre</Link></li>
                 <li
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onClick={() => setDropdownTabela(!dropdownTabela)}
                 >
                     <p>Tabelas</p>
-                    {dropdownOpen && (
+                    {dropdownTabela && (
                         <div>
                             <Link to="/tabelas/funcionarios">Funcionários</Link>
+                        </div>
+                    )}
+                </li>
+                <li
+                    onClick={() => setDropdownCadastro(!dropdownCadastro)}
+                >
+                    <p>Cadastrar</p>
+                    {dropdownCadastro && (
+                        <div>
+                            <Link to="/funcionarios/cadastro">Funcionários</Link>
                         </div>
                     )}
                 </li>

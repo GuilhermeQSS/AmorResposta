@@ -17,6 +17,17 @@ function EditarFuncionarioView() {
     }
 
     async function fetchAlterarFuncionario(){
+        const camposVazios = {
+            nome: !form.nome,
+            usuario: !form.usuario,
+            senha: !form.senha,
+            cargo: !form.cargo
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
         try {
             const response = await fetch("http://localhost:3000/funcionarios/alterar", {
                 method: "PUT",
@@ -24,27 +35,20 @@ function EditarFuncionarioView() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    id: form.id,
+                    id: id,
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
-                    cargo: form.cargo,
-                    camposAlterados: {
-                        nome: form.nome !== formOriginal.nome,
-                        usuario: form.usuario !== formOriginal.usuario,
-                        senha: form.senha !== formOriginal.senha,
-                        cargo: form.cargo !== formOriginal.cargo,
-                    }
+                    cargo: form.cargo
                 })
             });
             if(response.ok){
                 setFormOriginal(form);
             }else{
-                const json = await response.json(); 
-                setErros(json.campos || {});
+                const json = await response.json();
                 alert(json.err || 'Erro desconhecido no servidor');
             }
-        } catch (error) {
+        } catch (err) {
             alert("Erro ao atualizar");
         }
     }
@@ -54,17 +58,11 @@ function EditarFuncionarioView() {
         if(!confirmar) return;
 
         try {
-            await fetch("http://localhost:3000/funcionarios/excluir", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    id: form.id
-                })
+            await fetch(`http://localhost:3000/funcionarios/excluir?id=${id}`, {
+                method: "DELETE"
             });
             navigate("/tabelas/funcionarios");
-        } catch (error) {
+        } catch (err) {
             alert("Erro ao excluir");
         }
     }
@@ -76,19 +74,17 @@ function EditarFuncionarioView() {
             [name]: value
         }));
     }
-    const [erros,setErros] = useState({});
+    const [camposVazios,setCamposVazios] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
-        id:0,
         nome: "",
         usuario: "",
         senha: "",
         cargo: ""
     });
     const [formOriginal, setFormOriginal] = useState({
-        id:0,
         nome: "",
         usuario: "",
         senha: "",
@@ -127,6 +123,7 @@ function EditarFuncionarioView() {
                                 name="nome"
                                 value={form.nome}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.nome ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -136,6 +133,7 @@ function EditarFuncionarioView() {
                                 name="usuario"
                                 value={form.usuario}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.usuario ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -147,6 +145,7 @@ function EditarFuncionarioView() {
                                 value={form.senha}
                                 onChange={atualizarForm}
                                 disabled={!mostrarSenha}
+                                style={{ border: camposVazios.senha ? "2px solid red" : "" }}
                             />
                             <button
                                 type="button"
@@ -162,6 +161,7 @@ function EditarFuncionarioView() {
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.cargo ? "2px solid red" : "" }}
                             >
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>

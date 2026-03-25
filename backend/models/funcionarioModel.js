@@ -1,7 +1,8 @@
-import connection from "../db/connection.js"
-
 class Funcionario{
     constructor(id, nome, usuario, senha, cargo){
+        if(!id || !nome || !usuario || !senha || !cargo){
+            throw new Error("Todos os campos são obrigatórios");;
+        }
         this.id = id;
         this.nome = nome;
         this.usuario = usuario;
@@ -9,12 +10,14 @@ class Funcionario{
         this.cargo = cargo;
     }
 
-    static async listar(filtro) {
+    static async listar(connection, filtro) {
         let queryString = `select * from funcionarios`
+        let valores = [];
         if (filtro) {
-            queryString += ` where fun_nome like '%${filtro}%'`;
+            queryString += ` where fun_nome like ?`;
+            valores.push(`%${filtro}%`);
         }
-        const [funcionarios] = await connection.query(queryString);
+        const [funcionarios] = await connection.query(queryString,valores);
         let funcionarioList = [];
         funcionarios.forEach(f => {
             funcionarioList.push(new Funcionario(
@@ -28,33 +31,44 @@ class Funcionario{
         return funcionarioList;
     }
     
-    async alterar(){
+    async alterar(connection){
         let queryString = `
             update funcionarios set
-                fun_nome = '${this.nome}',
-                fun_usuario = '${this.usuario}',
-                fun_senha = '${this.senha}',
-                fun_cargo = '${this.cargo}'
-            where fun_id = ${this.id};
+                fun_nome = ?,
+                fun_usuario = ?,
+                fun_senha = ?,
+                fun_cargo = ? 
+            where fun_id = ?;
         `;
-
-        const [resultado] = await connection.query(queryString);
+        let valores = [
+            this.nome,
+            this.usuario,
+            this.senha,
+            this.cargo,
+            this.id
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 
-    async excluir(){
+    async excluir(connection){
         let queryString = `
             delete from funcionarios
-            where fun_id = ${this.id};
+            where fun_id = ?;
         `;
-
-        const [resultado] = await connection.query(queryString);
+        let valores = [
+            this.id
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 
-    static async buscarPorUsuario(usuario){
-        let queryString = `select * from funcionarios where fun_usuario = '${usuario}'`
-        const [[funcionario]] = await connection.query(queryString);
+    static async buscarPorUsuario(connection, usuario){
+        let queryString = `select * from funcionarios where fun_usuario = ?`
+        let valores = [
+            usuario
+        ];
+        const [[funcionario]] = await connection.query(queryString,valores);
         if(!funcionario){
             return null;
         }else{
@@ -67,9 +81,12 @@ class Funcionario{
             );
         }
     }
-    static async buscarPorId(id){
-        let queryString = `select * from funcionarios where fun_id = ${id}`
-        const [[funcionario]] = await connection.query(queryString);
+    static async buscarPorId(connection, id){
+        let queryString = `select * from funcionarios where fun_id = ?`;
+        let valores = [
+            id
+        ];
+        const [[funcionario]] = await connection.query(queryString,valores);
         if(!funcionario){
             return null;
         }else{
@@ -83,7 +100,7 @@ class Funcionario{
         }
     }
 
-    async gravar(){
+    async gravar(connection){
         let queryString = `
             insert into funcionarios(
                 fun_nome,
@@ -92,14 +109,13 @@ class Funcionario{
                 fun_cargo
             ) values (?, ?, ?, ?);
         `;
-
-        const [resultado] = await connection.query(queryString, [
+        let valores = [
             this.nome,
             this.usuario,
             this.senha,
             this.cargo
-        ]);
-
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 }

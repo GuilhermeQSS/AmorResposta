@@ -1,4 +1,4 @@
-import FuncionarioController from '../controllers/funcionarioController.js';
+import FuncionarioController from '../controllers/funcionarioControl.js';
 import e from "express";
 const router = e.Router();
 

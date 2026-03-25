@@ -10,6 +10,17 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 function CadastrarFuncionarioView() {
 
     async function fetchCadastrarFuncionario(){
+        const camposVazios = {
+            nome: !form.nome,
+            usuario: !form.usuario,
+            senha: !form.senha,
+            cargo: !form.cargo
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
         try {
             const response = await fetch("http://localhost:3000/funcionarios/gravar", {
                 method: "POST",
@@ -26,8 +37,7 @@ function CadastrarFuncionarioView() {
             if(response.ok){
                 navigate("/tabelas/funcionarios");
             }else{
-                const json = await response.json(); 
-                setErros(json.campos || {});
+                const json = await response.json();
                 alert(json.err || 'Erro desconhecido no servidor');
             }
         } catch (error) {
@@ -42,9 +52,8 @@ function CadastrarFuncionarioView() {
             [name]: value
         }));
     }
-    const [erros,setErros] = useState({});
+    const [camposVazios,setCamposVazios] = useState({});
     const [form, setForm] = useState({
-        id:0,
         nome: "",
         usuario: "",
         senha: "",
@@ -70,7 +79,7 @@ function CadastrarFuncionarioView() {
                                 name="nome"
                                 value={form.nome}
                                 onChange={atualizarForm}
-                                style={{ border: erros.fun_nome ? "2px solid red" : "" }}
+                                style={{ border: camposVazios.nome ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -80,7 +89,7 @@ function CadastrarFuncionarioView() {
                                 name="usuario"
                                 value={form.usuario}
                                 onChange={atualizarForm}
-                                style={{ border: erros.fun_usuario ? "2px solid red" : "" }}
+                                style={{ border: camposVazios.usuario ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -91,7 +100,7 @@ function CadastrarFuncionarioView() {
                                 name="senha"
                                 value={form.senha}
                                 onChange={atualizarForm}
-                                style={{ border: erros.fun_senha ? "2px solid red" : "" }}
+                                style={{ border: camposVazios.senha ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -101,7 +110,7 @@ function CadastrarFuncionarioView() {
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
-                                style={{ border: erros.fun_cargo ? "2px solid red" : "" }}
+                                style={{ border: camposVazios.cargo ? "2px solid red" : "" }}
                             >
                                 <option value="" disabled>Selecione</option>
                                 <option value="Administrador">Administrador</option>
