@@ -1,11 +1,20 @@
 import styled from "styled-components";
 
 const Styled = {
-    Busca: styled.input`
-        display: block;
-        margin: 0 auto;
-        padding: 10px 15px;
+    Filtros: styled.div`
         width: 50%;
+        margin: 0 auto 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        @media (max-width: 768px) {
+            width: 90%;
+        }
+    `,
+    Busca: styled.input`
+        padding: 10px 15px;
+        width: 100%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,

@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
 
 function CadastrarBeneficiarioView() {
     async function fetchCadastrarBeneficiario(){
@@ -15,7 +16,7 @@ function CadastrarBeneficiarioView() {
                 body: JSON.stringify({
                     nome: form.nome,
                     endereco: form.endereco,
-                    telefone: form.telefone,
+                    telefone: limparTelefone(form.telefone),
                     usuario: form.usuario,
                     senha: form.senha
                 })
@@ -30,7 +31,7 @@ function CadastrarBeneficiarioView() {
         const { name, value } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: name === "telefone" ? formatarTelefone(value) : value
         }));
     }
 
@@ -77,6 +78,8 @@ function CadastrarBeneficiarioView() {
                     <div>
                         <label htmlFor="telefone">Telefone: </label>
                         <input
+                            type="tel"
+                            inputMode="numeric"
                             name="telefone"
                             value={form.telefone}
                             onChange={atualizarForm}
