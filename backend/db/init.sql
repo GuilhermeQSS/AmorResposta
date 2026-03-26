@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
 
 CREATE TABLE IF NOT EXISTS `despesas` (
   	`des_id` INT NOT NULL auto_increment,
+  	`des_valor` DECIMAL(10,2) NULL,
   	`des_descricao` VARCHAR(45) NULL,
-  	`doc_id` INT NULL,
   	PRIMARY KEY (`des_id`)
 );
 
@@ -108,10 +108,6 @@ CREATE TABLE IF NOT EXISTS `itensDoados` (
 
 ALTER TABLE `doacoes`
 	ADD CONSTRAINT `fk_Doacoes_Documentos`
-    	FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
-
-ALTER TABLE `despesas`
-	ADD CONSTRAINT `fk_Despesas_Documentos`
     	FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
 
 ALTER TABLE `participantes`

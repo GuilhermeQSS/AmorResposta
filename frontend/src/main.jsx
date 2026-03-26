@@ -26,6 +26,9 @@ import EncontrosView from './Views/Tabelas/Encontros/EncontrosView'
 import DocumentosView from './Views/Tabelas/Documentos/DocumentosView'
 import EditarDocumentoView from './Views/Tabelas/Documentos/EditarDocumentoView'
 import CadastrarDocumentoView from './Views/Tabelas/Documentos/CadastrarDocumentoView'
+import DespesasView from './Views/Tabelas/Despesas/DespesasView'
+import EditarDespesaView from './Views/Tabelas/Despesas/EditarDespesaView'
+import CadastrarDespesaView from './Views/Tabelas/Despesas/CadastrarDespesaView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -58,6 +61,9 @@ createRoot(document.getElementById('root')).render(
         <Route Component={DocumentosView} path='/tabelas/documentos'/>
         <Route Component={EditarDocumentoView} path="/documentos/:id" />
         <Route Component={CadastrarDocumentoView} path="/documentos/cadastro" />
+        <Route Component={DespesasView} path='/tabelas/despesas'/>
+        <Route Component={EditarDespesaView} path="/despesas/:id" />
+        <Route Component={CadastrarDespesaView} path="/despesas/cadastro" />
       </Routes>
     </BrowserRouter>
   </StrictMode>
