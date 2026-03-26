@@ -21,19 +21,18 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
 );
 
 CREATE TABLE IF NOT EXISTS `documentos` (
-  	`doc_id` INT NOT NULL auto_increment,
-  	`doc_caminho` VARCHAR(45) NULL,
-	PRIMARY KEY (`doc_id`)
+  `doc_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `doc_titulo` VARCHAR(255) NOT NULL,
+  `doc_tipo` VARCHAR(100) NOT NULL,
+  `doc_data_criacao` DATE,
+  `doc_descricao` TEXT,
+  `doc_link` VARCHAR(500)
 );
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
-  	`doa_id` INT NOT NULL auto_increment,
-  	`doa_doadorNome` VARCHAR(100) NULL,
-  	`doa_dataEntrega` DATE NULL,
-	`doa_origem` VARCHAR(100) NULL,
-    `doa_formaEntrega` VARCHAR(45) NULL,
-    `doa_tipo` VARCHAR(45) NULL,
-    `doa_observacao` VARCHAR(255) NULL,
+  	`doa_id` INT AUTO_INCREMENT NOT NULL,
+  	`doa_doadorNome` VARCHAR(45) NULL,
+  	`doc_dataEntrega` DATE NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`doa_id`)
 );
