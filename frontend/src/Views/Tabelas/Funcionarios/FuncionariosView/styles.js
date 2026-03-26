@@ -4,7 +4,7 @@ const Styled = {
 
     Busca: styled.input`
     display: block;
-        margin: 0 auto;
+        margin: 0 auto 10px;
         padding: 10px 15px;
         width: 50%;
         border-radius: 10px;
