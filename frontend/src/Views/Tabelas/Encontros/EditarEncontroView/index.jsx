@@ -5,6 +5,25 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function EditarEncontroView() {
+  function validar() {
+    let novosErros = {};
+    if (!form.data) novosErros.data = "Data obrigatória";
+    if (!form.disponibilidade)
+      novosErros.disponibilidade = "Selecione uma opção";
+    if (!form.local) novosErros.local = "Local obrigatório";
+    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade máxima";
+    if (form.qtdeMax <= 0) {
+      novosErros.qtdeMax = "Deve ser maior que 0";
+    }
+    if (form.qtde > form.qtdeMax) {
+      novosErros.qtde = "Não pode ser maior que a máxima";
+    }
+
+    setErros(novosErros);
+
+    return Object.keys(novosErros).length === 0;
+  }
+
   function fetchEncontro(id) {
     return fetch(`http://localhost:3000/encontros/buscar?id=${id}`, {
       method: "GET",
@@ -14,6 +33,7 @@ function EditarEncontroView() {
   }
 
   async function fetchAlterarEncontro() {
+    if (!validar()) return;
     try {
       const response = await fetch("http://localhost:3000/encontros/alterar", {
         method: "PUT",
@@ -29,7 +49,8 @@ function EditarEncontroView() {
           local: form.local,
           camposAlterados: {
             data: form.data !== formOriginal.data,
-            disponibilidade: form.disponibilidade !== formOriginal.disponibilidade,
+            disponibilidade:
+              form.disponibilidade !== formOriginal.disponibilidade,
             qtdeMax: form.qtdeMax !== formOriginal.qtdeMax,
             qtde: form.qtde !== formOriginal.qtde,
             local: form.local !== formOriginal.local,
@@ -69,13 +90,13 @@ function EditarEncontroView() {
   }
 
   function atualizarForm(e) {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  setForm((prev) => ({
-    ...prev,
-    [name]: name.includes("qtde") ? Number(value) : value,
-  }));
-}
+    setForm((prev) => ({
+      ...prev,
+      [name]: name.includes("qtde") ? Number(value) : value,
+    }));
+  }
   const [erros, setErros] = useState({});
   const navigate = useNavigate();
   const { id } = useParams();
@@ -128,8 +149,9 @@ function EditarEncontroView() {
               value={form.data}
               type="date"
               onChange={atualizarForm}
-              style={{ border: erros.enc_data ? "2px solid red" : "" }}
+              style={{ border: erros.data ? "2px solid red" : "" }}
             />
+            {erros.data && <span style={{ color: "red" }}>{erros.data}</span>}
           </div>
 
           <div>
@@ -137,12 +159,16 @@ function EditarEncontroView() {
             <select
               name="disponibilidade"
               value={form.disponibilidade}
-              onChange={atualizarForm}>
+              onChange={atualizarForm}
+              style={{ border: erros.disponibilidade ? "2px solid red" : "" }}>
               <option value="">Selecione</option>
-              <option value='A'>Ativo</option>
-              <option value='E'>Em andamento</option>
-              <option value='F'>Finalizado</option>
+              <option value="A">Ativo</option>
+              <option value="E">Em andamento</option>
+              <option value="F">Finalizado</option>
             </select>
+            {erros.disponibilidade && (
+              <span style={{ color: "red" }}>{erros.disponibilidade}</span>
+            )}
           </div>
 
           <div>
@@ -152,7 +178,11 @@ function EditarEncontroView() {
               name="qtdeMax"
               value={form.qtdeMax}
               onChange={atualizarForm}
+              style={{ border: erros.qtdeMax ? "2px solid red" : "" }}
             />
+            {erros.qtdeMax && (
+              <span style={{ color: "red" }}>{erros.qtdeMax}</span>
+            )}
           </div>
 
           <div>
@@ -162,12 +192,20 @@ function EditarEncontroView() {
               name="qtde"
               value={form.qtde}
               onChange={atualizarForm}
+              style={{ border: erros.qtde ? "2px solid red" : "" }}
             />
+            {erros.qtde && <span style={{ color: "red" }}>{erros.qtde}</span>}
           </div>
 
           <div>
             <label>Local:</label>
-            <input name="local" value={form.local} onChange={atualizarForm} />
+            <input
+              name="local"
+              value={form.local}
+              onChange={atualizarForm}
+              style={{ border: erros.local ? "2px solid red" : "" }}
+            />
+            {erros.local && <span style={{ color: "red" }}>{erros.local}</span>}
           </div>
 
           <button
