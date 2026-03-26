@@ -1,20 +1,18 @@
 import styled from "styled-components";
 
 const Styled = {
-    Filtros: styled.div`
-        width: 50%;
-        margin: 0 auto 15px;
+    FiltrosContainer: styled.div`
         display: flex;
-        flex-direction: column;
-        gap: 12px;
-
-        @media (max-width: 768px) {
-            width: 90%;
-        }
+        gap: 16px;
+        justify-content: center;
+        margin: 20px auto;
+        width: 80%;
+        flex-wrap: wrap;
     `,
     Busca: styled.input`
+        flex: 1;
+        min-width: 200px;
         padding: 10px 15px;
-        width: 100%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
@@ -72,10 +70,6 @@ const Styled = {
             padding: 14px 16px;
             font-size: 14px;
             color: #444;
-        }
-
-        td:nth-child(4) {
-            cursor: pointer;
         }
 
         tbody tr:nth-child(even) {

@@ -1,19 +1,27 @@
 import connection from "../db/connection.js"
 
+function limparTelefone(telefone = ""){
+    return String(telefone).replace(/\D/g, "");
+}
+
 class Beneficiario{
     constructor(id, nome, endereco, telefone, usuario, senha){
         this.id = id;
         this.nome = nome;
         this.endereco = endereco;
-        this.telefone = telefone;
+        this.telefone = limparTelefone(telefone);
         this.usuario = usuario;
         this.senha = senha;
     }
 
-    static async listar(filtro) {
-        let queryString = `select * from beneficiarios`
+    static async listar(filtro, telefone) {
+        let queryString = `select * from beneficiarios where 1=1`;
         if (filtro) {
-            queryString += ` where ben_usuario like '%${filtro}%'`;
+            queryString += ` and (ben_nome like '%${filtro}%' or ben_usuario like '%${filtro}%')`;
+        }
+        const telefoneLimpo = limparTelefone(telefone);
+        if (telefoneLimpo) {
+            queryString += ` and replace(replace(replace(replace(replace(replace(replace(ben_telefone, '(', ''), ')', ''), '-', ''), ' ', ''), '.', ''), '+', ''), '/', '') like '%${telefoneLimpo}%'`;
         }
         const [beneficiarios] = await connection.query(queryString);
         let beneficiarioList = [];

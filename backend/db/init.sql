@@ -2,16 +2,16 @@ CREATE SCHEMA IF NOT EXISTS `amorresposta` DEFAULT CHARACTER SET utf8;
 USE `amorresposta` ;
 
 CREATE TABLE IF NOT EXISTS `funcionarios` (
-	`fun_id` INT NOT NULL AUTO_INCREMENT,
+	`fun_id` INT NOT NULL auto_increment,
 	`fun_nome` VARCHAR(45) NULL,
 	`fun_usuario` VARCHAR(45) NULL,
 	`fun_senha` VARCHAR(45) NULL,
-	`fun_cargo` CHAR(1) NULL,
+	`fun_cargo` CHAR(45) NULL,
 	PRIMARY KEY (`fun_id`)
   );
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-	`ben_id` INT NOT NULL AUTO_INCREMENT,
+	`ben_id` INT NOT NULL auto_increment,
 	`ben_nome` VARCHAR(45) NULL,
 	`ben_endereco` VARCHAR(100) NULL,
 	`ben_telefone` VARCHAR(20) NULL,
@@ -21,11 +21,13 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
 );
 
 CREATE TABLE IF NOT EXISTS `documentos` (
-  	`doc_id` INT NOT NULL AUTO_INCREMENT,
-  	`doc_caminho` VARCHAR(45) NULL,
-	PRIMARY KEY (`doc_id`)
+  `doc_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `doc_titulo` VARCHAR(255) NOT NULL,
+  `doc_tipo` VARCHAR(100) NOT NULL,
+  `doc_data_criacao` DATE,
+  `doc_descricao` TEXT,
+  `doc_link` VARCHAR(500)
 );
-
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
   	`doa_id` INT NOT NULL AUTO_INCREMENT,
@@ -41,14 +43,14 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
 );
 
 CREATE TABLE IF NOT EXISTS `despesas` (
-  	`des_id` INT NOT NULL,
+  	`des_id` INT NOT NULL auto_increment,
   	`des_descricao` VARCHAR(45) NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`des_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontros` (
-  	`enc_id` INT NOT NULL,
+  	`enc_id` INT NOT NULL auto_increment,
   	`enc_data` DATE NULL,
   	`enc_disponibilidade` CHAR(1) NULL,
   	`enc_qtdeMax` INT NULL,
@@ -72,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `responsaveis` (
 );
 
 CREATE TABLE IF NOT EXISTS `itens` (
-  	`item_id` INT NOT NULL,
+  	`item_id` INT NOT NULL auto_increment,
   	`item_descricao` VARCHAR(45) NULL,
   	`item_qtde` INT NULL,
   	`item_validade` DATE NULL,
@@ -141,3 +143,5 @@ ALTER TABLE `itensDoados`
     	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
   	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
     	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
+
+

@@ -1,20 +1,15 @@
 import styled from "styled-components";
 
 const Styled = {
-    Filtros: styled.div`
-        width: 50%;
-        margin: 0 auto 15px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-
-        @media (max-width: 768px) {
-            width: 90%;
-        }
+    ContainerBusca: styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* espaço entre os inputs */
+    margin: 20px 0;
     `,
     Busca: styled.input`
         padding: 10px 15px;
-        width: 100%;
+        width: 25%;
         border-radius: 10px;
         border: 1px solid #ccc;
     `,

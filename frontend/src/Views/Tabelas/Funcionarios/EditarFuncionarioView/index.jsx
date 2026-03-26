@@ -18,7 +18,7 @@ function EditarFuncionarioView() {
 
     async function fetchAlterarFuncionario(){
         try {
-            await fetch("http://localhost:3000/funcionarios/alterar", {
+            const response = await fetch("http://localhost:3000/funcionarios/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -28,10 +28,22 @@ function EditarFuncionarioView() {
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
-                    cargo: form.cargo
+                    cargo: form.cargo,
+                    camposAlterados: {
+                        nome: form.nome !== formOriginal.nome,
+                        usuario: form.usuario !== formOriginal.usuario,
+                        senha: form.senha !== formOriginal.senha,
+                        cargo: form.cargo !== formOriginal.cargo,
+                    }
                 })
             });
-            setFormOriginal(form);
+            if(response.ok){
+                setFormOriginal(form);
+            }else{
+                const json = await response.json(); 
+                setErros(json.campos || {});
+                alert(json.err || 'Erro desconhecido no servidor');
+            }
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -64,9 +76,7 @@ function EditarFuncionarioView() {
             [name]: value
         }));
     }
-    function isAlterado(){
-        return JSON.stringify(form) !== JSON.stringify(formOriginal);
-    }
+    const [erros,setErros] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const navigate = useNavigate();
     const {id} = useParams();
@@ -96,11 +106,7 @@ function EditarFuncionarioView() {
     }, []);
 
     useEffect(() => {
-        if (JSON.stringify(form) !== JSON.stringify(formOriginal)) {
-            setEditado(true);
-        } else {
-            setEditado(false);
-        }
+        setEditado(JSON.stringify(form) !== JSON.stringify(formOriginal));
     }, [form, formOriginal]);
 
     return (
@@ -151,12 +157,15 @@ function EditarFuncionarioView() {
                         </div>
 
                         <div>
-                            <label htmlFor="cargo">Cargo: </label>
-                            <input
+                            <label htmlFor="cargo">Cargo:</label>
+                            <select
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
-                            />
+                            >
+                                <option value="Administrador">Administrador</option>
+                                <option value="Voluntario">Voluntário</option>
+                            </select>
                         </div>
 
                         <button
