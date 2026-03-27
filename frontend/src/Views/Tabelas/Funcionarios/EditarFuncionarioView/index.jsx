@@ -21,7 +21,9 @@ function EditarFuncionarioView() {
             nome: !form.nome,
             usuario: !form.usuario,
             senha: !form.senha,
-            cargo: !form.cargo
+            cargo: !form.cargo,
+            cpf: !form.cpf,
+            telefone: !form.telefone
         };
         setCamposVazios(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
@@ -39,7 +41,9 @@ function EditarFuncionarioView() {
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
-                    cargo: form.cargo
+                    cargo: form.cargo,
+                    cpf: form.cpf,
+                    telefone: form.telefone
                 })
             });
             if(response.ok){
@@ -53,20 +57,6 @@ function EditarFuncionarioView() {
         }
     }
 
-    async function fetchExcluirFuncionario(){
-        const confirmar = confirm("Tem certeza que deseja excluir?");
-        if(!confirmar) return;
-
-        try {
-            await fetch(`http://localhost:3000/funcionarios/excluir?id=${id}`, {
-                method: "DELETE"
-            });
-            navigate("/tabelas/funcionarios");
-        } catch (err) {
-            alert("Erro ao excluir");
-        }
-    }
-
     function atualizarForm(e){
         const { name, value } = e.target;
         setForm((prev) => ({
@@ -76,19 +66,22 @@ function EditarFuncionarioView() {
     }
     const [camposVazios,setCamposVazios] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
-    const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
         nome: "",
         usuario: "",
         senha: "",
-        cargo: ""
+        cargo: "",
+        cpf:"",
+        telefone:""
     });
     const [formOriginal, setFormOriginal] = useState({
         nome: "",
         usuario: "",
         senha: "",
-        cargo: ""
+        cargo: "",
+        cpf:"",
+        telefone:""
     });
     const [editado, setEditado] = useState(false);
 
@@ -156,6 +149,35 @@ function EditarFuncionarioView() {
                         </div>
 
                         <div>
+                            <label htmlFor="cpf">CPF: </label>
+                            <input
+                                name="cpf"
+                                value={form.cpf}
+                                onChange={atualizarForm}
+                                pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                                placeholder="000.000.000-00"
+                                inputMode="numeric"
+                                maxLength={14}
+                                style={{ border: camposVazios.cpf ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="telefone">Telefone: </label>
+                            <input
+                                name="telefone"
+                                value={form.telefone}
+                                onChange={atualizarForm}
+                                pattern="\(\d{2}\)\s\d{4,5}-\d{4}"
+                                placeholder="(00) 00000-0000"
+                                inputMode="numeric"
+                                maxLength={15}
+                                required
+                                style={{ border: camposVazios.telefone ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
                             <label htmlFor="cargo">Cargo:</label>
                             <select
                                 name="cargo"
@@ -174,13 +196,6 @@ function EditarFuncionarioView() {
                             onClick={fetchAlterarFuncionario}
                         >
                             Editar
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={fetchExcluirFuncionario}
-                        >
-                            Excluir
                         </button>
                 </Styled.Form>
             </main>

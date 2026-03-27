@@ -1,8 +1,8 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-import { useEffect,useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 
 
@@ -14,7 +14,9 @@ function CadastrarFuncionarioView() {
             nome: !form.nome,
             usuario: !form.usuario,
             senha: !form.senha,
-            cargo: !form.cargo
+            cargo: !form.cargo,
+            cpf: !form.cpf,
+            telefone: !form.telefone
         };
         setCamposVazios(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
@@ -31,7 +33,9 @@ function CadastrarFuncionarioView() {
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
-                    cargo: form.cargo
+                    cargo: form.cargo,
+                    cpf: form.cpf,
+                    telefone: form.telefone
                 })
             });
             if(response.ok){
@@ -57,7 +61,9 @@ function CadastrarFuncionarioView() {
         nome: "",
         usuario: "",
         senha: "",
-        cargo: ""
+        cargo: "",
+        cpf:"",
+        telefone:""
     });
     const navigate = useNavigate();
 
@@ -101,6 +107,35 @@ function CadastrarFuncionarioView() {
                                 value={form.senha}
                                 onChange={atualizarForm}
                                 style={{ border: camposVazios.senha ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="cpf">CPF: </label>
+                            <input
+                                name="cpf"
+                                value={form.cpf}
+                                onChange={atualizarForm}
+                                pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                                placeholder="000.000.000-00"
+                                inputMode="numeric"
+                                maxLength={14}
+                                style={{ border: camposVazios.cpf ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="telefone">Telefone: </label>
+                            <input
+                                name="telefone"
+                                value={form.telefone}
+                                onChange={atualizarForm}
+                                pattern="\(\d{2}\)\s\d{4,5}-\d{4}"
+                                placeholder="(00) 00000-0000"
+                                inputMode="numeric"
+                                maxLength={15}
+                                required
+                                style={{ border: camposVazios.telefone ? "2px solid red" : "" }}
                             />
                         </div>
 

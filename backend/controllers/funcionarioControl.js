@@ -5,7 +5,7 @@ class FuncionarioController{
     static async listar(req,res){
         try{
             const connection = await SingletonDB.getConnection();
-            let resp = await Funcionario.listar(connection,req.query.filtro);
+            let resp = await Funcionario.listar(connection,req.query.filtroNome,req.query.filtroUsuario);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({err: err.message});
@@ -29,7 +29,7 @@ class FuncionarioController{
     static async alterar(req, res){
         try {
             const connection = await SingletonDB.getConnection();
-            const { id, nome, usuario, senha, cargo } = req.body;
+            const { id, nome, usuario, senha, cargo, cpf, telefone} = req.body;
             const funcionarioOriginal = await Funcionario.buscarPorId(connection,id);
             if(!funcionarioOriginal){
                 throw new Error("Id não existe");
@@ -38,7 +38,7 @@ class FuncionarioController{
                 await Funcionario.buscarPorUsuario(connection,usuario) ){
                 throw new Error("Usuario já exite");
             }
-            const funcionario = new Funcionario(id,nome,usuario,senha,cargo);
+            const funcionario = new Funcionario(id,nome,usuario,senha,cargo,cpf,telefone);
             const resultado = await funcionario.alterar(connection);
             return res.status(200).json(resultado);
         } catch (err) {
@@ -63,11 +63,11 @@ class FuncionarioController{
     static async cadastrar(req,res){
         try{
             const connection = await SingletonDB.getConnection();
-            const {nome, usuario, senha, cargo} = req.body;
+            const {nome, usuario, senha, cargo, cpf, telefone} = req.body;
             if(await Funcionario.buscarPorUsuario(connection,usuario)){
                 throw new Error("Usuario já existe");
             }
-            let funcionario = new Funcionario(-1,nome,usuario,senha,cargo);
+            let funcionario = new Funcionario(-1,nome,usuario,senha,cargo,cpf,telefone);
             let resp = await funcionario.gravar(connection);
             return res.status(200).json(resp);
         }catch(err){
