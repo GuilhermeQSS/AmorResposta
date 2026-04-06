@@ -18,7 +18,10 @@ function Header(){
                 <li><Link to={'/portal'}>Portal da Transparência</Link></li>
                 <li><Link to={'/sobre'}>Sobre</Link></li>
                 <li
-                    onClick={() => setDropdownTabela(!dropdownTabela)}
+                    onClick={() => {
+                        setDropdownTabela(!dropdownTabela)
+                        setDropdownCadastro(false)
+                    }}
                 >
                     <p>Tabelas</p>
                     {dropdownTabela && (
@@ -28,7 +31,10 @@ function Header(){
                     )}
                 </li>
                 <li
-                    onClick={() => setDropdownCadastro(!dropdownCadastro)}
+                    onClick={() => {
+                        setDropdownCadastro(!dropdownCadastro)
+                        setDropdownTabela(false);
+                    }}
                 >
                     <p>Cadastrar</p>
                     {dropdownCadastro && (

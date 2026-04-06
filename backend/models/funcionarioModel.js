@@ -8,10 +8,6 @@ class Funcionario{
             throw new Error("CPF inválido");
         }
 
-        if (!Funcionario.validarTelefone(telefone)) {
-            throw new Error("Telefone inválido");
-        }
-
         this.id = id;
         this.nome = nome;
         this.usuario = usuario;
@@ -47,11 +43,6 @@ class Funcionario{
         if (resto !== parseInt(cpf[10])) return false;
 
         return true;
-    }
-
-    static validarTelefone(telefone) {
-        const regex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
-        return regex.test(telefone);
     }
 
     static async listar(connection, filtroNome, filtroUsuario) {

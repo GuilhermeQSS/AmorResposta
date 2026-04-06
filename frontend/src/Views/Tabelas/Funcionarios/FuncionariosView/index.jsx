@@ -22,20 +22,22 @@ function FuncionariosView() {
             await fetch(`http://localhost:3000/funcionarios/excluir?id=${id}`, {
                 method: "DELETE"
             });
+            setFuncionarios((prev) => prev.filter(f => f.id !== id));
         } catch (err) {
             alert("Erro ao excluir");
         }
     }
-    async function carregar(){
-        const data = await fetchFuncionarioLista(filtroNome,filtroUsuario);
-        setFuncionarios(data);
-    }
+    
     const [funcionarios, setFuncionarios] = useState([]);
     const [filtroNome, setFiltroNome] = useState("");
     const [filtroUsuario, setFiltroUsuario] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
+        async function carregar(){
+            const data = await fetchFuncionarioLista(filtroNome,filtroUsuario);
+            setFuncionarios(data);
+        }
         carregar();
     }, [filtroNome,filtroUsuario]);
     
@@ -71,7 +73,7 @@ function FuncionariosView() {
                     <tbody>
                         {
                             funcionarios.map((f) => (
-                                <tr>
+                                <tr key={f.id}>
                                     <td>{f.id}</td>
                                     <td>{f.nome}</td>
                                     <td>{f.usuario}</td>
@@ -85,10 +87,7 @@ function FuncionariosView() {
                                             Editar
                                         </button>
                                         <button
-                                            onClick={() =>{
-                                                fetchExcluirFuncionario(f.id);
-                                                carregar();
-                                            }}
+                                            onClick={() =>{fetchExcluirFuncionario(f.id)}}
                                         >
                                             Excluir
                                         </button>
