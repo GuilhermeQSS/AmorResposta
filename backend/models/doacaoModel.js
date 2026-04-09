@@ -9,7 +9,7 @@ const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes"
 let colunasDocumentosCache = null;
 
 class Doacao {
-    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento = null) {
+    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes = null, documento = null) {
         this.id = id;
         this.doadorNome = Doacao.normalizarDoadorNome(doadorNome);
         this.dataEntrega = dataEntrega;
@@ -18,6 +18,7 @@ class Doacao {
         this.tipo = tipo;
         this.quantidadeItens = Doacao.normalizarQuantidadeItens(quantidadeItens);
         this.observacao = Doacao.normalizarTextoLivre(observacao);
+        this.detalhes = Doacao.normalizarDetalhes(detalhes);
         this.documento = Doacao.normalizarDocumento(documento);
     }
 
@@ -34,6 +35,26 @@ class Doacao {
     static normalizarQuantidadeItens(quantidadeItens) {
         const quantidade = Number(quantidadeItens);
         return Number.isInteger(quantidade) && quantidade > 0 ? quantidade : null;
+    }
+
+    static normalizarDetalhes(detalhes) {
+        if (!detalhes) {
+            return null;
+        }
+
+        if (typeof detalhes === "string") {
+            try {
+                return JSON.parse(detalhes);
+            } catch {
+                return null;
+            }
+        }
+
+        if (typeof detalhes === "object" && !Array.isArray(detalhes)) {
+            return detalhes;
+        }
+
+        return null;
     }
 
     static normalizarDocumento(documento) {
@@ -185,7 +206,8 @@ class Doacao {
             d.doa_formaEntrega,
             d.doa_tipo,
             d.doa_quantidadeItens,
-            d.doa_observacao
+            d.doa_observacao,
+            d.doa_detalhes
         ));
     }
 
@@ -205,7 +227,8 @@ class Doacao {
             doacao.doa_formaEntrega,
             doacao.doa_tipo,
             doacao.doa_quantidadeItens,
-            doacao.doa_observacao
+            doacao.doa_observacao,
+            doacao.doa_detalhes
         );
     }
 
@@ -228,8 +251,9 @@ class Doacao {
                     doa_tipo,
                     doa_quantidadeItens,
                     doa_observacao,
+                    doa_detalhes,
                     doc_id
-                ) values (?, ?, ?, ?, ?, ?, ?, ?);
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?);
             `;
 
             const [resultado] = await connection.query(queryString, [
@@ -240,6 +264,7 @@ class Doacao {
                 this.tipo,
                 this.quantidadeItens,
                 this.observacao,
+                this.detalhes ? JSON.stringify(this.detalhes) : null,
                 documentoPersistido?.documentoId || null
             ]);
 
@@ -265,7 +290,8 @@ class Doacao {
                 doa_formaEntrega = ?,
                 doa_tipo = ?,
                 doa_quantidadeItens = ?,
-                doa_observacao = ?
+                doa_observacao = ?,
+                doa_detalhes = ?
             where doa_id = ?;
         `;
 
@@ -277,6 +303,7 @@ class Doacao {
             this.tipo,
             this.quantidadeItens,
             this.observacao,
+            this.detalhes ? JSON.stringify(this.detalhes) : null,
             this.id
         ]);
 

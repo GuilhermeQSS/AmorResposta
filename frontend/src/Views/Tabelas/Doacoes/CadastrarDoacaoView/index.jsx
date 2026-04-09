@@ -1,8 +1,15 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+    calcularQuantidadeDetalhada,
+    criarDetalhesDoacaoVazios,
+    montarDetalhesPayload,
+    obterItensDetalhados,
+    usaQuantidadeAutomatica
+} from "../detalhesDoacao";
 
 function CadastrarDoacaoView() {
     function arquivoParaBase64(arquivo) {
@@ -20,7 +27,7 @@ function CadastrarDoacaoView() {
         });
     }
 
-    function validarFormulario(dados) {
+    function validarFormulario(dados, detalhes) {
         const novosErros = {};
 
         if (!dados.dataEntrega) {
@@ -44,10 +51,28 @@ function CadastrarDoacaoView() {
             novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
         }
 
+        if (dados.tipo === "Alimentos" && !detalhes.validade) {
+            novosErros.validade = "Informe a validade dos alimentos.";
+        }
+
+        if (dados.tipo === "Roupas") {
+            if (!detalhes.categoriaRoupas) {
+                novosErros.categoriaRoupas = "Escolha se a doacao e para verao ou inverno.";
+            }
+
+            if (calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
+                novosErros.itensDetalhados = "Informe ao menos uma quantidade para as roupas.";
+            }
+        }
+
+        if (dados.tipo === "Higiene" && calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
+            novosErros.itensDetalhados = "Informe ao menos uma quantidade para os itens de higiene.";
+        }
+
         return novosErros;
     }
 
-    async function prepararPayload(dados) {
+    async function prepararPayload(dados, detalhes) {
         let documentoPayload = null;
 
         if (documento) {
@@ -62,12 +87,13 @@ function CadastrarDoacaoView() {
             ...dados,
             doadorNome: dados.doadorNome.trim() || "anonimo",
             quantidadeItens: Number(dados.quantidadeItens),
+            detalhes: montarDetalhesPayload(dados.tipo, detalhes),
             documento: documentoPayload
         };
     }
 
     async function fetchCadastrarDoacao() {
-        const novosErros = validarFormulario(form);
+        const novosErros = validarFormulario(form, detalhesDoacao);
         setErros(novosErros);
 
         if (Object.keys(novosErros).length > 0) {
@@ -77,7 +103,7 @@ function CadastrarDoacaoView() {
         }
 
         try {
-            const payload = await prepararPayload(form);
+            const payload = await prepararPayload(form, detalhesDoacao);
             const response = await fetch("http://localhost:3000/doacoes/gravar", {
                 method: "POST",
                 headers: {
@@ -105,22 +131,21 @@ function CadastrarDoacaoView() {
             [name]: nextValue
         };
 
+        if (name === "tipo" && usaQuantidadeAutomatica(value)) {
+            nextForm.quantidadeItens = String(calcularQuantidadeDetalhada(value, detalhesDoacao));
+        }
+
+        if (name === "tipo" && !usaQuantidadeAutomatica(value) && usaQuantidadeAutomatica(form.tipo)) {
+            nextForm.quantidadeItens = "";
+        }
+
         setForm(nextForm);
         setErros((prev) => {
-            if (!prev[name]) {
+            if (!prev[name] && !(name === "tipo" && (prev.validade || prev.categoriaRoupas || prev.itensDetalhados))) {
                 return prev;
             }
 
-            const errosAtualizados = validarFormulario(nextForm);
-            if (!errosAtualizados[name]) {
-                const { [name]: _campoRemovido, ...restante } = prev;
-                return restante;
-            }
-
-            return {
-                ...prev,
-                [name]: errosAtualizados[name]
-            };
+            return validarFormulario(nextForm, detalhesDoacao);
         });
     }
 
@@ -128,6 +153,43 @@ function CadastrarDoacaoView() {
         const arquivoSelecionado = e.target.files?.[0] || null;
         setDocumento(arquivoSelecionado);
         setNomeDocumento(arquivoSelecionado?.name || "");
+    }
+
+    function atualizarDetalhes(e) {
+        const { name, value } = e.target;
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            [name]: value
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev[name] && !prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function atualizarQuantidadeDetalhada(chave, valor) {
+        const valorLimpo = valor.replace(/\D/g, "");
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            itens: {
+                ...detalhesDoacao.itens,
+                [chave]: valorLimpo
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
     }
 
     const [form, setForm] = useState({
@@ -139,11 +201,32 @@ function CadastrarDoacaoView() {
         quantidadeItens: "",
         observacao: ""
     });
+    const [detalhesDoacao, setDetalhesDoacao] = useState(criarDetalhesDoacaoVazios());
     const [documento, setDocumento] = useState(null);
     const [nomeDocumento, setNomeDocumento] = useState("");
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
+    const itensDetalhados = obterItensDetalhados(form.tipo, detalhesDoacao.categoriaRoupas);
+    const quantidadeAutomatica = usaQuantidadeAutomatica(form.tipo);
+
+    useEffect(() => {
+        if (!quantidadeAutomatica) {
+            return;
+        }
+
+        const quantidadeCalculada = String(calcularQuantidadeDetalhada(form.tipo, detalhesDoacao));
+        setForm((prev) => {
+            if (prev.quantidadeItens === quantidadeCalculada) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                quantidadeItens: quantidadeCalculada
+            };
+        });
+    }, [form.tipo, detalhesDoacao, quantidadeAutomatica]);
 
     return (
         <>
@@ -201,6 +284,93 @@ function CadastrarDoacaoView() {
                         </select>
                     </div>
 
+                    {form.tipo === "Alimentos" && (
+                        <Styled.Section data-error={Boolean(erros.validade)}>
+                            <label htmlFor="validade">Validade:</label>
+                            <input
+                                ref={(elemento) => {
+                                    fieldRefs.current.validade = elemento;
+                                }}
+                                type="date"
+                                name="validade"
+                                value={detalhesDoacao.validade}
+                                onChange={atualizarDetalhes}
+                            />
+                        </Styled.Section>
+                    )}
+
+                    {form.tipo === "Roupas" && (
+                        <Styled.Section data-error={Boolean(erros.categoriaRoupas) || Boolean(erros.itensDetalhados)}>
+                            <label htmlFor="categoriaRoupas">Categoria das roupas:</label>
+                            <select
+                                ref={(elemento) => {
+                                    fieldRefs.current.categoriaRoupas = elemento;
+                                }}
+                                name="categoriaRoupas"
+                                value={detalhesDoacao.categoriaRoupas}
+                                onChange={atualizarDetalhes}
+                            >
+                                <option value="">Selecione</option>
+                                <option value="verao">Roupas de verao</option>
+                                <option value="inverno">Roupas de inverno</option>
+                            </select>
+
+                            {itensDetalhados.length > 0 && (
+                                <>
+                                    <Styled.SectionTitle>Itens da doacao</Styled.SectionTitle>
+                                    <Styled.Grid>
+                                        {itensDetalhados.map((item, index) => (
+                                            <div key={item.chave}>
+                                                <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                <input
+                                                    ref={(elemento) => {
+                                                        if (index === 0) {
+                                                            fieldRefs.current.itensDetalhados = elemento;
+                                                        }
+                                                    }}
+                                                    id={item.chave}
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={detalhesDoacao.itens[item.chave]}
+                                                    onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        ))}
+                                    </Styled.Grid>
+                                </>
+                            )}
+                        </Styled.Section>
+                    )}
+
+                    {form.tipo === "Higiene" && (
+                        <Styled.Section data-error={Boolean(erros.itensDetalhados)}>
+                            <Styled.SectionTitle>Itens de higiene</Styled.SectionTitle>
+                            <Styled.Grid>
+                                {itensDetalhados.map((item, index) => (
+                                    <div key={item.chave}>
+                                        <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                        <input
+                                            ref={(elemento) => {
+                                                if (index === 0) {
+                                                    fieldRefs.current.itensDetalhados = elemento;
+                                                }
+                                            }}
+                                            id={item.chave}
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value={detalhesDoacao.itens[item.chave]}
+                                            onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                ))}
+                            </Styled.Grid>
+                        </Styled.Section>
+                    )}
+
                     <div data-error={Boolean(erros.origem)}>
                         <label htmlFor="origem">Origem:</label>
                         <input
@@ -244,8 +414,14 @@ function CadastrarDoacaoView() {
                             name="quantidadeItens"
                             value={form.quantidadeItens}
                             onChange={atualizarForm}
-                            placeholder="Informe a quantidade"
+                            placeholder={quantidadeAutomatica ? "Calculada automaticamente" : "Informe a quantidade"}
+                            readOnly={quantidadeAutomatica}
                         />
+                        {quantidadeAutomatica && (
+                            <Styled.HelperText>
+                                A quantidade total e somada automaticamente a partir dos itens acima.
+                            </Styled.HelperText>
+                        )}
                     </div>
 
                     <div data-error={Boolean(erros.observacao)}>

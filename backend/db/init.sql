@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
   	`doa_tipo` VARCHAR(45) NULL,
   	`doa_quantidadeItens` INT NOT NULL,
   	`doa_observacao` VARCHAR(255) NULL,
+  	`doa_detalhes` TEXT NULL,
   	`doc_id` INT NULL,
   	PRIMARY KEY (`doa_id`)
 );

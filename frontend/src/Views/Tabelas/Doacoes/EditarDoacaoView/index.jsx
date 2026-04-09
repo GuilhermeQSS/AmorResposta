@@ -3,9 +3,17 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+    calcularQuantidadeDetalhada,
+    criarDetalhesDoacaoVazios,
+    montarDetalhesPayload,
+    normalizarDetalhesDoacao,
+    obterItensDetalhados,
+    usaQuantidadeAutomatica
+} from "../detalhesDoacao";
 
 function EditarDoacaoView() {
-    function validarFormulario(dados) {
+    function validarFormulario(dados, detalhes) {
         const novosErros = {};
 
         if (!dados.dataEntrega) {
@@ -29,6 +37,24 @@ function EditarDoacaoView() {
             novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
         }
 
+        if (dados.tipo === "Alimentos" && !detalhes.validade) {
+            novosErros.validade = "Informe a validade dos alimentos.";
+        }
+
+        if (dados.tipo === "Roupas") {
+            if (!detalhes.categoriaRoupas) {
+                novosErros.categoriaRoupas = "Escolha se a doacao e para verao ou inverno.";
+            }
+
+            if (calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
+                novosErros.itensDetalhados = "Informe ao menos uma quantidade para as roupas.";
+            }
+        }
+
+        if (dados.tipo === "Higiene" && calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
+            novosErros.itensDetalhados = "Informe ao menos uma quantidade para os itens de higiene.";
+        }
+
         return novosErros;
     }
 
@@ -41,15 +67,17 @@ function EditarDoacaoView() {
             formaEntrega: dados?.formaEntrega || "",
             tipo: dados?.tipo || "",
             quantidadeItens: dados?.quantidadeItens ? String(dados.quantidadeItens) : "",
-            observacao: dados?.observacao || ""
+            observacao: dados?.observacao || "",
+            detalhes: normalizarDetalhesDoacao(dados?.detalhes)
         };
     }
 
-    function prepararPayload(dados) {
+    function prepararPayload(dados, detalhes) {
         return {
             ...dados,
             doadorNome: dados.doadorNome.trim() || "anonimo",
-            quantidadeItens: Number(dados.quantidadeItens)
+            quantidadeItens: Number(dados.quantidadeItens),
+            detalhes: montarDetalhesPayload(dados.tipo, detalhes)
         };
     }
 
@@ -62,7 +90,7 @@ function EditarDoacaoView() {
     }
 
     async function fetchAlterarDoacao() {
-        const novosErros = validarFormulario(form);
+        const novosErros = validarFormulario(form, detalhesDoacao);
         setErros(novosErros);
 
         if (Object.keys(novosErros).length > 0) {
@@ -72,7 +100,7 @@ function EditarDoacaoView() {
         }
 
         try {
-            const payload = prepararPayload(form);
+            const payload = prepararPayload(form, detalhesDoacao);
             const response = await fetch("http://localhost:3000/doacoes/alterar", {
                 method: "PUT",
                 headers: {
@@ -86,14 +114,14 @@ function EditarDoacaoView() {
                 throw new Error(erro.erro || "Erro ao atualizar");
             }
 
-            setForm({
+            const proximoForm = {
                 ...payload,
                 quantidadeItens: String(payload.quantidadeItens)
-            });
-            setFormOriginal({
-                ...payload,
-                quantidadeItens: String(payload.quantidadeItens)
-            });
+            };
+
+            setForm(proximoForm);
+            setFormOriginal(proximoForm);
+            setDetalhesOriginal(detalhesDoacao);
         } catch (error) {
             alert(error.message);
         }
@@ -132,22 +160,58 @@ function EditarDoacaoView() {
             [name]: nextValue
         };
 
+        if (name === "tipo" && usaQuantidadeAutomatica(value)) {
+            nextForm.quantidadeItens = String(calcularQuantidadeDetalhada(value, detalhesDoacao));
+        }
+
+        if (name === "tipo" && !usaQuantidadeAutomatica(value) && usaQuantidadeAutomatica(form.tipo)) {
+            nextForm.quantidadeItens = "";
+        }
+
         setForm(nextForm);
         setErros((prev) => {
-            if (!prev[name]) {
+            if (!prev[name] && !(name === "tipo" && (prev.validade || prev.categoriaRoupas || prev.itensDetalhados))) {
                 return prev;
             }
 
-            const errosAtualizados = validarFormulario(nextForm);
-            if (!errosAtualizados[name]) {
-                const { [name]: _campoRemovido, ...restante } = prev;
-                return restante;
+            return validarFormulario(nextForm, detalhesDoacao);
+        });
+    }
+
+    function atualizarDetalhes(e) {
+        const { name, value } = e.target;
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            [name]: value
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev[name] && !prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
             }
 
-            return {
-                ...prev,
-                [name]: errosAtualizados[name]
-            };
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function atualizarQuantidadeDetalhada(chave, valor) {
+        const valorLimpo = valor.replace(/\D/g, "");
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            itens: {
+                ...detalhesDoacao.itens,
+                [chave]: valorLimpo
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
         });
     }
 
@@ -173,24 +237,69 @@ function EditarDoacaoView() {
         quantidadeItens: "",
         observacao: ""
     });
+    const [detalhesDoacao, setDetalhesDoacao] = useState(criarDetalhesDoacaoVazios());
+    const [detalhesOriginal, setDetalhesOriginal] = useState(criarDetalhesDoacaoVazios());
     const [erros, setErros] = useState({});
     const [editado, setEditado] = useState(false);
     const fieldRefs = useRef({});
+    const itensDetalhados = obterItensDetalhados(form.tipo, detalhesDoacao.categoriaRoupas);
+    const quantidadeAutomatica = usaQuantidadeAutomatica(form.tipo);
 
     useEffect(() => {
         async function carregar() {
             const data = await fetchDoacao(id);
             const doacaoNormalizada = normalizarDoacaoRecebida(data);
-            setForm(doacaoNormalizada);
-            setFormOriginal(doacaoNormalizada);
+            setForm({
+                id: doacaoNormalizada.id,
+                doadorNome: doacaoNormalizada.doadorNome,
+                dataEntrega: doacaoNormalizada.dataEntrega,
+                origem: doacaoNormalizada.origem,
+                formaEntrega: doacaoNormalizada.formaEntrega,
+                tipo: doacaoNormalizada.tipo,
+                quantidadeItens: doacaoNormalizada.quantidadeItens,
+                observacao: doacaoNormalizada.observacao
+            });
+            setFormOriginal({
+                id: doacaoNormalizada.id,
+                doadorNome: doacaoNormalizada.doadorNome,
+                dataEntrega: doacaoNormalizada.dataEntrega,
+                origem: doacaoNormalizada.origem,
+                formaEntrega: doacaoNormalizada.formaEntrega,
+                tipo: doacaoNormalizada.tipo,
+                quantidadeItens: doacaoNormalizada.quantidadeItens,
+                observacao: doacaoNormalizada.observacao
+            });
+            setDetalhesDoacao(doacaoNormalizada.detalhes);
+            setDetalhesOriginal(doacaoNormalizada.detalhes);
         }
 
         carregar();
     }, [id]);
 
     useEffect(() => {
-        setEditado(JSON.stringify(form) !== JSON.stringify(formOriginal));
-    }, [form, formOriginal]);
+        if (!quantidadeAutomatica) {
+            return;
+        }
+
+        const quantidadeCalculada = String(calcularQuantidadeDetalhada(form.tipo, detalhesDoacao));
+        setForm((prev) => {
+            if (prev.quantidadeItens === quantidadeCalculada) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                quantidadeItens: quantidadeCalculada
+            };
+        });
+    }, [form.tipo, detalhesDoacao, quantidadeAutomatica]);
+
+    useEffect(() => {
+        setEditado(
+            JSON.stringify(form) !== JSON.stringify(formOriginal) ||
+            JSON.stringify(detalhesDoacao) !== JSON.stringify(detalhesOriginal)
+        );
+    }, [form, formOriginal, detalhesDoacao, detalhesOriginal]);
 
     return (
         <>
@@ -248,6 +357,93 @@ function EditarDoacaoView() {
                         </select>
                     </div>
 
+                    {form.tipo === "Alimentos" && (
+                        <Styled.Section data-error={Boolean(erros.validade)}>
+                            <label htmlFor="validade">Validade:</label>
+                            <input
+                                ref={(elemento) => {
+                                    fieldRefs.current.validade = elemento;
+                                }}
+                                type="date"
+                                name="validade"
+                                value={detalhesDoacao.validade}
+                                onChange={atualizarDetalhes}
+                            />
+                        </Styled.Section>
+                    )}
+
+                    {form.tipo === "Roupas" && (
+                        <Styled.Section data-error={Boolean(erros.categoriaRoupas) || Boolean(erros.itensDetalhados)}>
+                            <label htmlFor="categoriaRoupas">Categoria das roupas:</label>
+                            <select
+                                ref={(elemento) => {
+                                    fieldRefs.current.categoriaRoupas = elemento;
+                                }}
+                                name="categoriaRoupas"
+                                value={detalhesDoacao.categoriaRoupas}
+                                onChange={atualizarDetalhes}
+                            >
+                                <option value="">Selecione</option>
+                                <option value="verao">Roupas de verao</option>
+                                <option value="inverno">Roupas de inverno</option>
+                            </select>
+
+                            {itensDetalhados.length > 0 && (
+                                <>
+                                    <Styled.SectionTitle>Itens da doacao</Styled.SectionTitle>
+                                    <Styled.Grid>
+                                        {itensDetalhados.map((item, index) => (
+                                            <div key={item.chave}>
+                                                <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                <input
+                                                    ref={(elemento) => {
+                                                        if (index === 0) {
+                                                            fieldRefs.current.itensDetalhados = elemento;
+                                                        }
+                                                    }}
+                                                    id={item.chave}
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={detalhesDoacao.itens[item.chave]}
+                                                    onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        ))}
+                                    </Styled.Grid>
+                                </>
+                            )}
+                        </Styled.Section>
+                    )}
+
+                    {form.tipo === "Higiene" && (
+                        <Styled.Section data-error={Boolean(erros.itensDetalhados)}>
+                            <Styled.SectionTitle>Itens de higiene</Styled.SectionTitle>
+                            <Styled.Grid>
+                                {itensDetalhados.map((item, index) => (
+                                    <div key={item.chave}>
+                                        <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                        <input
+                                            ref={(elemento) => {
+                                                if (index === 0) {
+                                                    fieldRefs.current.itensDetalhados = elemento;
+                                                }
+                                            }}
+                                            id={item.chave}
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value={detalhesDoacao.itens[item.chave]}
+                                            onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                ))}
+                            </Styled.Grid>
+                        </Styled.Section>
+                    )}
+
                     <div data-error={Boolean(erros.origem)}>
                         <label htmlFor="origem">Origem:</label>
                         <input
@@ -290,8 +486,14 @@ function EditarDoacaoView() {
                             name="quantidadeItens"
                             value={form.quantidadeItens}
                             onChange={atualizarForm}
-                            placeholder="Informe a quantidade"
+                            placeholder={quantidadeAutomatica ? "Calculada automaticamente" : "Informe a quantidade"}
+                            readOnly={quantidadeAutomatica}
                         />
+                        {quantidadeAutomatica && (
+                            <Styled.HelperText>
+                                A quantidade total e somada automaticamente a partir dos itens acima.
+                            </Styled.HelperText>
+                        )}
                     </div>
 
                     <div data-error={Boolean(erros.observacao)}>
