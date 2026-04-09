@@ -71,7 +71,7 @@ const Styled = {
             }
         }
 
-        button{
+        > button{
             margin-top: 10px;
             padding: 10px;
             border: black 1px solid;
@@ -112,6 +112,48 @@ const Styled = {
         margin-top: 6px;
         color: #7a3251;
         text-align: left;
+    `,
+    ActionRow: styled.div`
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        width: 100%;
+        align-items: end;
+
+        div {
+            margin-bottom: 0;
+        }
+    `,
+    SmallButton: styled.button`
+        padding: 10px 14px;
+        border: 1px solid #ff6f91;
+        border-radius: 10px;
+        background: white;
+        color: #b53c65;
+        font-weight: 700;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+    `,
+    ItemHeader: styled.div`
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+    `,
+    RemoveButton: styled.button`
+        padding: 6px 10px;
+        border: 1px solid #e08aa5;
+        border-radius: 999px;
+        background: #fff7fa;
+        color: #a53b60;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
     `,
     BackBtn: styled.div`
         width: fit-content;

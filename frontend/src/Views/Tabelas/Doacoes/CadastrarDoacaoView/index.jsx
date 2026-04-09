@@ -7,6 +7,7 @@ import {
     calcularQuantidadeDetalhada,
     criarDetalhesDoacaoVazios,
     montarDetalhesPayload,
+    obterAlimentosDisponiveis,
     obterItensDetalhados,
     usaQuantidadeAutomatica
 } from "../detalhesDoacao";
@@ -51,8 +52,14 @@ function CadastrarDoacaoView() {
             novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
         }
 
-        if (dados.tipo === "Alimentos" && !detalhes.validade) {
-            novosErros.validade = "Informe a validade dos alimentos.";
+        if (dados.tipo === "Alimentos") {
+            if (!detalhes.validade) {
+                novosErros.validade = "Informe a validade dos alimentos.";
+            }
+
+            if (calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
+                novosErros.itensDetalhados = "Informe ao menos uma quantidade para os alimentos.";
+            }
         }
 
         if (dados.tipo === "Roupas") {
@@ -67,6 +74,13 @@ function CadastrarDoacaoView() {
 
         if (dados.tipo === "Higiene" && calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
             novosErros.itensDetalhados = "Informe ao menos uma quantidade para os itens de higiene.";
+        }
+
+        if (dados.tipo === "Financeira") {
+            const valorFinanceiro = Number(detalhes.valorFinanceiro);
+            if (!Number.isFinite(valorFinanceiro) || valorFinanceiro <= 0) {
+                novosErros.valorFinanceiro = "Informe um valor valido para a doacao.";
+            }
         }
 
         return novosErros;
@@ -159,12 +173,12 @@ function CadastrarDoacaoView() {
         const { name, value } = e.target;
         const nextDetalhes = {
             ...detalhesDoacao,
-            [name]: value
+            [name]: name === "valorFinanceiro" ? value.replace(",", ".") : value
         };
 
         setDetalhesDoacao(nextDetalhes);
         setErros((prev) => {
-            if (!prev[name] && !prev.itensDetalhados && !prev.quantidadeItens) {
+            if (!prev[name] && !prev.itensDetalhados && !prev.quantidadeItens && !prev.valorFinanceiro) {
                 return prev;
             }
 
@@ -192,6 +206,47 @@ function CadastrarDoacaoView() {
         });
     }
 
+    function adicionarAlimento() {
+        if (!alimentoParaAdicionar) {
+            return;
+        }
+
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            alimentosSelecionados: [...detalhesDoacao.alimentosSelecionados, alimentoParaAdicionar]
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setAlimentoParaAdicionar("");
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function removerAlimento(chave) {
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            alimentosSelecionados: detalhesDoacao.alimentosSelecionados.filter((item) => item !== chave),
+            itens: {
+                ...detalhesDoacao.itens,
+                [chave]: ""
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
     const [form, setForm] = useState({
         doadorNome: "",
         dataEntrega: "",
@@ -202,12 +257,14 @@ function CadastrarDoacaoView() {
         observacao: ""
     });
     const [detalhesDoacao, setDetalhesDoacao] = useState(criarDetalhesDoacaoVazios());
+    const [alimentoParaAdicionar, setAlimentoParaAdicionar] = useState("");
     const [documento, setDocumento] = useState(null);
     const [nomeDocumento, setNomeDocumento] = useState("");
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
-    const itensDetalhados = obterItensDetalhados(form.tipo, detalhesDoacao.categoriaRoupas);
+    const itensDetalhados = obterItensDetalhados(form.tipo, detalhesDoacao.categoriaRoupas, detalhesDoacao.alimentosSelecionados);
+    const alimentosDisponiveis = obterAlimentosDisponiveis(detalhesDoacao.alimentosSelecionados);
     const quantidadeAutomatica = usaQuantidadeAutomatica(form.tipo);
 
     useEffect(() => {
@@ -227,6 +284,12 @@ function CadastrarDoacaoView() {
             };
         });
     }, [form.tipo, detalhesDoacao, quantidadeAutomatica]);
+
+    useEffect(() => {
+        if (form.tipo !== "Alimentos") {
+            setAlimentoParaAdicionar("");
+        }
+    }, [form.tipo]);
 
     return (
         <>
@@ -285,7 +348,7 @@ function CadastrarDoacaoView() {
                     </div>
 
                     {form.tipo === "Alimentos" && (
-                        <Styled.Section data-error={Boolean(erros.validade)}>
+                        <Styled.Section data-error={Boolean(erros.validade) || Boolean(erros.itensDetalhados)}>
                             <label htmlFor="validade">Validade:</label>
                             <input
                                 ref={(elemento) => {
@@ -296,6 +359,57 @@ function CadastrarDoacaoView() {
                                 value={detalhesDoacao.validade}
                                 onChange={atualizarDetalhes}
                             />
+                            <Styled.SectionTitle>Adicionar alimentos</Styled.SectionTitle>
+                            <Styled.ActionRow>
+                                <select
+                                    ref={(elemento) => {
+                                        fieldRefs.current.itensDetalhados = elemento;
+                                    }}
+                                    value={alimentoParaAdicionar}
+                                    onChange={(e) => setAlimentoParaAdicionar(e.target.value)}
+                                >
+                                    <option value="">Selecione um alimento</option>
+                                    {alimentosDisponiveis.map((item) => (
+                                        <option key={item.chave} value={item.chave}>
+                                            {item.rotulo}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Styled.SmallButton
+                                    type="button"
+                                    onClick={adicionarAlimento}
+                                    disabled={!alimentoParaAdicionar}
+                                >
+                                    Adicionar
+                                </Styled.SmallButton>
+                            </Styled.ActionRow>
+
+                            {itensDetalhados.length > 0 && (
+                                <Styled.Grid>
+                                    {itensDetalhados.map((item) => (
+                                        <div key={item.chave}>
+                                            <Styled.ItemHeader>
+                                                <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                <Styled.RemoveButton
+                                                    type="button"
+                                                    onClick={() => removerAlimento(item.chave)}
+                                                >
+                                                    Remover
+                                                </Styled.RemoveButton>
+                                            </Styled.ItemHeader>
+                                            <input
+                                                id={item.chave}
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                value={detalhesDoacao.itens[item.chave]}
+                                                onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    ))}
+                                </Styled.Grid>
+                            )}
                         </Styled.Section>
                     )}
 
@@ -371,6 +485,25 @@ function CadastrarDoacaoView() {
                         </Styled.Section>
                     )}
 
+                    {form.tipo === "Financeira" && (
+                        <Styled.Section data-error={Boolean(erros.valorFinanceiro)}>
+                            <label htmlFor="valorFinanceiro">Valor da doacao (R$):</label>
+                            <input
+                                ref={(elemento) => {
+                                    fieldRefs.current.valorFinanceiro = elemento;
+                                }}
+                                id="valorFinanceiro"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                name="valorFinanceiro"
+                                value={detalhesDoacao.valorFinanceiro}
+                                onChange={atualizarDetalhes}
+                                placeholder="0.00"
+                            />
+                        </Styled.Section>
+                    )}
+
                     <div data-error={Boolean(erros.origem)}>
                         <label htmlFor="origem">Origem:</label>
                         <input
@@ -402,27 +535,29 @@ function CadastrarDoacaoView() {
                         </select>
                     </div>
 
-                    <div data-error={Boolean(erros.quantidadeItens)}>
-                        <label htmlFor="quantidadeItens">Quantidade de itens:</label>
-                        <input
-                            ref={(elemento) => {
-                                fieldRefs.current.quantidadeItens = elemento;
-                            }}
-                            type="number"
-                            min="1"
-                            step="1"
-                            name="quantidadeItens"
-                            value={form.quantidadeItens}
-                            onChange={atualizarForm}
-                            placeholder={quantidadeAutomatica ? "Calculada automaticamente" : "Informe a quantidade"}
-                            readOnly={quantidadeAutomatica}
-                        />
-                        {quantidadeAutomatica && (
-                            <Styled.HelperText>
-                                A quantidade total e somada automaticamente a partir dos itens acima.
-                            </Styled.HelperText>
-                        )}
-                    </div>
+                    {form.tipo !== "Financeira" && (
+                        <div data-error={Boolean(erros.quantidadeItens)}>
+                            <label htmlFor="quantidadeItens">Quantidade de itens:</label>
+                            <input
+                                ref={(elemento) => {
+                                    fieldRefs.current.quantidadeItens = elemento;
+                                }}
+                                type="number"
+                                min="1"
+                                step="1"
+                                name="quantidadeItens"
+                                value={form.quantidadeItens}
+                                onChange={atualizarForm}
+                                placeholder={quantidadeAutomatica ? "Calculada automaticamente" : "Informe a quantidade"}
+                                readOnly={quantidadeAutomatica}
+                            />
+                            {quantidadeAutomatica && (
+                                <Styled.HelperText>
+                                    A quantidade total e somada automaticamente a partir dos itens acima.
+                                </Styled.HelperText>
+                            )}
+                        </div>
+                    )}
 
                     <div data-error={Boolean(erros.observacao)}>
                         <label htmlFor="observacao">Observacao:</label>

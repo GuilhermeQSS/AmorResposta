@@ -1,3 +1,20 @@
+const ITENS_ALIMENTOS = [
+    { chave: "arroz", rotulo: "Arroz" },
+    { chave: "feijao", rotulo: "Feijao" },
+    { chave: "oleoDeSoja", rotulo: "Oleo de soja/cozinha" },
+    { chave: "acucar", rotulo: "Acucar" },
+    { chave: "macarrao", rotulo: "Macarrao (massa)" },
+    { chave: "farinhaDeMandiocaOuMilho", rotulo: "Farinha de mandioca ou milho (fuba)" },
+    { chave: "farinhaDeTrigo", rotulo: "Farinha de trigo" },
+    { chave: "leiteEmPo", rotulo: "Leite em po" },
+    { chave: "cafe", rotulo: "Cafe" },
+    { chave: "sal", rotulo: "Sal" },
+    { chave: "molhoDeTomate", rotulo: "Molho de tomate (sache ou lata)" },
+    { chave: "enlatados", rotulo: "Enlatados" },
+    { chave: "biscoitos", rotulo: "Biscoitos" },
+    { chave: "gelatinaEmPo", rotulo: "Gelatina em po" }
+];
+
 const ROUPAS_VERAO = [
     { chave: "chinelo", rotulo: "Chinelo" },
     { chave: "shorts", rotulo: "Shorts" },
@@ -22,6 +39,7 @@ const ITENS_HIGIENE = [
 ];
 
 const TODAS_AS_CHAVES = [
+    ...ITENS_ALIMENTOS,
     ...ROUPAS_VERAO,
     ...ROUPAS_INVERNO,
     ...ITENS_HIGIENE
@@ -39,10 +57,17 @@ function paraQuantidadeValida(valor) {
     return Number.isInteger(quantidade) && quantidade > 0 ? quantidade : 0;
 }
 
+function paraValorFinanceiroValido(valor) {
+    const valorConvertido = Number(valor);
+    return Number.isFinite(valorConvertido) && valorConvertido > 0 ? valorConvertido : 0;
+}
+
 export function criarDetalhesDoacaoVazios() {
     return {
         validade: "",
         categoriaRoupas: "",
+        alimentosSelecionados: [],
+        valorFinanceiro: "",
         itens: criarItensVazios()
     };
 }
@@ -58,18 +83,37 @@ export function normalizarDetalhesDoacao(detalhes) {
     base.categoriaRoupas = detalhes.categoriaRoupas === "verao" || detalhes.categoriaRoupas === "inverno"
         ? detalhes.categoriaRoupas
         : "";
+    base.valorFinanceiro = paraValorFinanceiroValido(detalhes.valorFinanceiro) > 0
+        ? String(detalhes.valorFinanceiro)
+        : "";
 
     const itensOriginais = detalhes.itens && typeof detalhes.itens === "object" ? detalhes.itens : {};
+    const alimentosSelecionados = Array.isArray(detalhes.alimentosSelecionados)
+        ? detalhes.alimentosSelecionados.filter((chave) => ITENS_ALIMENTOS.some((item) => item.chave === chave))
+        : [];
 
     TODAS_AS_CHAVES.forEach((chave) => {
         const quantidade = paraQuantidadeValida(itensOriginais[chave]);
         base.itens[chave] = quantidade > 0 ? String(quantidade) : "";
     });
 
+    const alimentosComQuantidade = ITENS_ALIMENTOS
+        .filter((item) => paraQuantidadeValida(itensOriginais[item.chave]) > 0)
+        .map((item) => item.chave);
+
+    base.alimentosSelecionados = Array.from(new Set([
+        ...alimentosSelecionados,
+        ...alimentosComQuantidade
+    ]));
+
     return base;
 }
 
-export function obterItensDetalhados(tipo, categoriaRoupas) {
+export function obterItensDetalhados(tipo, categoriaRoupas, alimentosSelecionados = []) {
+    if (tipo === "Alimentos") {
+        return ITENS_ALIMENTOS.filter((item) => alimentosSelecionados.includes(item.chave));
+    }
+
     if (tipo === "Roupas") {
         if (categoriaRoupas === "verao") {
             return ROUPAS_VERAO;
@@ -89,11 +133,19 @@ export function obterItensDetalhados(tipo, categoriaRoupas) {
     return [];
 }
 
+export function obterAlimentosDisponiveis(alimentosSelecionados = []) {
+    return ITENS_ALIMENTOS.filter((item) => !alimentosSelecionados.includes(item.chave));
+}
+
 export function usaQuantidadeAutomatica(tipo) {
-    return tipo === "Roupas" || tipo === "Higiene";
+    return tipo === "Alimentos" || tipo === "Roupas" || tipo === "Higiene" || tipo === "Financeira";
 }
 
 export function calcularQuantidadeDetalhada(tipo, detalhes) {
+    if (tipo === "Financeira") {
+        return paraValorFinanceiroValido(detalhes?.valorFinanceiro) > 0 ? 1 : 0;
+    }
+
     return obterItensDetalhados(tipo, detalhes?.categoriaRoupas).reduce((total, item) => {
         return total + paraQuantidadeValida(detalhes?.itens?.[item.chave]);
     }, 0);
@@ -101,7 +153,22 @@ export function calcularQuantidadeDetalhada(tipo, detalhes) {
 
 export function montarDetalhesPayload(tipo, detalhes) {
     if (tipo === "Alimentos") {
-        return detalhes?.validade ? { validade: detalhes.validade } : null;
+        const itens = ITENS_ALIMENTOS.reduce((acc, item) => {
+            const quantidade = paraQuantidadeValida(detalhes?.itens?.[item.chave]);
+            if (quantidade > 0) {
+                acc[item.chave] = quantidade;
+            }
+            return acc;
+        }, {});
+
+        if (!detalhes?.validade && Object.keys(itens).length === 0) {
+            return null;
+        }
+
+        return {
+            validade: detalhes?.validade || "",
+            itens
+        };
     }
 
     if (tipo === "Roupas") {
@@ -133,6 +200,11 @@ export function montarDetalhesPayload(tipo, detalhes) {
         }, {});
 
         return Object.keys(itens).length > 0 ? { itens } : null;
+    }
+
+    if (tipo === "Financeira") {
+        const valorFinanceiro = paraValorFinanceiroValido(detalhes?.valorFinanceiro);
+        return valorFinanceiro > 0 ? { valorFinanceiro } : null;
     }
 
     return null;
