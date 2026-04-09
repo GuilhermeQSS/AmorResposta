@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes");
+let colunasDocumentosCache = null;
 
 class Doacao {
     constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento = null) {
@@ -60,6 +61,81 @@ class Doacao {
         return extensaoOriginal || ".bin";
     }
 
+    static obterTipoDocumento(documento) {
+        if (documento.tipoMime) {
+            return documento.tipoMime;
+        }
+
+        const extensao = Doacao.obterExtensaoDocumento(documento.nomeArquivo).replace(".", "");
+        return extensao || "arquivo";
+    }
+
+    static async obterColunasDocumentos() {
+        if (colunasDocumentosCache) {
+            return colunasDocumentosCache;
+        }
+
+        const [colunas] = await connection.query("SHOW COLUMNS FROM documentos");
+        colunasDocumentosCache = new Set(colunas.map((coluna) => coluna.Field));
+        return colunasDocumentosCache;
+    }
+
+    static async inserirRegistroDocumento(documento, caminhoRelativo) {
+        const colunasDocumentos = await Doacao.obterColunasDocumentos();
+
+        if (
+            colunasDocumentos.has("doc_titulo") ||
+            colunasDocumentos.has("doc_tipo") ||
+            colunasDocumentos.has("doc_link")
+        ) {
+            const dataCriacao = new Date().toISOString().slice(0, 10);
+            const descricao = `Arquivo anexado automaticamente a uma doacao: ${documento.nomeArquivo}`;
+            const campos = [];
+            const valores = [];
+
+            if (colunasDocumentos.has("doc_titulo")) {
+                campos.push("doc_titulo");
+                valores.push(documento.nomeArquivo);
+            }
+
+            if (colunasDocumentos.has("doc_tipo")) {
+                campos.push("doc_tipo");
+                valores.push(Doacao.obterTipoDocumento(documento));
+            }
+
+            if (colunasDocumentos.has("doc_data_criacao")) {
+                campos.push("doc_data_criacao");
+                valores.push(dataCriacao);
+            }
+
+            if (colunasDocumentos.has("doc_descricao")) {
+                campos.push("doc_descricao");
+                valores.push(descricao);
+            }
+
+            if (colunasDocumentos.has("doc_link")) {
+                campos.push("doc_link");
+                valores.push(caminhoRelativo);
+            }
+
+            const placeholders = campos.map(() => "?").join(", ");
+            const queryString = `insert into documentos(${campos.join(", ")}) values (${placeholders});`;
+            const [resultadoDocumento] = await connection.query(queryString, valores);
+            return resultadoDocumento;
+        }
+
+        if (colunasDocumentos.has("doc_caminho")) {
+            const [resultadoDocumento] = await connection.query(
+                "insert into documentos(doc_caminho) values (?);",
+                [caminhoRelativo]
+            );
+
+            return resultadoDocumento;
+        }
+
+        throw new Error("Tabela documentos sem colunas compativeis para salvar anexos.");
+    }
+
     static async salvarDocumento(documento) {
         await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
 
@@ -72,10 +148,7 @@ class Doacao {
         await fs.writeFile(caminhoCompleto, conteudo);
 
         try {
-            const [resultadoDocumento] = await connection.query(
-                "insert into documentos(doc_caminho) values (?);",
-                [caminhoRelativo]
-            );
+            const resultadoDocumento = await Doacao.inserirRegistroDocumento(documento, caminhoRelativo);
 
             return {
                 documentoId: resultadoDocumento.insertId,
