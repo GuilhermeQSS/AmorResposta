@@ -9,11 +9,21 @@ class Funcionario{
         this.cargo = cargo;
     }
 
-    static async listar(filtro) {
+    static async listar(usuario, nome) {
         let queryString = `select * from funcionarios`
-        if (filtro) {
-            queryString += ` where fun_nome like '%${filtro}%'`;
+        if(usuario || nome){
+            queryString += ' where'
         }
+        if (usuario) {
+            queryString += ` fun_usuario like '%${usuario}%'`;
+            if (nome) {
+                queryString += ` and`;
+            }
+        }
+        if (nome) {
+            queryString += ` fun_nome like '%${nome}%'`;
+        }
+        
         const [funcionarios] = await connection.query(queryString);
         let funcionarioList = [];
         funcionarios.forEach(f => {

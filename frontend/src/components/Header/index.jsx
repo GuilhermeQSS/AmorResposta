@@ -28,6 +28,7 @@ function Header(){
                             <Link to="/tabelas/encontros">Encontros</Link>
                             <Link to="/tabelas/itens">Itens</Link>
                             <Link to="/tabelas/documentos">Documentos</Link>
+                            <Link to="/tabelas/despesas">Despesas</Link>
                         </div>
                     )}
                 </li>

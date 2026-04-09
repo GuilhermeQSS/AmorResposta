@@ -5,7 +5,27 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function CadastrarEncontroView() {
+  function validar() {
+    let novosErros = {};
+    if (!form.data) novosErros.data = "Data obrigatória";
+    if (!form.disponibilidade)
+      novosErros.disponibilidade = "Selecione uma opção";
+    if (!form.local) novosErros.local = "Local obrigatório";
+    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade máxima";
+    if (form.qtdeMax <= 0) {
+      novosErros.qtdeMax = "Deve ser maior que 0";
+    }
+    if (form.qtde > form.qtdeMax) {
+      novosErros.qtde = "Não pode ser maior que a máxima";
+    }
+
+    setErros(novosErros);
+
+    return Object.keys(novosErros).length === 0;
+  }
+
   async function fetchCadastrarEncontro() {
+    if (!validar()) return;
     try {
       const response = await fetch("http://localhost:3000/encontros/gravar", {
         method: "POST",
@@ -68,13 +88,15 @@ function CadastrarEncontroView() {
               value={form.data}
               type="date"
               onChange={atualizarForm}
-              style={{ border: erros.enc_data ? "2px solid red" : "" }}
+              style={{ border: erros.data ? "2px solid red" : "" }}
             />
+            {erros.data && <span style={{ color: "red" }}>{erros.data}</span>}
           </div>
 
           <div>
             <label>Disponibilidade:</label>
             <select
+              style={{ border: erros.disponibilidade ? "2px solid red" : "" }}
               name="disponibilidade"
               value={form.disponibilidade}
               onChange={atualizarForm}>
@@ -83,6 +105,7 @@ function CadastrarEncontroView() {
               <option value="E">Em andamento</option>
               <option value="F">Finalizado</option>
             </select>
+            {erros.disponibilidade && <span style={{ color: "red" }}>{erros.disponibilidade}</span>}
           </div>
 
           <div>
@@ -92,7 +115,9 @@ function CadastrarEncontroView() {
               name="qtdeMax"
               value={form.qtdeMax}
               onChange={atualizarForm}
+              style={{ border: erros.qtdeMax ? "2px solid red" : "" }}
             />
+            {erros.qtdeMax && <span style={{ color: "red" }}>{erros.qtdeMax}</span>}
           </div>
 
           <div>
@@ -102,12 +127,20 @@ function CadastrarEncontroView() {
               name="qtde"
               value={form.qtde}
               onChange={atualizarForm}
+              style={{ border: erros.qtde ? "2px solid red" : "" }}
             />
+            {erros.qtde && <span style={{ color: "red" }}>{erros.qtde}</span>}
           </div>
 
           <div>
             <label>Local:</label>
-            <input name="local" value={form.local} onChange={atualizarForm} />
+            <input
+              name="local"
+              value={form.local}
+              onChange={atualizarForm}
+              style={{ border: erros.local ? "2px solid red" : "" }}
+            />
+            {erros.local && <span style={{ color: "red" }}>{erros.local}</span>}
           </div>
 
           <button type="button" onClick={fetchCadastrarEncontro}>
