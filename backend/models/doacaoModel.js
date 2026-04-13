@@ -198,7 +198,7 @@ class Doacao {
             }
         }
 
-        queryString += " order by doa_dataEntrega desc, doa_id desc";
+        queryString += " order by doa_dataEntrega asc, doa_id asc";
 
         const [doacoes] = await connection.query(queryString, params);
         return doacoes.map((d) => new Doacao(
