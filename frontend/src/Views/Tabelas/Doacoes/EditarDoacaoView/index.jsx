@@ -69,6 +69,10 @@ function EditarDoacaoView() {
             novosErros.itensDetalhados = "Informe ao menos uma quantidade para os itens de higiene.";
         }
 
+        if (dados.tipo === "Materiais" && !String(detalhes.materialDescricao || "").trim()) {
+            novosErros.materialDescricao = "Informe qual e o material diverso.";
+        }
+
         if (dados.tipo === "Financeira") {
             const valorFinanceiro = Number(detalhes.valorFinanceiro);
             if (!Number.isFinite(valorFinanceiro) || valorFinanceiro <= 0) {
@@ -817,6 +821,22 @@ function EditarDoacaoView() {
                                 value={detalhesDoacao.valorFinanceiro}
                                 onChange={atualizarDetalhes}
                                 placeholder="0.00"
+                            />
+                        </Styled.Section>
+                    )}
+
+                    {form.tipo === "Materiais" && (
+                        <Styled.Section data-error={Boolean(erros.materialDescricao)}>
+                            <label htmlFor="materialDescricao">Qual e o material diverso?</label>
+                            <input
+                                ref={(elemento) => {
+                                    fieldRefs.current.materialDescricao = elemento;
+                                }}
+                                id="materialDescricao"
+                                name="materialDescricao"
+                                value={detalhesDoacao.materialDescricao}
+                                onChange={atualizarDetalhes}
+                                placeholder="Ex.: cobertor, brinquedo, livro, utensilio..."
                             />
                         </Styled.Section>
                     )}

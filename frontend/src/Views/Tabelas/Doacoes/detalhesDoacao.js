@@ -73,6 +73,7 @@ export function criarDetalhesDoacaoVazios() {
         categoriaRoupas: "",
         alimentosSelecionados: [],
         higieneSelecionados: [],
+        materialDescricao: "",
         roupasSelecionadas: [],
         validadePorAlimento: {},
         valorFinanceiro: "",
@@ -90,6 +91,7 @@ export function normalizarDetalhesDoacao(detalhes) {
     base.categoriaRoupas = detalhes.categoriaRoupas === "verao" || detalhes.categoriaRoupas === "inverno"
         ? detalhes.categoriaRoupas
         : "";
+    base.materialDescricao = String(detalhes.materialDescricao || "");
     base.valorFinanceiro = paraValorFinanceiroValido(detalhes.valorFinanceiro) > 0
         ? String(detalhes.valorFinanceiro)
         : "";
@@ -293,6 +295,11 @@ export function montarDetalhesPayload(tipo, detalhes) {
         }, {});
 
         return Object.keys(itens).length > 0 ? { itens } : null;
+    }
+
+    if (tipo === "Materiais") {
+        const materialDescricao = String(detalhes?.materialDescricao || "").trim();
+        return materialDescricao ? { materialDescricao } : null;
     }
 
     if (tipo === "Financeira") {
