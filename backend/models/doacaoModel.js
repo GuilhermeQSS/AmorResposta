@@ -181,11 +181,14 @@ class Doacao {
         }
     }
 
-    static async listar(filtro, tipoFiltro = "doador") {
+    static async listar(filtro, tipoFiltro = "doador", dataInicial = null, dataFinal = null) {
         let queryString = "select * from doacoes";
         const params = [];
 
-        if (filtro) {
+        if (tipoFiltro === "periodo" && dataInicial && dataFinal) {
+            queryString += " where doa_dataEntrega between ? and ?";
+            params.push(dataInicial, dataFinal);
+        } else if (filtro) {
             if (tipoFiltro === "data") {
                 queryString += " where doa_dataEntrega = ?";
                 params.push(filtro);

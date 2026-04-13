@@ -23,8 +23,17 @@ class DoacaoController {
 
     static async listar(req, res) {
         try {
-            const tipoFiltro = req.query.tipoFiltro === "data" ? "data" : "doador";
-            const resp = await Doacao.listar(req.query.filtro, tipoFiltro);
+            const tipoFiltro = req.query.tipoFiltro === "data"
+                ? "data"
+                : req.query.tipoFiltro === "periodo"
+                    ? "periodo"
+                    : "doador";
+            const resp = await Doacao.listar(
+                req.query.filtro,
+                tipoFiltro,
+                req.query.dataInicial,
+                req.query.dataFinal
+            );
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de listar doacoes" });
