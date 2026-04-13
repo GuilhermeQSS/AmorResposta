@@ -34,6 +34,12 @@ const ROUPAS_INVERNO = [
 const ITENS_HIGIENE = [
     { chave: "fioDental", rotulo: "Fio dental" },
     { chave: "pastaDeDente", rotulo: "Pasta de dente" },
+    { chave: "escovaDeDentes", rotulo: "Escova de dentes" },
+    { chave: "papelHigienico", rotulo: "Papel higienico" },
+    { chave: "absorvente", rotulo: "Absorvente" },
+    { chave: "sabonete", rotulo: "Sabonete" },
+    { chave: "shampoo", rotulo: "Shampoo" },
+    { chave: "condicionador", rotulo: "Condicionador" },
     { chave: "cotonete", rotulo: "Cotonete" },
     { chave: "toalha", rotulo: "Toalha" }
 ];
@@ -64,9 +70,11 @@ function paraValorFinanceiroValido(valor) {
 
 export function criarDetalhesDoacaoVazios() {
     return {
-        validade: "",
         categoriaRoupas: "",
         alimentosSelecionados: [],
+        higieneSelecionados: [],
+        roupasSelecionadas: [],
+        validadePorAlimento: {},
         valorFinanceiro: "",
         itens: criarItensVazios()
     };
@@ -79,7 +87,6 @@ export function normalizarDetalhesDoacao(detalhes) {
         return base;
     }
 
-    base.validade = String(detalhes.validade || "");
     base.categoriaRoupas = detalhes.categoriaRoupas === "verao" || detalhes.categoriaRoupas === "inverno"
         ? detalhes.categoriaRoupas
         : "";
@@ -91,14 +98,43 @@ export function normalizarDetalhesDoacao(detalhes) {
     const alimentosSelecionados = Array.isArray(detalhes.alimentosSelecionados)
         ? detalhes.alimentosSelecionados.filter((chave) => ITENS_ALIMENTOS.some((item) => item.chave === chave))
         : [];
+    const roupasSelecionadas = Array.isArray(detalhes.roupasSelecionadas)
+        ? detalhes.roupasSelecionadas.filter((chave) => [...ROUPAS_VERAO, ...ROUPAS_INVERNO].some((item) => item.chave === chave))
+        : [];
+    const higieneSelecionados = Array.isArray(detalhes.higieneSelecionados)
+        ? detalhes.higieneSelecionados.filter((chave) => ITENS_HIGIENE.some((item) => item.chave === chave))
+        : [];
 
     TODAS_AS_CHAVES.forEach((chave) => {
-        const quantidade = paraQuantidadeValida(itensOriginais[chave]);
+        const itemOriginal = itensOriginais[chave];
+        const quantidade = paraQuantidadeValida(
+            itemOriginal && typeof itemOriginal === "object"
+                ? itemOriginal.quantidade
+                : itemOriginal
+        );
+
         base.itens[chave] = quantidade > 0 ? String(quantidade) : "";
+
+        if (ITENS_ALIMENTOS.some((item) => item.chave === chave)) {
+            const validadeItem = itemOriginal && typeof itemOriginal === "object"
+                ? itemOriginal.validade
+                : detalhes.validade;
+
+            base.validadePorAlimento[chave] = quantidade > 0 && validadeItem
+                ? String(validadeItem)
+                : "";
+        }
     });
 
     const alimentosComQuantidade = ITENS_ALIMENTOS
-        .filter((item) => paraQuantidadeValida(itensOriginais[item.chave]) > 0)
+        .filter((item) => {
+            const itemOriginal = itensOriginais[item.chave];
+            return paraQuantidadeValida(
+                itemOriginal && typeof itemOriginal === "object"
+                    ? itemOriginal.quantidade
+                    : itemOriginal
+            ) > 0;
+        })
         .map((item) => item.chave);
 
     base.alimentosSelecionados = Array.from(new Set([
@@ -106,28 +142,51 @@ export function normalizarDetalhesDoacao(detalhes) {
         ...alimentosComQuantidade
     ]));
 
+    const roupasDaCategoria = base.categoriaRoupas === "verao"
+        ? ROUPAS_VERAO
+        : base.categoriaRoupas === "inverno"
+            ? ROUPAS_INVERNO
+            : [];
+    const roupasComQuantidade = roupasDaCategoria
+        .filter((item) => paraQuantidadeValida(itensOriginais[item.chave]) > 0)
+        .map((item) => item.chave);
+
+    base.roupasSelecionadas = Array.from(new Set([
+        ...roupasSelecionadas.filter((chave) => roupasDaCategoria.some((item) => item.chave === chave)),
+        ...roupasComQuantidade
+    ]));
+
+    const higieneComQuantidade = ITENS_HIGIENE
+        .filter((item) => paraQuantidadeValida(itensOriginais[item.chave]) > 0)
+        .map((item) => item.chave);
+
+    base.higieneSelecionados = Array.from(new Set([
+        ...higieneSelecionados,
+        ...higieneComQuantidade
+    ]));
+
     return base;
 }
 
-export function obterItensDetalhados(tipo, categoriaRoupas, alimentosSelecionados = []) {
+export function obterItensDetalhados(tipo, categoriaRoupas, alimentosSelecionados = [], roupasSelecionadas = [], higieneSelecionados = []) {
     if (tipo === "Alimentos") {
         return ITENS_ALIMENTOS.filter((item) => alimentosSelecionados.includes(item.chave));
     }
 
     if (tipo === "Roupas") {
         if (categoriaRoupas === "verao") {
-            return ROUPAS_VERAO;
+            return ROUPAS_VERAO.filter((item) => roupasSelecionadas.includes(item.chave));
         }
 
         if (categoriaRoupas === "inverno") {
-            return ROUPAS_INVERNO;
+            return ROUPAS_INVERNO.filter((item) => roupasSelecionadas.includes(item.chave));
         }
 
         return [];
     }
 
     if (tipo === "Higiene") {
-        return ITENS_HIGIENE;
+        return ITENS_HIGIENE.filter((item) => higieneSelecionados.includes(item.chave));
     }
 
     return [];
@@ -135,6 +194,20 @@ export function obterItensDetalhados(tipo, categoriaRoupas, alimentosSelecionado
 
 export function obterAlimentosDisponiveis(alimentosSelecionados = []) {
     return ITENS_ALIMENTOS.filter((item) => !alimentosSelecionados.includes(item.chave));
+}
+
+export function obterRoupasDisponiveis(categoriaRoupas, roupasSelecionadas = []) {
+    const roupasDaCategoria = categoriaRoupas === "verao"
+        ? ROUPAS_VERAO
+        : categoriaRoupas === "inverno"
+            ? ROUPAS_INVERNO
+            : [];
+
+    return roupasDaCategoria.filter((item) => !roupasSelecionadas.includes(item.chave));
+}
+
+export function obterHigieneDisponiveis(higieneSelecionados = []) {
+    return ITENS_HIGIENE.filter((item) => !higieneSelecionados.includes(item.chave));
 }
 
 export function usaQuantidadeAutomatica(tipo) {
@@ -146,7 +219,13 @@ export function calcularQuantidadeDetalhada(tipo, detalhes) {
         return paraValorFinanceiroValido(detalhes?.valorFinanceiro) > 0 ? 1 : 0;
     }
 
-    return obterItensDetalhados(tipo, detalhes?.categoriaRoupas).reduce((total, item) => {
+    return obterItensDetalhados(
+        tipo,
+        detalhes?.categoriaRoupas,
+        detalhes?.alimentosSelecionados,
+        detalhes?.roupasSelecionadas,
+        detalhes?.higieneSelecionados
+    ).reduce((total, item) => {
         return total + paraQuantidadeValida(detalhes?.itens?.[item.chave]);
     }, 0);
 }
@@ -156,23 +235,31 @@ export function montarDetalhesPayload(tipo, detalhes) {
         const itens = ITENS_ALIMENTOS.reduce((acc, item) => {
             const quantidade = paraQuantidadeValida(detalhes?.itens?.[item.chave]);
             if (quantidade > 0) {
-                acc[item.chave] = quantidade;
+                acc[item.chave] = {
+                    quantidade,
+                    validade: String(detalhes?.validadePorAlimento?.[item.chave] || "")
+                };
             }
             return acc;
         }, {});
 
-        if (!detalhes?.validade && Object.keys(itens).length === 0) {
+        if (Object.keys(itens).length === 0) {
             return null;
         }
 
         return {
-            validade: detalhes?.validade || "",
             itens
         };
     }
 
     if (tipo === "Roupas") {
-        const itens = obterItensDetalhados(tipo, detalhes?.categoriaRoupas).reduce((acc, item) => {
+        const itens = obterItensDetalhados(
+            tipo,
+            detalhes?.categoriaRoupas,
+            detalhes?.alimentosSelecionados,
+            detalhes?.roupasSelecionadas,
+            detalhes?.higieneSelecionados
+        ).reduce((acc, item) => {
             const quantidade = paraQuantidadeValida(detalhes?.itens?.[item.chave]);
             if (quantidade > 0) {
                 acc[item.chave] = quantidade;
@@ -191,7 +278,13 @@ export function montarDetalhesPayload(tipo, detalhes) {
     }
 
     if (tipo === "Higiene") {
-        const itens = ITENS_HIGIENE.reduce((acc, item) => {
+        const itens = obterItensDetalhados(
+            tipo,
+            detalhes?.categoriaRoupas,
+            detalhes?.alimentosSelecionados,
+            detalhes?.roupasSelecionadas,
+            detalhes?.higieneSelecionados
+        ).reduce((acc, item) => {
             const quantidade = paraQuantidadeValida(detalhes?.itens?.[item.chave]);
             if (quantidade > 0) {
                 acc[item.chave] = quantidade;

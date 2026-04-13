@@ -8,8 +8,10 @@ import {
     criarDetalhesDoacaoVazios,
     montarDetalhesPayload,
     normalizarDetalhesDoacao,
+    obterHigieneDisponiveis,
     obterAlimentosDisponiveis,
     obterItensDetalhados,
+    obterRoupasDisponiveis,
     usaQuantidadeAutomatica
 } from "../detalhesDoacao";
 
@@ -39,12 +41,17 @@ function EditarDoacaoView() {
         }
 
         if (dados.tipo === "Alimentos") {
-            if (!detalhes.validade) {
-                novosErros.validade = "Informe a validade dos alimentos.";
-            }
-
             if (calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
                 novosErros.itensDetalhados = "Informe ao menos uma quantidade para os alimentos.";
+            }
+
+            const alimentoSemValidade = detalhes.alimentosSelecionados.some((chave) => {
+                const quantidade = Number(detalhes.itens[chave]);
+                return quantidade > 0 && !String(detalhes.validadePorAlimento?.[chave] || "").trim();
+            });
+
+            if (alimentoSemValidade) {
+                novosErros.validade = "Informe a validade de cada alimento com quantidade maior que zero.";
             }
         }
 
@@ -221,7 +228,26 @@ function EditarDoacaoView() {
 
         setDetalhesDoacao(nextDetalhes);
         setErros((prev) => {
-            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+            if (!prev.itensDetalhados && !prev.quantidadeItens && !prev.validade) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function atualizarValidadeAlimento(chave, valor) {
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            validadePorAlimento: {
+                ...detalhesDoacao.validadePorAlimento,
+                [chave]: valor
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.validade) {
                 return prev;
             }
 
@@ -236,11 +262,57 @@ function EditarDoacaoView() {
 
         const nextDetalhes = {
             ...detalhesDoacao,
-            alimentosSelecionados: [...detalhesDoacao.alimentosSelecionados, alimentoParaAdicionar]
+            alimentosSelecionados: [...detalhesDoacao.alimentosSelecionados, alimentoParaAdicionar],
+            validadePorAlimento: {
+                ...detalhesDoacao.validadePorAlimento,
+                [alimentoParaAdicionar]: detalhesDoacao.validadePorAlimento?.[alimentoParaAdicionar] || ""
+            }
         };
 
         setDetalhesDoacao(nextDetalhes);
         setAlimentoParaAdicionar("");
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens && !prev.validade) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function adicionarRoupa() {
+        if (!roupaParaAdicionar) {
+            return;
+        }
+
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            roupasSelecionadas: [...detalhesDoacao.roupasSelecionadas, roupaParaAdicionar]
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setRoupaParaAdicionar("");
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function adicionarHigiene() {
+        if (!higieneParaAdicionar) {
+            return;
+        }
+
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            higieneSelecionados: [...detalhesDoacao.higieneSelecionados, higieneParaAdicionar]
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setHigieneParaAdicionar("");
         setErros((prev) => {
             if (!prev.itensDetalhados && !prev.quantidadeItens) {
                 return prev;
@@ -254,6 +326,50 @@ function EditarDoacaoView() {
         const nextDetalhes = {
             ...detalhesDoacao,
             alimentosSelecionados: detalhesDoacao.alimentosSelecionados.filter((item) => item !== chave),
+            validadePorAlimento: {
+                ...detalhesDoacao.validadePorAlimento,
+                [chave]: ""
+            },
+            itens: {
+                ...detalhesDoacao.itens,
+                [chave]: ""
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens && !prev.validade) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function removerRoupa(chave) {
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            roupasSelecionadas: detalhesDoacao.roupasSelecionadas.filter((item) => item !== chave),
+            itens: {
+                ...detalhesDoacao.itens,
+                [chave]: ""
+            }
+        };
+
+        setDetalhesDoacao(nextDetalhes);
+        setErros((prev) => {
+            if (!prev.itensDetalhados && !prev.quantidadeItens) {
+                return prev;
+            }
+
+            return validarFormulario(form, nextDetalhes);
+        });
+    }
+
+    function removerHigiene(chave) {
+        const nextDetalhes = {
+            ...detalhesDoacao,
+            higieneSelecionados: detalhesDoacao.higieneSelecionados.filter((item) => item !== chave),
             itens: {
                 ...detalhesDoacao.itens,
                 [chave]: ""
@@ -295,11 +411,21 @@ function EditarDoacaoView() {
     const [detalhesDoacao, setDetalhesDoacao] = useState(criarDetalhesDoacaoVazios());
     const [detalhesOriginal, setDetalhesOriginal] = useState(criarDetalhesDoacaoVazios());
     const [alimentoParaAdicionar, setAlimentoParaAdicionar] = useState("");
+    const [roupaParaAdicionar, setRoupaParaAdicionar] = useState("");
+    const [higieneParaAdicionar, setHigieneParaAdicionar] = useState("");
     const [erros, setErros] = useState({});
     const [editado, setEditado] = useState(false);
     const fieldRefs = useRef({});
-    const itensDetalhados = obterItensDetalhados(form.tipo, detalhesDoacao.categoriaRoupas, detalhesDoacao.alimentosSelecionados);
+    const itensDetalhados = obterItensDetalhados(
+        form.tipo,
+        detalhesDoacao.categoriaRoupas,
+        detalhesDoacao.alimentosSelecionados,
+        detalhesDoacao.roupasSelecionadas,
+        detalhesDoacao.higieneSelecionados
+    );
     const alimentosDisponiveis = obterAlimentosDisponiveis(detalhesDoacao.alimentosSelecionados);
+    const roupasDisponiveis = obterRoupasDisponiveis(detalhesDoacao.categoriaRoupas, detalhesDoacao.roupasSelecionadas);
+    const higieneDisponiveis = obterHigieneDisponiveis(detalhesDoacao.higieneSelecionados);
     const quantidadeAutomatica = usaQuantidadeAutomatica(form.tipo);
 
     useEffect(() => {
@@ -356,6 +482,48 @@ function EditarDoacaoView() {
             setAlimentoParaAdicionar("");
         }
     }, [form.tipo]);
+
+    useEffect(() => {
+        if (form.tipo !== "Roupas") {
+            setRoupaParaAdicionar("");
+        }
+    }, [form.tipo]);
+
+    useEffect(() => {
+        if (form.tipo !== "Higiene") {
+            setHigieneParaAdicionar("");
+        }
+    }, [form.tipo]);
+
+    useEffect(() => {
+        setDetalhesDoacao((prev) => {
+            if (prev.categoriaRoupas !== "verao" && prev.categoriaRoupas !== "inverno") {
+                if (prev.roupasSelecionadas.length === 0) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    roupasSelecionadas: []
+                };
+            }
+
+            const roupasDaCategoria = prev.categoriaRoupas === "verao"
+                ? ["chinelo", "shorts", "regata", "camiseta", "roupasDeBaixo", "bone"]
+                : ["moletom", "calcas", "meias", "toucas"];
+            const roupasSelecionadasValidas = prev.roupasSelecionadas.filter((chave) => roupasDaCategoria.includes(chave));
+
+            if (roupasSelecionadasValidas.length === prev.roupasSelecionadas.length) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                roupasSelecionadas: roupasSelecionadasValidas
+            };
+        });
+        setRoupaParaAdicionar("");
+    }, [detalhesDoacao.categoriaRoupas]);
 
     useEffect(() => {
         setEditado(
@@ -422,16 +590,6 @@ function EditarDoacaoView() {
 
                     {form.tipo === "Alimentos" && (
                         <Styled.Section data-error={Boolean(erros.validade) || Boolean(erros.itensDetalhados)}>
-                            <label htmlFor="validade">Validade:</label>
-                            <input
-                                ref={(elemento) => {
-                                    fieldRefs.current.validade = elemento;
-                                }}
-                                type="date"
-                                name="validade"
-                                value={detalhesDoacao.validade}
-                                onChange={atualizarDetalhes}
-                            />
                             <Styled.SectionTitle>Adicionar alimentos</Styled.SectionTitle>
                             <Styled.ActionRow>
                                 <select
@@ -479,6 +637,18 @@ function EditarDoacaoView() {
                                                 onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
                                                 placeholder="0"
                                             />
+                                            <label htmlFor={`${item.chave}-validade`}>Validade:</label>
+                                            <input
+                                                ref={(elemento) => {
+                                                    if (!fieldRefs.current.validade) {
+                                                        fieldRefs.current.validade = elemento;
+                                                    }
+                                                }}
+                                                id={`${item.chave}-validade`}
+                                                type="date"
+                                                value={detalhesDoacao.validadePorAlimento[item.chave] || ""}
+                                                onChange={(e) => atualizarValidadeAlimento(item.chave, e.target.value)}
+                                            />
                                         </div>
                                     ))}
                                 </Styled.Grid>
@@ -502,13 +672,50 @@ function EditarDoacaoView() {
                                 <option value="inverno">Roupas de inverno</option>
                             </select>
 
+                            {detalhesDoacao.categoriaRoupas && (
+                                <>
+                                    <Styled.SectionTitle>Adicionar roupas</Styled.SectionTitle>
+                                    <Styled.ActionRow>
+                                        <select
+                                            ref={(elemento) => {
+                                                fieldRefs.current.itensDetalhados = elemento;
+                                            }}
+                                            value={roupaParaAdicionar}
+                                            onChange={(e) => setRoupaParaAdicionar(e.target.value)}
+                                        >
+                                            <option value="">Selecione uma roupa</option>
+                                            {roupasDisponiveis.map((item) => (
+                                                <option key={item.chave} value={item.chave}>
+                                                    {item.rotulo}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <Styled.SmallButton
+                                            type="button"
+                                            onClick={adicionarRoupa}
+                                            disabled={!roupaParaAdicionar}
+                                        >
+                                            Adicionar
+                                        </Styled.SmallButton>
+                                    </Styled.ActionRow>
+                                </>
+                            )}
+
                             {itensDetalhados.length > 0 && (
                                 <>
                                     <Styled.SectionTitle>Itens da doacao</Styled.SectionTitle>
                                     <Styled.Grid>
                                         {itensDetalhados.map((item, index) => (
                                             <div key={item.chave}>
-                                                <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                <Styled.ItemHeader>
+                                                    <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                    <Styled.RemoveButton
+                                                        type="button"
+                                                        onClick={() => removerRoupa(item.chave)}
+                                                    >
+                                                        Remover
+                                                    </Styled.RemoveButton>
+                                                </Styled.ItemHeader>
                                                 <input
                                                     ref={(elemento) => {
                                                         if (index === 0) {
@@ -533,28 +740,65 @@ function EditarDoacaoView() {
 
                     {form.tipo === "Higiene" && (
                         <Styled.Section data-error={Boolean(erros.itensDetalhados)}>
-                            <Styled.SectionTitle>Itens de higiene</Styled.SectionTitle>
-                            <Styled.Grid>
-                                {itensDetalhados.map((item, index) => (
-                                    <div key={item.chave}>
-                                        <label htmlFor={item.chave}>{item.rotulo}:</label>
-                                        <input
-                                            ref={(elemento) => {
-                                                if (index === 0) {
-                                                    fieldRefs.current.itensDetalhados = elemento;
-                                                }
-                                            }}
-                                            id={item.chave}
-                                            type="number"
-                                            min="0"
-                                            step="1"
-                                            value={detalhesDoacao.itens[item.chave]}
-                                            onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                ))}
-                            </Styled.Grid>
+                            <Styled.SectionTitle>Adicionar itens de higiene</Styled.SectionTitle>
+                            <Styled.ActionRow>
+                                <select
+                                    ref={(elemento) => {
+                                        fieldRefs.current.itensDetalhados = elemento;
+                                    }}
+                                    value={higieneParaAdicionar}
+                                    onChange={(e) => setHigieneParaAdicionar(e.target.value)}
+                                >
+                                    <option value="">Selecione um item</option>
+                                    {higieneDisponiveis.map((item) => (
+                                        <option key={item.chave} value={item.chave}>
+                                            {item.rotulo}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Styled.SmallButton
+                                    type="button"
+                                    onClick={adicionarHigiene}
+                                    disabled={!higieneParaAdicionar}
+                                >
+                                    Adicionar
+                                </Styled.SmallButton>
+                            </Styled.ActionRow>
+
+                            {itensDetalhados.length > 0 && (
+                                <>
+                                    <Styled.SectionTitle>Itens de higiene</Styled.SectionTitle>
+                                    <Styled.Grid>
+                                        {itensDetalhados.map((item, index) => (
+                                            <div key={item.chave}>
+                                                <Styled.ItemHeader>
+                                                    <label htmlFor={item.chave}>{item.rotulo}:</label>
+                                                    <Styled.RemoveButton
+                                                        type="button"
+                                                        onClick={() => removerHigiene(item.chave)}
+                                                    >
+                                                        Remover
+                                                    </Styled.RemoveButton>
+                                                </Styled.ItemHeader>
+                                                <input
+                                                    ref={(elemento) => {
+                                                        if (index === 0) {
+                                                            fieldRefs.current.itensDetalhados = elemento;
+                                                        }
+                                                    }}
+                                                    id={item.chave}
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={detalhesDoacao.itens[item.chave]}
+                                                    onChange={(e) => atualizarQuantidadeDetalhada(item.chave, e.target.value)}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        ))}
+                                    </Styled.Grid>
+                                </>
+                            )}
                         </Styled.Section>
                     )}
 
