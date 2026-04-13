@@ -2,11 +2,19 @@ import mysql from "mysql2/promise";
 
 async function garantirEstruturaDoacoes(connection) {
     const [colunasQuantidade] = await connection.query("SHOW COLUMNS FROM doacoes LIKE 'doa_quantidadeItens'");
+    const [colunasDetalhes] = await connection.query("SHOW COLUMNS FROM doacoes LIKE 'doa_detalhes'");
 
     if (colunasQuantidade.length === 0) {
         await connection.query(`
             ALTER TABLE doacoes
             ADD COLUMN doa_quantidadeItens INT NOT NULL DEFAULT 1 AFTER doa_tipo
+        `);
+    }
+
+    if (colunasDetalhes.length === 0) {
+        await connection.query(`
+            ALTER TABLE doacoes
+            ADD COLUMN doa_detalhes TEXT NULL AFTER doa_observacao
         `);
     }
 
