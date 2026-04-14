@@ -2,41 +2,55 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 
 
 
 function FuncionariosView() {
-    function fetchFuncionarioLista(usuario,nome){
-        return fetch(`http://localhost:3000/funcionarios/listar?filtroUsuario=${usuario}&filtroNome=${nome}`, {
+    function fetchFuncionarioLista(filtroNome,filtroUsuario){
+        return fetch(`http://localhost:3000/funcionarios/listar?filtroNome=${filtroNome}&filtroUsuario=${filtroUsuario}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
         .catch((error) => alert(error));
     }
+    async function fetchExcluirFuncionario(id){
+        const confirmar = confirm("Tem certeza que deseja excluir?");
+        if(!confirmar) return;
+
+        try {
+            await fetch(`http://localhost:3000/funcionarios/excluir?id=${id}`, {
+                method: "DELETE"
+            });
+            setFuncionarios((prev) => prev.filter(f => f.id !== id));
+        } catch (err) {
+            alert("Erro ao excluir");
+        }
+    }
+    
     const [funcionarios, setFuncionarios] = useState([]);
-    const [filtroUsuario, setFiltroUsuario] = useState("");
     const [filtroNome, setFiltroNome] = useState("");
+    const [filtroUsuario, setFiltroUsuario] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
         async function carregar(){
-            const data = await fetchFuncionarioLista(filtroUsuario,filtroNome);
+            const data = await fetchFuncionarioLista(filtroNome,filtroUsuario);
             setFuncionarios(data);
         }
         carregar();
-    }, [filtroUsuario,filtroNome]);
+    }, [filtroNome,filtroUsuario]);
     
     return(
         <>
             <Header/>
             <main>
                 <Styled.Busca type="text"
-                    placeholder="Buscar por nome..."
+                    placeholder="Buscar nome funcionário..."
                     value={filtroNome}
                     onChange={(e) => setFiltroNome(e.target.value)}/>
                 <Styled.Busca type="text"
-                    placeholder="Buscar usuario..."
+                    placeholder="Buscar nome de usuário..."
                     value={filtroUsuario}
                     onChange={(e) => setFiltroUsuario(e.target.value)}/>
                 <Styled.Actions>
@@ -51,18 +65,33 @@ function FuncionariosView() {
                             <th>nome</th>
                             <th>usuario</th>
                             <th>cargo</th>
+                            <th>cpf</th>
+                            <th>telefone</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
                             funcionarios.map((f) => (
-                                <tr 
-                                    onClick={() => navigate(`/funcionarios/${f.id}`)}
-                                >
+                                <tr key={f.id}>
                                     <td>{f.id}</td>
                                     <td>{f.nome}</td>
                                     <td>{f.usuario}</td>
                                     <td>{f.cargo}</td>
+                                    <td>{f.cpf}</td>
+                                    <td>{f.telefone}</td>
+                                    <td>
+                                        <button 
+                                            onClick={() => navigate(`/funcionarios/${f.id}`)}
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={() =>{fetchExcluirFuncionario(f.id)}}
+                                        >
+                                            Excluir
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         }
