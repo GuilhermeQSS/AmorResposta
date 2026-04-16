@@ -42,6 +42,7 @@ function Header(){
                     {dropdownCadastro && (
                         <div>
                             <Link to="/funcionarios/cadastro">Funcionários</Link>
+                            <Link to="/encontros/cadastro">Encontros</Link>
                         </div>
                     )}
                 </li>
