@@ -31,6 +31,26 @@ const Styled = {
         }
     `,
 
+    Finals: styled.div`
+        width: 100%;
+        display: flex;
+        margin-top: 5px;
+
+        button{
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #dc1414;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+
+            &:hover{
+                opacity: 0.8;
+            }
+        }
+    `,
+
     Table: styled.table`
         width: 90%;
         margin: 40px auto;

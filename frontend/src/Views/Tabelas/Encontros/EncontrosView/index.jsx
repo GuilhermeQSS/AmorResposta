@@ -6,9 +6,12 @@ import { Link, useNavigate } from "react-router-dom";
 
 function EncontrosView() {
   function fetchEncontroLista(filtro) {
-    return fetch(`http://localhost:3000/encontros/listar?filtro=${filtro}`, {
-      method: "GET",
-    })
+    return fetch(
+      `http://localhost:3000/encontros/listar?filtroLocal=${filtro}`,
+      {
+        method: "GET",
+      },
+    )
       .then((response) => response.json())
       .catch((error) => alert(error));
   }
@@ -23,6 +26,31 @@ function EncontrosView() {
     }
     carregar();
   }, [filtro]);
+
+  async function fetchFinalizarEncontro(encontro) {
+    const confirmar = confirm("Tem certeza que deseja finalizar?");
+    if (!confirmar) return;
+
+    try {
+      await fetch("http://localhost:3000/encontros/finalizar", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: encontro.id,
+          data: encontro.data,
+          qtdeMax: encontro.qtdeMax,
+          qtde: encontro.qtde,
+          local: encontro.local,
+        }),
+      });
+      const info = await fetchEncontroLista(filtro);
+      setEncontros(info);
+    } catch (error) {
+      alert("Erro ao finalizar");
+    }
+  }
 
   return (
     <>
@@ -48,11 +76,12 @@ function EncontrosView() {
               <th>qtdeMax</th>
               <th>qtde</th>
               <th>disponibilidade</th>
+              <th>Finalizar</th>
             </tr>
           </thead>
           <tbody>
             {encontros.map((f) => (
-              <tr onClick={() => navigate(`/encontros/${f.id}`)}>
+              <tr key={f.id} onClick={() => navigate(`/encontros/${f.id}`)}>
                 <td>{f.id}</td>
                 <td>{f.local}</td>
                 <td>
@@ -62,7 +91,26 @@ function EncontrosView() {
                 </td>
                 <td>{f.qtdeMax}</td>
                 <td>{f.qtde}</td>
-                <td>{ f.disponibilidade == 'A'? "Ativo": f.disponibilidade == 'E' ? "Em Andamento" : "Finalizado"}</td>
+                <td>
+                  {f.disponibilidade == "A"
+                    ? "Ativo"
+                    : f.disponibilidade == "E"
+                      ? "Em Andamento"
+                      : "Finalizado"}
+                </td>
+                <td>
+                  <Styled.Finals>
+                    <button
+                      type="button"
+                      disabled={f.disponibilidade === "F"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetchFinalizarEncontro(f);
+                      }}>
+                      {f.disponibilidade === "F" ? "Finalizado" : "Finalizar"}
+                    </button>
+                  </Styled.Finals>
+                </td>
               </tr>
             ))}
           </tbody>

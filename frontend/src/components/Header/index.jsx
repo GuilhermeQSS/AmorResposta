@@ -27,8 +27,10 @@ function Header(){
                     {dropdownTabela && (
                         <div>
                             <Link to="/tabelas/funcionarios">Funcionários</Link>
-                        </div>
+                            <Link to="/tabelas/encontros">Encontros</Link>
+                        </div>    
                     )}
+                    
                 </li>
                 <li
                     onClick={() => {
