@@ -75,26 +75,6 @@ class EncontroController{
         }
         
     }
-
-    static async finalizarEncontro(req, res){
-        try {
-            const connection = await SingletonDB.getConnection();
-            const { id, data, disponibilidade, qtdeMax, qtde, local} = req.body;
-            const encontroOriginal = await Encontro.buscarPorId(connection,id);
-            if(!encontroOriginal){
-                throw new Error("Id não existe");
-            }
-            // if(encontroOriginal.local !== local &&
-            //     await Encontro.buscarPorLocal(connection,local) ){
-            //     throw new Error("local já exite");
-            // }
-            const encontro = new Encontro(id,data,'F',qtdeMax,qtde,local);
-            const resultado = await encontro.alterar(connection);
-            return res.status(200).json(resultado);
-        } catch (err) {
-            return res.status(500).json({err: err.message});
-        }
-    }
 }
 
 export default EncontroController;

@@ -52,6 +52,27 @@ function EncontrosView() {
     }
   }
 
+  async function fetchExcluirEncontro(encontro) {
+    const confirmar = confirm("Tem certeza que deseja excluir?");
+    if (!confirmar) return;
+
+    try {
+      await fetch(`http://localhost:3000/encontros/excluir?id=${encontro.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: encontro.id,
+        }),
+      });
+      const info = await fetchEncontroLista(filtro);
+      setEncontros(info);
+    } catch (error) {
+      alert("Erro ao excluir");
+    }
+  }
+
   return (
     <>
       <Header />
@@ -76,12 +97,12 @@ function EncontrosView() {
               <th>qtdeMax</th>
               <th>qtde</th>
               <th>disponibilidade</th>
-              <th>Finalizar</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {encontros.map((f) => (
-              <tr key={f.id} onClick={() => navigate(`/encontros/${f.id}`)}>
+              <tr key={f.id} >
                 <td>{f.id}</td>
                 <td>{f.local}</td>
                 <td>
@@ -102,12 +123,18 @@ function EncontrosView() {
                   <Styled.Finals>
                     <button
                       type="button"
-                      disabled={f.disponibilidade === "F"}
+                      style={{ backgroundColor: "#0091ff", marginRight: "5px" }}
+                      onClick={() => navigate(`/encontros/${f.id}`)}>
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      style={{ backgroundColor: "#dc1414" }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        fetchFinalizarEncontro(f);
+                        fetchExcluirEncontro(f);
                       }}>
-                      {f.disponibilidade === "F" ? "Finalizado" : "Finalizar"}
+                      Excluir
                     </button>
                   </Styled.Finals>
                 </td>

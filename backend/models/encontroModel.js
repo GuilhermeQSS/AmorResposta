@@ -14,6 +14,12 @@ class Encontro {
     if (qtde > qtdeMax) {
       throw new Error("Quantidade não pode ser maior que o máximo");
     }
+    if(qtdeMax <=0){
+      throw new Error("Quantidade Máxima não pode ser menor ou igual que 0");
+    }
+    if (qtde < 0) {
+      throw new Error("Quantidade não pode ser menor que 0");
+    }
 
     this.id = id;
     this.data = data;
