@@ -1,42 +1,20 @@
 import Itens from "../models/itensModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class ItensController{
     static async listar(req,res){
         try{
-            const { descricao, dias } = req.query;
-            let resp;
-
-            if (descricao && dias){
-                resp = await Itens.buscarPorDescricaoEValidade(descricao, dias);
-            } else if (dias){
-                resp = await Itens.buscarPorValidade(dias);
-            } else {
-                resp = await Itens.listar(descricao);
-            }
+            const connection = await SingletonDB.getConnection();
+            let resp = await Funcionario.listar(connection,req.query.filtroNome,req.query.filtroTipo);
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
-        }
-    }
-
-    static async buscarPorId(req,res){
-        try{
-            let resp = await Itens.buscarPorId(req.query.id);
-            if(!resp){
-                return res.status(500).json({Erro:`Não existe itens com id ${req.query.id}`})
-            }else{
-                return res.status(200).json(resp);
-            }
-        }catch(err){
-            console.log("ERRO REAL:", err);
-            return res.status(500).json({err: err.message});
+            return res.status(500).json({err: err.message})
         }
     }
 
     static async alterar(req, res){
         try {
-            const { id, descricao, qtde, validade, camposAlterados } = req.body;
-            if (!descricao || qtde === undefined) {
+            if (!req.query.nome || req.query.qtde === undefined || !req.query.tipo) {
                 return res.status(500).json({ 
                     err: "Algum campo está vazio" ,
                     campos:{
@@ -48,10 +26,11 @@ class ItensController{
             const itens = new Itens(
                 id,
                 descricao,
-                qtde,
-                validade
+                nome,
+                tipo
             );
-            const resultado = await itens.alterar();
+            const connection = await SingletonDB.getConnection();
+            let resultado = await itens.alterar(connection);
             return res.status(200).json(resultado);
         } catch (error) {
             return res.status(500).json({ erro: "Erro ao alterar itens" });
@@ -62,7 +41,8 @@ class ItensController{
         try {
             const { id } = req.body;
             const itens = new Itens(id);
-            const resultado = await itens.excluir();
+            const connection = await SingletonDB.getConnection();
+            const resultado = await itens.excluir(connection);
             res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
@@ -101,7 +81,8 @@ class ItensController{
                 qtde,
                 validade
             );
-            let resp = await itens.gravar();
+            const connection = await SingletonDB.getConnection();
+            let resp = await itens.gravar(connection);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json(err);
