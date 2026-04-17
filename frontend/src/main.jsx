@@ -8,6 +8,8 @@ import ProjetosView from './Views/ProjetosView'
 import DoacaoView from './Views/DoacaoView'
 import PortalView from './Views/PortalView'
 import SobreView from './Views/SobreView'
+import LoginView from './Views/LoginView'
+
 import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
 import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
 import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFuncionarioView'
@@ -22,6 +24,7 @@ createRoot(document.getElementById('root')).render(
         <Route Component={DoacaoView} path='/doacao'/>
         <Route Component={PortalView} path='/portal'/>
         <Route Component={SobreView} path='/sobre'/>
+        <Route Component={LoginView} path='/login'/>
         <Route Component={FuncionariosView} path='/tabelas/funcionarios'/>
         <Route Component={EditarFuncionarioView} path="/funcionarios/:id" />
         <Route Component={CadastrarFuncionarioView} path="/funcionarios/cadastro" />

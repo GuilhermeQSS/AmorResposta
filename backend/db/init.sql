@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS `itens` (
   `item_descricao` VARCHAR(45) NULL,
   `item_nome` VARCHAR(45) NULL,
   `item_tipo` VARCHAR(45) NULL,
+  `item_possuiValidade` CHAR(1) NULL,
   PRIMARY KEY (`item_id`)
 );
 
@@ -176,3 +177,5 @@ alter table `funcionariosEncontros`
 	add CONSTRAINT `fk_funcionariosEncontros_funcionarios`
 		FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`);
 
+INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, fun_telefone) 
+VALUES ("PerfilTeste", "adm", "adm", "Administrador", "99131079032", "1899999999");

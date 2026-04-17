@@ -1,11 +1,11 @@
-import FuncionarioController from '../controllers/funcionarioControl.js';
+import FuncionarioControl from '../controllers/funcionarioControl.js';
 import e from "express";
 const router = e.Router();
 
-router.get("/listar",FuncionarioController.listar);
-router.post("/gravar",FuncionarioController.cadastrar);
-router.get("/buscar",FuncionarioController.buscarPorId);
-router.put("/alterar", FuncionarioController.alterar);
-router.delete("/excluir", FuncionarioController.excluir);
+router.get("/listar",FuncionarioControl.listar);
+router.post("/gravar",FuncionarioControl.cadastrar);
+router.get("/buscar",FuncionarioControl.buscarPorId);
+router.put("/alterar", FuncionarioControl.alterar);
+router.delete("/excluir", FuncionarioControl.excluir);
 
 export default router;

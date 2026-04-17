@@ -4,8 +4,14 @@ class Funcionario{
             throw new Error("Todos os campos são obrigatórios");
         }
 
-        if (!Funcionario.validarCPF(cpf)) {
+        const cpfLimpo = String(cpf).replace(/\D/g, "");
+        if (!Funcionario.validarCPF(cpfLimpo)) {
             throw new Error("CPF inválido");
+        }
+
+        const telefoneLimpo = String(telefone).replace(/\D/g, "");
+        if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
+            throw new Error("Telefone inválido (deve conter 10 ou 11 dígitos numéricos)");
         }
 
         this.id = id;
@@ -13,15 +19,12 @@ class Funcionario{
         this.usuario = usuario;
         this.senha = senha;
         this.cargo = cargo;
-        this.cpf = cpf;
-        this.telefone = telefone;
+        this.cpf = cpfLimpo;
+        this.telefone = telefoneLimpo;
     }
 
     static validarCPF(cpf) {
-        cpf = cpf.replace(/[^\d]/g, "");
-
         if (cpf.length !== 11) return false;
-
         if (/^(\d)\1+$/.test(cpf)) return false;
 
         let soma = 0;

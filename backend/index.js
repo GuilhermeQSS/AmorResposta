@@ -1,6 +1,7 @@
-import funcionarioRoutes from "./routes/funcionariosRoute.js"
+import apiRoutes from "./routes/apiRoute.js"
 import e from "express";
 import cors from "cors";
+import jwt from "jsonwebtoken";
 const app = e();
 const port = 3000
 
@@ -8,11 +9,7 @@ app.use(cors());
 app.use(e.json());
 app.use(e.urlencoded({extended:true}));
 app.use(e.static("public"));
-app.use("/funcionarios",funcionarioRoutes);
-
-app.get("/",(req,res)=>{    
-    res.redirect("index.html");
-});
+app.use("/api",apiRoutes);
 
 app.listen(port,()=>{
     console.log(`Servidor iniciado em: http://localhost:${port}`);

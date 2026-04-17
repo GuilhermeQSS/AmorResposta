@@ -1,6 +1,8 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
+import iconEditar from "../../../../assets/iconeEditar.png";
+import iconExcluir from "../../../../assets/iconeExcluir.png";
 import { useEffect,useState } from "react";
 import {useNavigate } from "react-router-dom";
 
@@ -8,7 +10,7 @@ import {useNavigate } from "react-router-dom";
 
 function FuncionariosView() {
     function fetchFuncionarioLista(filtroNome,filtroUsuario){
-        return fetch(`http://localhost:3000/funcionarios/listar?filtroNome=${filtroNome}&filtroUsuario=${filtroUsuario}`, {
+        return fetch(`http://localhost:3000/api/funcionarios/listar?filtroNome=${filtroNome}&filtroUsuario=${filtroUsuario}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
@@ -19,12 +21,12 @@ function FuncionariosView() {
         if(!confirmar) return;
 
         try {
-            await fetch(`http://localhost:3000/funcionarios/excluir?id=${id}`, {
+            await fetch(`http://localhost:3000/api/funcionarios/excluir?id=${id}`, {
                 method: "DELETE"
             });
             setFuncionarios((prev) => prev.filter(f => f.id !== id));
         } catch (err) {
-            alert("Erro ao excluir");
+            alert("Erro ao excluir: ",err.message);
         }
     }
     
@@ -84,12 +86,12 @@ function FuncionariosView() {
                                         <button 
                                             onClick={() => navigate(`/funcionarios/${f.id}`)}
                                         >
-                                            Editar
+                                            <img src={iconEditar}/>
                                         </button>
                                         <button
                                             onClick={() =>{fetchExcluirFuncionario(f.id)}}
                                         >
-                                            Excluir
+                                            <img src={iconExcluir}/>
                                         </button>
                                     </td>
                                 </tr>

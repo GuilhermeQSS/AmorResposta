@@ -1,7 +1,7 @@
 import Funcionario from "../models/funcionarioModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 
-class FuncionarioController{
+class FuncionarioControl{
     static async listar(req,res){
         try{
             const connection = await SingletonDB.getConnection();
@@ -77,4 +77,4 @@ class FuncionarioController{
     }
 }
 
-export default FuncionarioController;
+export default FuncionarioControl;

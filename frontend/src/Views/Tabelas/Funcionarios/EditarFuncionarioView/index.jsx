@@ -2,14 +2,15 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
 
 
 
 
 function EditarFuncionarioView() {
     function fetchFuncionario(id){
-        return fetch(`http://localhost:3000/funcionarios/buscar?id=${id}`, {
+        return fetch(`http://localhost:3000/api/funcionarios/buscar?id=${id}`, {
             method: "GET"
         })
         .then((response) =>  response.json())
@@ -31,7 +32,7 @@ function EditarFuncionarioView() {
             return;
         }
         try {
-            const response = await fetch("http://localhost:3000/funcionarios/alterar", {
+            const response = await fetch("http://localhost:3000/api/funcionarios/alterar", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -42,8 +43,8 @@ function EditarFuncionarioView() {
                     usuario: form.usuario,
                     senha: form.senha,
                     cargo: form.cargo,
-                    cpf: form.cpf,
-                    telefone: form.telefone
+                    cpf: String(form.cpf).replace(/\D/g, ""),
+                    telefone: String(form.telefone).replace(/\D/g, "")
                 })
             });
             if(response.ok){
@@ -53,15 +54,21 @@ function EditarFuncionarioView() {
                 alert(json.err || 'Erro desconhecido no servidor');
             }
         } catch (err) {
-            alert("Erro ao atualizar");
+            alert("Erro ao atualizar: ", err.message);
         }
     }
 
     function atualizarForm(e){
         const { name, value } = e.target;
+        let valor = value;
+        if(name === 'cpf'){
+            valor = maskCPF(value);
+        }else if(name === 'telefone'){
+            valor = maskTelefone(value);
+        }
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: valor
         }));
     }
     const [camposVazios,setCamposVazios] = useState({});
@@ -88,6 +95,8 @@ function EditarFuncionarioView() {
     useEffect(() => {
         async function carregar(){
             const data = await fetchFuncionario(id);
+            data.cpf  = maskCPF(data.cpf);
+            data.telefone  = maskTelefone(data.telefone);
             setForm(data)
             setFormOriginal(data);
         }
