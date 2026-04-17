@@ -2,11 +2,11 @@ import Funcionario from "../models/funcionarioModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 import jwt from "jsonwebtoken";
 
-const CHAVE_SECRETA = "go485u8945hgu2i3hgjk2ubrft723434fewferg4536y65y";
-
 class LoginControl {
     static async login(req, res) {
         try {
+            
+            const CHAVE_SECRETA = process.env.CHAVE_SECRETA;
             const { usuario, senha, perfil } = req.body; 
             const connection = await SingletonDB.getConnection();
             
@@ -15,18 +15,18 @@ class LoginControl {
 
             switch (perfil) {
                 case "Beneficiario":
-                    // Implementar lógica de beneficiário aqui
+                    
                     break;
 
                 case "Administrador": 
                 case "Voluntario":
                     usuarioEncontrado = await Funcionario.buscarPorUsuario(connection, usuario);
                     
-                    if (!usuarioEncontrado) {
+                    if (!usuarioEncontrado){
                         return res.status(401).json({ message: "Usuário não encontrado." });
                     }
 
-                    if (senha !== usuarioEncontrado.senha) {
+                    if (senha !== usuarioEncontrado.senha){
                         return res.status(401).json({ message: "Senha incorreta." });
                     }
 

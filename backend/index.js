@@ -2,6 +2,8 @@ import apiRoutes from "./routes/apiRoute.js"
 import e from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
+dotenv.config();
 const app = e();
 const port = 3000
 

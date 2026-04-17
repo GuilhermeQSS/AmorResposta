@@ -7,9 +7,8 @@ import Sociais from "../Sociais";
 function Header(){
     const [dropdownTabela, setDropdownTabela] = useState(false);
     const [dropdownCadastro, setDropdownCadastro] = useState(false);
-
+    
     const token = localStorage.getItem("token");
-    console.log(localStorage.getItem("user"));
     const user = JSON.parse(localStorage.getItem("user"));
 
     const handleLogout = () => {

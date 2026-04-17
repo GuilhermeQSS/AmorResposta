@@ -2,22 +2,60 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
 
 
-
-
 function EditarFuncionarioView() {
-    function fetchFuncionario(id){
-        return fetch(`http://localhost:3000/api/funcionarios/buscar?id=${id}`, {
-            method: "GET"
-        })
-        .then((response) =>  response.json())
-        .catch((error) => alert(error));
+    const [camposVazios,setCamposVazios] = useState({});
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const {id} = useParams();
+    const [form, setForm] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const [formOriginal, setFormOriginal] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const [editado, setEditado] = useState(false);
+    const navigate = useNavigate();
+
+    async function fetchFuncionario(id){
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await  fetch(`http://localhost:3000/api/funcionarios/buscar?id=${id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            alert("Erro ao conectar com o servidor: " + err.message);
+            return null;
+        }
     }
 
     async function fetchAlterarFuncionario(){
+        const token = localStorage.getItem("token");
         const camposVazios = {
             nome: !form.nome,
             usuario: !form.usuario,
@@ -35,6 +73,7 @@ function EditarFuncionarioView() {
             const response = await fetch("http://localhost:3000/api/funcionarios/alterar", {
                 method: "PUT",
                 headers: {
+                    "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -47,6 +86,13 @@ function EditarFuncionarioView() {
                     telefone: String(form.telefone).replace(/\D/g, "")
                 })
             });
+            
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
             if(response.ok){
                 setFormOriginal(form);
             }else{
@@ -71,26 +117,6 @@ function EditarFuncionarioView() {
             [name]: valor
         }));
     }
-    const [camposVazios,setCamposVazios] = useState({});
-    const [mostrarSenha, setMostrarSenha] = useState(false);
-    const {id} = useParams();
-    const [form, setForm] = useState({
-        nome: "",
-        usuario: "",
-        senha: "",
-        cargo: "",
-        cpf:"",
-        telefone:""
-    });
-    const [formOriginal, setFormOriginal] = useState({
-        nome: "",
-        usuario: "",
-        senha: "",
-        cargo: "",
-        cpf:"",
-        telefone:""
-    });
-    const [editado, setEditado] = useState(false);
 
     useEffect(() => {
         async function carregar(){

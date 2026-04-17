@@ -9,7 +9,20 @@ import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
 
 function CadastrarFuncionarioView() {
 
+    const [camposVazios,setCamposVazios] = useState({});
+    const [form, setForm] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        confirmarSenha:"",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const navigate = useNavigate();
+
     async function fetchCadastrarFuncionario(){
+        const token = localStorage.getItem("token");
         let camposVazios = {
             nome: !form.nome,
             usuario: !form.usuario,
@@ -33,7 +46,8 @@ function CadastrarFuncionarioView() {
             const response = await fetch("http://localhost:3000/api/funcionarios/gravar", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     nome: form.nome,
@@ -44,6 +58,13 @@ function CadastrarFuncionarioView() {
                     telefone: String(form.telefone).replace(/\D/g, "")
                 })
             });
+            
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
             if(response.ok){
                 navigate("/tabelas/funcionarios");
             }else{
@@ -51,7 +72,7 @@ function CadastrarFuncionarioView() {
                 alert(json.err || 'Erro desconhecido no servidor');
             }
         } catch (err) {
-            alert("Erro ao gravar no banco: ",err.message);
+            alert("Erro ao gravar no banco: " + err.message);
         }
     }
 
@@ -68,17 +89,6 @@ function CadastrarFuncionarioView() {
             [name]: valor
         }));
     }
-    const [camposVazios,setCamposVazios] = useState({});
-    const [form, setForm] = useState({
-        nome: "",
-        usuario: "",
-        senha: "",
-        confirmarSenha:"",
-        cargo: "",
-        cpf:"",
-        telefone:""
-    });
-    const navigate = useNavigate();
 
     return (
         <>
