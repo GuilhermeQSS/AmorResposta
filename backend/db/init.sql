@@ -2,18 +2,19 @@ CREATE SCHEMA IF NOT EXISTS `amorresposta` DEFAULT CHARACTER SET utf8;
 USE `amorresposta` ;
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-  `ben_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ben_id` INT NOT NULL AUTO_INCREMENT,
   `ben_nome` VARCHAR(45) NULL,
   `ben_endereco` VARCHAR(100) NULL,
   `ben_telefone` VARCHAR(20) NULL,
   `ben_usuario` VARCHAR(45) NULL,
   `ben_senha` VARCHAR(45) NULL,
+  `ben_cpf` VARCHAR(45) NULL,
   PRIMARY KEY (`ben_id`)
 );
 
 
 CREATE TABLE IF NOT EXISTS `documentos` (
-  `doc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `doc_id` INT NOT NULL AUTO_INCREMENT,
   `doc_descricao` VARCHAR(45) NULL,
   `doc_dataCriacao` DATE NULL,
   `doc_caminho` VARCHAR(45) NOT NULL,
@@ -21,10 +22,10 @@ CREATE TABLE IF NOT EXISTS `documentos` (
 );
 
 CREATE TABLE IF NOT EXISTS `despesas` (
-  `des_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `des_id` INT NOT NULL AUTO_INCREMENT,
   `des_valor` DECIMAL(10,2) NULL,
   `des_descricao` VARCHAR(45) NULL,
-  `doc_id` INT(11) NULL,
+  `doc_id` INT NULL,
   PRIMARY KEY (`des_id`)
 );
 
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `doadores` (
 );
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
-  `doa_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `doa_id` INT NOT NULL AUTO_INCREMENT,
   `doa_dataEntrega` DATE NULL,
   `doa_origem` VARCHAR(100) NULL,
   `doa_formaEntrega` VARCHAR(45) NULL,
@@ -48,42 +49,44 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
 );
 
 CREATE TABLE IF NOT EXISTS `itens` (
-  `item_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `item_id` INT NOT NULL AUTO_INCREMENT,
   `item_descricao` VARCHAR(45) NULL,
   `item_nome` VARCHAR(45) NULL,
+  `item_unidadeMedida` VARCHAR(45) NULL,
   `item_tipo` VARCHAR(45) NULL,
-  `item_possuiValidade` CHAR(1) NULL,
+  `item_possuiValidade` TINYINT NULL,
   PRIMARY KEY (`item_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `lotes` (
   `lot_id` INT NOT NULL AUTO_INCREMENT,
-  `item_id` INT(11) NOT NULL,
-  `lot_unidadeMedida` VARCHAR(45),
+  `item_id` INT NOT NULL,
   `lot_validade` DATE NULL,
-  `lot_qtde` VARCHAR(45) NULL,
+  `lot_qtde` INT NULL,
   PRIMARY KEY (`lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `entradaDoacoes` (
-  `doa_id` INT(11) NOT NULL,
+  `doa_id` INT NOT NULL,
   `lot_id` INT NOT NULL,
-  `doc_id` INT(11) NULL,
+  `doc_id` INT NULL,
   PRIMARY KEY (`doa_id`, `lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontros` (
-  `enc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enc_id` INT NOT NULL AUTO_INCREMENT,
   `enc_data` DATE NULL,
-  `enc_disponibilidade` CHAR(1) NULL,
-  `enc_qtdeMax` INT(11) NULL,
-  `enc_qtde` INT(11) NULL,
+  `enc_disponibilidade` TINYINT NULL,
+  `enc_qtdeMax` INT NULL,
+  `enc_qtde` INT NULL,
   `enc_local` VARCHAR(45) NULL,
+  `enc_titulo` VARCHAR(100) NULL,
+  `enc_descricao` VARCHAR(100) NULL,
   PRIMARY KEY (`enc_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `funcionarios` (
-  `fun_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `fun_id` INT NOT NULL AUTO_INCREMENT,
   `fun_nome` VARCHAR(45) NULL,
   `fun_usuario` VARCHAR(45) NULL,
   `fun_senha` VARCHAR(45) NULL,
@@ -96,36 +99,36 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
 
 CREATE TABLE IF NOT EXISTS `lotesDoados` (
   `lotd_id` INT NOT NULL,
-  `ben_id` INT(11) NOT NULL,
+  `ben_id` INT NOT NULL,
   `data` DATE NULL,
   PRIMARY KEY (`lotd_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `lotesDoadosLotes` (
   `lotd_id` INT NOT NULL,
-  `lot_id` INT(11) NOT NULL,
+  `lot_id` INT NOT NULL,
   `qtde` INT NULL,
   PRIMARY KEY (`lotd_id`, `lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontrosItens` (
-  `enc_id` INT(11) NOT NULL,
+  `enc_id` INT NOT NULL,
   `lot_id` INT NOT NULL,
-  `qtde` INT(11) NULL,
+  `qtde` INT NULL,
   PRIMARY KEY (`enc_id`, `lot_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `beneficiariosEncontros` (
-  `enc_id` INT(11) NOT NULL,
-  `ben_id` INT(11) NOT NULL,
-  `participou` CHAR(1) NULL,
+  `enc_id` INT NOT NULL,
+  `ben_id` INT NOT NULL,
+  `participou` TINYINT NULL,
   PRIMARY KEY (`enc_id`, `ben_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `funcionariosEncontros` (
-  `fun_id` INT(11) NOT NULL,
-  `enc_id` INT(11) NOT NULL,
-  `participou` CHAR(1) NULL,
+  `fun_id` INT NOT NULL,
+  `enc_id` INT NOT NULL,
+  `participou` TINYINT NULL,
   PRIMARY KEY (`fun_id`, `enc_id`)
 );
 
