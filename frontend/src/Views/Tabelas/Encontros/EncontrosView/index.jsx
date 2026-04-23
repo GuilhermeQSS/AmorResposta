@@ -342,14 +342,14 @@ function EncontrosView() {
                 </td>
                 {activeView === views.cancelar && (
                   <td>
-                    <button
+                    <Styled.TableCancelButton
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenCancelar(f);
                       }}>
                       Cancelar
-                    </button>
+                    </Styled.TableCancelButton>
                   </td>
                 )}
               </tr>

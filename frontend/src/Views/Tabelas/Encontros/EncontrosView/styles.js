@@ -229,6 +229,23 @@ const Styled = {
         tbody tr:nth-child(even) {
         background: rgba(255, 255, 255, 0.3);
         }
+    `,
+
+    TableCancelButton: styled.button`
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        background: #d32f2f;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+
+        &:hover {
+            background: #b71c1c;
+            transform: translateY(-1px);
+        }
     `
 };
 
