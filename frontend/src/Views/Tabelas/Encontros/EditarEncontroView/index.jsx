@@ -4,6 +4,16 @@ import Styled from "./styles";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+const API_URL = "http://localhost:3000/api/encontros";
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = localStorage.getItem("token");
+  return {
+    ...extraHeaders,
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 function EditarEncontroView() {
   function validar() {
     let novosErros = {};
@@ -25,21 +35,27 @@ function EditarEncontroView() {
   }
 
   function fetchEncontro(id) {
-    return fetch(`http://localhost:3000/encontros/buscar?id=${id}`, {
+    return fetch(`${API_URL}/buscar?id=${id}`, {
       method: "GET",
+      headers: getAuthHeaders(),
     })
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Erro ao buscar encontro.");
+        }
+        return response.json();
+      })
       .catch((error) => alert(error));
   }
 
   async function fetchAlterarEncontro() {
     if (!validar()) return;
     try {
-      const response = await fetch("http://localhost:3000/encontros/alterar", {
+      const response = await fetch(`${API_URL}/alterar`, {
         method: "PUT",
-        headers: {
+        headers: getAuthHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           id: form.id,
           data: form.data,
@@ -64,7 +80,7 @@ function EditarEncontroView() {
         setErros(json.campos || {});
         alert(json.err || "Erro desconhecido no servidor");
       }
-    } catch (error) {
+    } catch {
       alert("Erro ao atualizar");
     }
   }
@@ -74,17 +90,17 @@ function EditarEncontroView() {
     if (!confirmar) return;
 
     try {
-      await fetch("http://localhost:3000/encontros/excluir", {
+      await fetch(`${API_URL}/excluir`, {
         method: "DELETE",
-        headers: {
+        headers: getAuthHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           id: form.id,
         }),
       });
       navigate("/tabelas/encontros");
-    } catch (error) {
+    } catch {
       alert("Erro ao excluir");
     }
   }
@@ -116,7 +132,7 @@ function EditarEncontroView() {
     qtde: 0,
     local: "",
   });
-  const [editado, setEditado] = useState(false);
+  const editado = JSON.stringify(form) !== JSON.stringify(formOriginal);
 
   useEffect(() => {
     async function carregar() {
@@ -127,10 +143,6 @@ function EditarEncontroView() {
     }
     carregar();
   }, [id]);
-
-  useEffect(() => {
-    setEditado(JSON.stringify(form) !== JSON.stringify(formOriginal));
-  }, [form, formOriginal]);
 
   return (
     <>

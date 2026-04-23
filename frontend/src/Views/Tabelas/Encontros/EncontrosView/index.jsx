@@ -20,25 +20,47 @@ const views = {
   cancelados: "cancelados",
 };
 
+const API_URL = "http://localhost:3000/api/encontros";
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = localStorage.getItem("token");
+  return {
+    ...extraHeaders,
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 function EncontrosView() {
   function fetchEncontroLista(filtro, status = "ativos") {
     return fetch(
-      `http://localhost:3000/encontros/listar?status=${status}&filtro=${encodeURIComponent(
+      `${API_URL}/listar?status=${status}&filtro=${encodeURIComponent(
         filtro
       )}`,
       {
         method: "GET",
+        headers: getAuthHeaders(),
       }
     )
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Erro ao carregar encontros.");
+        }
+        return response.json();
+      })
       .catch((error) => alert(error));
   }
 
   function fetchImpacto(id) {
-    return fetch(`http://localhost:3000/encontros/impacto?id=${id}`, {
+    return fetch(`${API_URL}/impacto?id=${id}`, {
       method: "GET",
+      headers: getAuthHeaders(),
     })
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Erro ao carregar impacto do encontro.");
+        }
+        return response.json();
+      })
       .catch((error) => alert(error));
   }
 
@@ -69,11 +91,11 @@ function EncontrosView() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/encontros/cancelar", {
+      const response = await fetch(`${API_URL}/cancelar`, {
         method: "POST",
-        headers: {
+        headers: getAuthHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           id: selectedEncontro.id,
           motivo: cancelReason,

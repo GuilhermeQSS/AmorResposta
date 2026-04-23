@@ -1,8 +1,18 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+const API_URL = "http://localhost:3000/api/encontros";
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = localStorage.getItem("token");
+  return {
+    ...extraHeaders,
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 function CadastrarEncontroView() {
   function validar() {
@@ -27,11 +37,11 @@ function CadastrarEncontroView() {
   async function fetchCadastrarEncontro() {
     if (!validar()) return;
     try {
-      const response = await fetch("http://localhost:3000/encontros/gravar", {
+      const response = await fetch(`${API_URL}/gravar`, {
         method: "POST",
-        headers: {
+        headers: getAuthHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           data: form.data,
           disponibilidade: form.disponibilidade,
@@ -47,7 +57,7 @@ function CadastrarEncontroView() {
         setErros(json.campos || {});
         alert(json.err || "Erro desconhecido no servidor");
       }
-    } catch (error) {
+    } catch {
       alert("Erro ao atualizar");
     }
   }
