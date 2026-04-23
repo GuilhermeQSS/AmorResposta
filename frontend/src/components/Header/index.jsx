@@ -16,6 +16,7 @@ function Header(){
                 <li><Link to={'/doacao'}>Doação</Link></li>
                 <li><Link to={'/portal'}>Portal da Transparência</Link></li>
                 <li><Link to={'/sobre'}>Sobre</Link></li>
+                <li><Link to={'/tabelas/encontros'}>Encontros</Link></li>
                 <li
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
@@ -25,7 +26,6 @@ function Header(){
                             <Link to="/tabelas/funcionarios">Funcionários</Link>
                             <Link to="/tabelas/beneficiarios">Beneficiarios</Link>
                             <Link to="/tabelas/doacoes">Doacoes</Link>
-                            <Link to="/tabelas/encontros">Encontros</Link>
                             <Link to="/tabelas/itens">Itens</Link>
                             <Link to="/tabelas/documentos">Documentos</Link>
                             <Link to="/tabelas/despesas">Despesas</Link>

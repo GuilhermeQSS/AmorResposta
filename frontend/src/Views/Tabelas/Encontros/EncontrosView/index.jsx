@@ -27,6 +27,15 @@ function EncontrosView() {
   return (
     <>
       <Header />
+      <Styled.PageHeader>
+        <Styled.PageTitle>Encontros</Styled.PageTitle>
+        <Styled.EncontroOptions>
+          <button type="button" className="active">Encontros</button>
+          <button type="button">Finalizar Encontro</button>
+          <button type="button">Cancelar Encontro</button>
+          <button type="button">Alterar Tutor de Encontro</button>
+        </Styled.EncontroOptions>
+      </Styled.PageHeader>
       <main>
         <Styled.Busca
           type="text"

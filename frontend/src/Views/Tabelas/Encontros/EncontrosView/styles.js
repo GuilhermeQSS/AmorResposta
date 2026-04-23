@@ -3,12 +3,50 @@ import styled from "styled-components";
 const Styled = {
 
     Busca: styled.input`
-    display: block;
+        display: block;
         margin: 0 auto;
         padding: 10px 15px;
         width: 50%;
         border-radius: 10px;
         border: 1px solid #ccc;
+    `,
+    PageHeader: styled.div`
+        width: 90%;
+        margin: 30px auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    `,
+    PageTitle: styled.h1`
+        margin: 0;
+        font-size: 24px;
+        color: #333;
+    `,
+    EncontroOptions: styled.div`
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #eee;
+            color: #333;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.active {
+            background-color: #d32f2f;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
     `,
     Actions: styled.div`
         width: 100%;

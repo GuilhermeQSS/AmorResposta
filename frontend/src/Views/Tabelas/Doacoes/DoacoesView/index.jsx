@@ -41,7 +41,46 @@ function DoacoesView() {
     const [tipoFiltro, setTipoFiltro] = useState("doador");
     const [dataInicial, setDataInicial] = useState("");
     const [dataFinal, setDataFinal] = useState("");
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const navigate = useNavigate();
+
+    async function excluirDoacao(id) {
+        return fetch("http://localhost:3000/doacoes/excluir", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id })
+        })
+            .then((response) => response.json())
+            .catch((error) => {
+                alert(error);
+                return null;
+            });
+    }
+
+    async function handleDelete(id) {
+        setConfirmDeleteId(id);
+    }
+
+    async function handleConfirmDelete() {
+        if (confirmDeleteId === null) return;
+
+        const resp = await excluirDoacao(confirmDeleteId);
+        if (resp) {
+            const data = await fetchDoacoes(filtro, tipoFiltro, dataInicial, dataFinal);
+            setDoacoes(Array.isArray(data) ? data : []);
+        }
+        setConfirmDeleteId(null);
+    }
+
+    function handleCancelDelete() {
+        setConfirmDeleteId(null);
+    }
+
+    function handleEdit(id) {
+        navigate(`/doacoes/${id}`);
+    }
 
     useEffect(() => {
         async function carregar() {
@@ -110,6 +149,7 @@ function DoacoesView() {
                             <th>data</th>
                             <th>origem</th>
                             <th>entrega</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,10 +165,51 @@ function DoacoesView() {
                                 <td>{doacao.dataEntrega ? new Date(doacao.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "-"}</td>
                                 <td>{doacao.origem || "-"}</td>
                                 <td>{doacao.formaEntrega}</td>
+                                <td>
+                                    <Styled.ActionButtons>
+                                        <button
+                                            type="button"
+                                            className="edit"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(doacao.id);
+                                            }}
+                                        >
+                                            ✏️ Editar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="delete"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(doacao.id);
+                                            }}
+                                        >
+                                            Excluir
+                                        </button>
+                                    </Styled.ActionButtons>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </Styled.Table>
+
+                {confirmDeleteId !== null && (
+                    <Styled.ModalOverlay>
+                        <Styled.ModalContent>
+                            <h2>Excluir doação</h2>
+                            <p>Tem certeza que deseja excluir esta doação cadastrada?</p>
+                            <Styled.ModalActions>
+                                <button type="button" className="secondary" onClick={handleCancelDelete}>
+                                    Cancelar
+                                </button>
+                                <button type="button" className="danger" onClick={handleConfirmDelete}>
+                                    Sim, excluir
+                                </button>
+                            </Styled.ModalActions>
+                        </Styled.ModalContent>
+                    </Styled.ModalOverlay>
+                )}
             </main>
             <Footer />
         </>
