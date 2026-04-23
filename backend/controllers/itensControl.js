@@ -1,7 +1,7 @@
 import Itens from "../models/itensModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 
-class ItensController{
+class itensControl{
     static async listar(req,res){
         try{
             const connection = await SingletonDB.getConnection();
@@ -11,7 +11,6 @@ class ItensController{
             return res.status(500).json({err: err.message})
         }
     }
-
     static async buscarPorId(req,res){
         try{
             const connection = await SingletonDB.getConnection();
@@ -87,4 +86,4 @@ class ItensController{
     }
 }
 
-export default ItensController;
+export default itensControl;

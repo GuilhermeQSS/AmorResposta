@@ -27,6 +27,7 @@ function Header(){
                     {dropdownTabela && (
                         <div>
                             <Link to="/tabelas/itens">Itens</Link>
+                            <Link to="/tabelas/lotes">Lotes</Link>
                         </div>
                     )}
                 </li>
@@ -39,7 +40,8 @@ function Header(){
                     <p>Cadastrar</p>
                     {dropdownCadastro && (
                         <div>
-                            <Link to="/itens/cadastro">Itens</Link>
+                            <Link to="/itens/cadastro">itens</Link>
+                            <Link to="/lotes/cadastro">lotes</Link>
                         </div>
                     )}
                 </li>
