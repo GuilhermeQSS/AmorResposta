@@ -96,6 +96,30 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
   PRIMARY KEY (`fun_id`)
 );
 
+SET @add_fun_cpf = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'funcionarios'
+      AND COLUMN_NAME = 'fun_cpf') = 0,
+  'ALTER TABLE funcionarios ADD COLUMN fun_cpf VARCHAR(45) NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_fun_cpf;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_fun_telefone = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'funcionarios'
+      AND COLUMN_NAME = 'fun_telefone') = 0,
+  'ALTER TABLE funcionarios ADD COLUMN fun_telefone VARCHAR(45) NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_fun_telefone;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 
 CREATE TABLE IF NOT EXISTS `lotesDoados` (
   `lotd_id` INT NOT NULL,
