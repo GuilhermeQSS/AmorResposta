@@ -93,18 +93,18 @@ function EditarLotesView() {
         async function carregar() {
             await fetchItens();
             const data = await fetchLoteId(id);
-            //console.log(data); // veja o que vem aqui
+            console.log(data); // veja o que vem aqui
 
-            const dataFormatada = data.data
-                ? new Date(data.data).toISOString().split("T")[0]
+            const dataFormatada = data.lot_validade
+                ? new Date(data.lot_validade).toISOString().split("T")[0]
                 : "";
 
             const loteForm = {
-                id: data.id ?? "",
-                idItem: data.idItem ?? "",
-                unidadeMed: data.unidadeMed ?? "",
+                id: data.lot_id ?? "",
+                idItem: data.item_id ?? "",
+                unidadeMed: data.lot_unidadeMedida ?? "",
                 data: dataFormatada,
-                quantidade: data.quantidade ?? ""
+                quantidade: data.lot_qtde ?? ""
             };
 
             setForm(loteForm);
