@@ -76,14 +76,69 @@ CREATE TABLE IF NOT EXISTS `entradaDoacoes` (
 CREATE TABLE IF NOT EXISTS `encontros` (
   `enc_id` INT NOT NULL AUTO_INCREMENT,
   `enc_data` DATE NULL,
-  `enc_disponibilidade` TINYINT NULL,
+  `enc_disponibilidade` CHAR(1) NULL,
   `enc_qtdeMax` INT NULL,
   `enc_qtde` INT NULL,
   `enc_local` VARCHAR(45) NULL,
   `enc_titulo` VARCHAR(100) NULL,
   `enc_descricao` VARCHAR(100) NULL,
+  `enc_cancelado` CHAR(1) NOT NULL DEFAULT 'N',
+  `enc_motivo_cancelamento` VARCHAR(255) NULL,
+  `enc_detalhes_cancelamento` TEXT NULL,
+  `enc_data_cancelamento` DATE NULL,
   PRIMARY KEY (`enc_id`)
 );
+
+ALTER TABLE `encontros`
+  MODIFY COLUMN `enc_disponibilidade` CHAR(1) NULL;
+
+SET @add_enc_cancelado = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'encontros'
+      AND COLUMN_NAME = 'enc_cancelado') = 0,
+  'ALTER TABLE encontros ADD COLUMN enc_cancelado CHAR(1) NOT NULL DEFAULT ''N''',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_enc_cancelado;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_enc_motivo_cancelamento = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'encontros'
+      AND COLUMN_NAME = 'enc_motivo_cancelamento') = 0,
+  'ALTER TABLE encontros ADD COLUMN enc_motivo_cancelamento VARCHAR(255) NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_enc_motivo_cancelamento;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_enc_detalhes_cancelamento = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'encontros'
+      AND COLUMN_NAME = 'enc_detalhes_cancelamento') = 0,
+  'ALTER TABLE encontros ADD COLUMN enc_detalhes_cancelamento TEXT NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_enc_detalhes_cancelamento;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_enc_data_cancelamento = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'encontros'
+      AND COLUMN_NAME = 'enc_data_cancelamento') = 0,
+  'ALTER TABLE encontros ADD COLUMN enc_data_cancelamento DATE NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_enc_data_cancelamento;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 CREATE TABLE IF NOT EXISTS `funcionarios` (
   `fun_id` INT NOT NULL AUTO_INCREMENT,
@@ -154,6 +209,28 @@ CREATE TABLE IF NOT EXISTS `funcionariosEncontros` (
   `enc_id` INT NOT NULL,
   `participou` TINYINT NULL,
   PRIMARY KEY (`fun_id`, `enc_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `participantes` (
+  `enc_id` INT NOT NULL,
+  `ben_id` INT NOT NULL,
+  `participou` CHAR(1) NULL,
+  PRIMARY KEY (`enc_id`, `ben_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `responsaveis` (
+  `fun_id` INT NOT NULL,
+  `enc_id` INT NOT NULL,
+  `participou` CHAR(1) NULL,
+  PRIMARY KEY (`fun_id`, `enc_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `materiais` (
+  `enc_id` INT NOT NULL,
+  `item_id` INT NOT NULL,
+  `qtde` INT NULL,
+  `utilizado` CHAR(1) NULL,
+  PRIMARY KEY (`enc_id`, `item_id`)
 );
 
 alter table `despesas`

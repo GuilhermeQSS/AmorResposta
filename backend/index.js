@@ -1,4 +1,5 @@
 import apiRoutes from "./routes/apiRoute.js"
+import encontroRoutes from "./routes/encontrosRoute.js"
 import e from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
@@ -12,6 +13,7 @@ app.use(e.json());
 app.use(e.urlencoded({extended:true}));
 app.use(e.static("public"));
 app.use("/api",apiRoutes);
+app.use("/encontros", encontroRoutes);
 
 app.listen(port,()=>{
     console.log(`Servidor iniciado em: http://localhost:${port}`);

@@ -37,6 +37,7 @@ function Header(){
                         {dropdownTabela && (
                             <div>
                                 <Link to="/tabelas/funcionarios">Funcionários</Link>
+                                <Link to="/tabelas/encontros">Encontros</Link>
                             </div>
                         )}
                     </li>
@@ -52,6 +53,7 @@ function Header(){
                         {dropdownCadastro && (
                             <div>
                                 <Link to="/funcionarios/cadastro">Funcionários</Link>
+                                <Link to="/encontros/cadastro">Encontros</Link>
                             </div>
                         )}
                     </li>

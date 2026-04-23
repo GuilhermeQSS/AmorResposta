@@ -14,6 +14,9 @@ import RotasProtegidas from './components/RotasProtegidas'
 import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
 import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
 import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFuncionarioView'
+import EncontrosView from './Views/Tabelas/Encontros/EncontrosView'
+import EditarEncontroView from './Views/Tabelas/Encontros/EditarEncontroView'
+import CadastrarEncontroView from './Views/Tabelas/Encontros/CadastrarEncontroView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,6 +34,9 @@ createRoot(document.getElementById('root')).render(
           <Route path='/tabelas/funcionarios' element={<FuncionariosView />} />
           <Route path="/funcionarios/:id" element={<EditarFuncionarioView />} />
           <Route path="/funcionarios/cadastro" element={<CadastrarFuncionarioView />} />
+          <Route path='/tabelas/encontros' element={<EncontrosView />} />
+          <Route path="/encontros/:id" element={<EditarEncontroView />} />
+          <Route path="/encontros/cadastro" element={<CadastrarEncontroView />} />
         </Route>
         
       </Routes>
