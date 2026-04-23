@@ -33,7 +33,8 @@ function EncontrosView() {
           <button type="button" className="active">Encontros</button>
           <button type="button">Finalizar Encontro</button>
           <button type="button">Cancelar Encontro</button>
-          <button type="button">Alterar Tutor de Encontro</button>
+          <button type="button">Substituir Tutor</button>
+          <button type="button">Encontros Cancelados</button>
         </Styled.EncontroOptions>
       </Styled.PageHeader>
       <main>
