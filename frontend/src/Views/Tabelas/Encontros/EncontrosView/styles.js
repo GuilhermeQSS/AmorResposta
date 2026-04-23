@@ -69,6 +69,113 @@ const Styled = {
         }
     `,
 
+    CancelCard: styled.section`
+        width: 90%;
+        margin: 20px auto;
+        padding: 24px;
+        border-radius: 18px;
+        background: #fff8f8;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid #f3d1d1;
+
+        h2 {
+            margin-top: 0;
+            color: #c62828;
+        }
+
+        p {
+            margin: 8px 0;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0;
+            color: #333;
+        }
+
+        select,
+        textarea,
+        input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+    `,
+
+    Summary: styled.div`
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+        gap: 14px;
+        margin: 16px 0;
+
+        div {
+            background: #fff3f3;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #f0c2c2;
+        }
+    `,
+
+    OptionGroup: styled.div`
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f7f2f2;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e0b8b8;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        input {
+            margin: 0;
+        }
+    `,
+
+    CancelActions: styled.div`
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:first-child {
+            background: #d32f2f;
+            color: white;
+        }
+
+        button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    `,
+
     Table: styled.table`
         width: 90%;
         margin: 40px auto;

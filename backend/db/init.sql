@@ -57,6 +57,10 @@ CREATE TABLE IF NOT EXISTS `encontros` (
   	`enc_qtdeMax` INT NULL,
   	`enc_qtde` INT NULL,
   	`enc_local` VARCHAR(45) NULL,
+	`enc_cancelado` CHAR(1) NOT NULL DEFAULT 'N',
+	`enc_motivo_cancelamento` VARCHAR(255) NULL,
+	`enc_detalhes_cancelamento` TEXT NULL,
+	`enc_data_cancelamento` DATE NULL,
   	PRIMARY KEY (`enc_id`)
 );
 
@@ -140,5 +144,3 @@ ALTER TABLE `itensDoados`
     	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
   	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
     	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
-
-

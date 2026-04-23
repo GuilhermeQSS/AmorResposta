@@ -3,7 +3,7 @@ import Encontro from "../models/encontroModel.js";
 class EncontroController{
     static async listar(req,res){
         try{
-            let resp = await Encontro.listar(req.query.filtro);
+            let resp = await Encontro.listar(req.query.filtro, req.query.status);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
@@ -20,6 +20,82 @@ class EncontroController{
             }
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"})
+        }
+    }
+
+    static async impacto(req,res){
+        try {
+            const { id } = req.query;
+            const resp = await Encontro.buscarImpacto(id);
+            if(!resp){
+                return res.status(500).json({Erro:`Não existe encontro com id ${id}`});
+            }
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar o impacto"});
+        }
+    }
+
+    static async cancelar(req,res){
+        try {
+            const { id, motivo, detalhes, opcao, novaData } = req.body;
+            const motivosValidos = [
+                "falta de beneficiários mínimos",
+                "ausência de tutor/funcionário responsável",
+                "indisponibilidade do local",
+                "problema climático",
+                "falta de materiais/itens necessários",
+                "conflito de agenda",
+                "motivo emergencial/outros"
+            ];
+
+            if (!id || !motivo) {
+                return res.status(500).json({ err: "ID e motivo são obrigatórios" });
+            }
+
+            if (!motivosValidos.includes(motivo)) {
+                return res.status(500).json({ err: "Motivo inválido" });
+            }
+
+            const encontroExistente = await Encontro.buscarPorId(id);
+            if (!encontroExistente) {
+                return res.status(500).json({ err: `Não existe encontro com id ${id}` });
+            }
+
+            if (encontroExistente.cancelado === 'S') {
+                return res.status(400).json({ err: "Encontro já está cancelado" });
+            }
+
+            await encontroExistente.cancelar(motivo, detalhes || "");
+
+            const resposta = {
+                cancelled: true,
+                motivo,
+                detalhes: detalhes || "",
+            };
+
+            if (opcao === "reagendar" || opcao === "transferirInscritos") {
+                if (!novaData) {
+                    return res.status(500).json({ err: "Nova data é obrigatória para reagendamento" });
+                }
+
+                const newEncontroId = await Encontro.criarReagendamento(
+                    id,
+                    novaData,
+                    opcao === "transferirInscritos"
+                );
+
+                resposta.reagendamento = {
+                    novoEncontroId: newEncontroId,
+                    transferencia: opcao === "transferirInscritos",
+                    novaData,
+                };
+            }
+
+            return res.status(200).json(resposta);
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ err: "Erro ao cancelar encontro" });
         }
     }
 
