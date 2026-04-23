@@ -4,7 +4,11 @@ USE `amorresposta` ;
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
   `ben_id` INT NOT NULL AUTO_INCREMENT,
   `ben_nome` VARCHAR(45) NULL,
-  `ben_endereco` VARCHAR(100) NULL,
+  `ben_estado` VARCHAR(2) NULL,
+	`ben_cidade` VARCHAR(100) NULL,
+	`ben_bairro` VARCHAR(100) NULL,
+	`ben_rua` VARCHAR(100) NULL,
+	`ben_numero` INT NULL,
   `ben_telefone` VARCHAR(20) NULL,
   `ben_usuario` VARCHAR(45) NULL,
   `ben_senha` VARCHAR(45) NULL,
@@ -182,3 +186,16 @@ alter table `funcionariosEncontros`
 
 INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, fun_telefone) 
 VALUES ("PerfilTeste", "adm", "adm", "Administrador", "99131079032", "1899999999");
+
+INSERT INTO beneficiarios (ben_nome, ben_endereco, ben_telefone, ben_usuario, ben_senha, ben_cpf) 
+VALUES 
+('João Silva', 'Rua das Flores, 123', '18991112222', 'joao.silva', 'senha123', '11122233344'),
+('Maria Oliveira', 'Av. Brasil, 500', '18998887777', 'maria.oliveira', 'senha456', '55566677788');
+
+INSERT INTO encontros (enc_data, enc_disponibilidade, enc_qtdeMax, enc_qtde, enc_local, enc_titulo, enc_descricao) 
+VALUES 
+('2026-05-15', 1, 50, 0, 'Centro Comunitário', 'Workshop de Artesanato', 'Aprenda técnicas de pintura em tela.'),
+('2026-06-10', 1, 20, 15, 'Auditório Municipal', 'Palestra: Higiene e Saúde', 'Dicas práticas para o dia a dia.');
+
+INSERT INTO beneficiariosEncontros (enc_id, ben_id, participou) 
+VALUES (1, 1, 0);
