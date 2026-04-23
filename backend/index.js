@@ -5,6 +5,7 @@ import itensRoutes from "./routes/itensRoute.js"
 import encontroRoutes from "./routes/encontrosRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import despesasRoutes from "./routes/despesasRoute.js"
+import lotesRoute from "./routes/lotesRoute.js"
 import e from "express";
 import cors from "cors";
 const app = e();
@@ -21,6 +22,7 @@ app.use("/itens",itensRoutes);
 app.use("/encontros",encontroRoutes);
 app.use("/documentos", documentoRoutes);
 app.use("/despesas", despesasRoutes);
+app.use("/lotes",lotesRoute);
 
 app.get("/",(req,res)=>{    
     res.redirect("index.html");
