@@ -5,10 +5,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function DoacoesView() {
-    function fetchDoacoes(filtroAtual, tipoFiltroAtual) {
+    function fetchDoacoes(filtroAtual, tipoFiltroAtual, dataInicialAtual, dataFinalAtual) {
         const params = new URLSearchParams();
 
-        if (filtroAtual) {
+        if (tipoFiltroAtual === "periodo") {
+            if (dataInicialAtual) {
+                params.set("dataInicial", dataInicialAtual);
+            }
+
+            if (dataFinalAtual) {
+                params.set("dataFinal", dataFinalAtual);
+            }
+        } else if (filtroAtual) {
             params.set("filtro", filtroAtual);
         }
 
@@ -24,21 +32,30 @@ function DoacoesView() {
     function handleTipoFiltroChange(e) {
         setTipoFiltro(e.target.value);
         setFiltro("");
+        setDataInicial("");
+        setDataFinal("");
     }
 
     const [doacoes, setDoacoes] = useState([]);
     const [filtro, setFiltro] = useState("");
     const [tipoFiltro, setTipoFiltro] = useState("doador");
+    const [dataInicial, setDataInicial] = useState("");
+    const [dataFinal, setDataFinal] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const data = await fetchDoacoes(filtro, tipoFiltro);
+            if (tipoFiltro === "periodo" && dataInicial && dataFinal && dataInicial > dataFinal) {
+                setDoacoes([]);
+                return;
+            }
+
+            const data = await fetchDoacoes(filtro, tipoFiltro, dataInicial, dataFinal);
             setDoacoes(Array.isArray(data) ? data : []);
         }
 
         carregar();
-    }, [filtro, tipoFiltro]);
+    }, [filtro, tipoFiltro, dataInicial, dataFinal]);
 
     return (
         <>
@@ -51,14 +68,30 @@ function DoacoesView() {
                     >
                         <option value="doador">Pesquisar por doador</option>
                         <option value="data">Pesquisar por data</option>
+                        <option value="periodo">Pesquisar por periodo</option>
                     </Styled.FilterSelect>
 
-                    <Styled.Busca
-                        type={tipoFiltro === "data" ? "date" : "text"}
-                        placeholder={tipoFiltro === "data" ? "" : "Buscar doacao por doador..."}
-                        value={filtro}
-                        onChange={(e) => setFiltro(e.target.value)}
-                    />
+                    {tipoFiltro === "periodo" ? (
+                        <>
+                            <Styled.Busca
+                                type="date"
+                                value={dataInicial}
+                                onChange={(e) => setDataInicial(e.target.value)}
+                            />
+                            <Styled.Busca
+                                type="date"
+                                value={dataFinal}
+                                onChange={(e) => setDataFinal(e.target.value)}
+                            />
+                        </>
+                    ) : (
+                        <Styled.Busca
+                            type={tipoFiltro === "data" ? "date" : "text"}
+                            placeholder={tipoFiltro === "data" ? "" : "Buscar doacao por doador..."}
+                            value={filtro}
+                            onChange={(e) => setFiltro(e.target.value)}
+                        />
+                    )}
                 </Styled.Filters>
 
                 <Styled.Actions>

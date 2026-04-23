@@ -4,7 +4,7 @@ const Styled = {
 
     Busca: styled.input`
     display: block;
-        margin: 0 auto;
+        margin: 0 auto 10px;
         padding: 10px 15px;
         width: 50%;
         border-radius: 10px;
@@ -31,6 +31,27 @@ const Styled = {
         }
     `,
 
+    Finals: styled.div`
+        width: 10%;
+        height: 10%;
+        display: flex;
+        margin-top: 5px;
+
+        button{
+            padding: 4px 6px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+
+            &:hover{
+                opacity: 0.8;
+                transform: scale(1.15);
+            }
+        }
+    `,
+
     Table: styled.table`
         width: 90%;
         margin: 40px auto;
@@ -47,11 +68,6 @@ const Styled = {
         tbody tr {
             transition: 0.2s;
             cursor: pointer;
-        }
-
-        tbody tr:hover {
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(1.01);
         }
 
         th {

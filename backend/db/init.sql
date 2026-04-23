@@ -142,7 +142,6 @@ ALTER TABLE `doacoesItens`
 ALTER TABLE `itensDoados`
 	ADD CONSTRAINT `fk_ItensDoados_Itens`
     	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
-  	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
+	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
     	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
-
 
