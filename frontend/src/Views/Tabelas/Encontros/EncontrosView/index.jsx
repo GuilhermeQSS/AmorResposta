@@ -2,7 +2,7 @@ import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const motivos = [
   "falta de beneficiários mínimos",
@@ -13,6 +13,12 @@ const motivos = [
   "conflito de agenda",
   "motivo emergencial/outros",
 ];
+
+const views = {
+  encontros: "encontros",
+  cancelar: "cancelar",
+  cancelados: "cancelados",
+};
 
 function EncontrosView() {
   function fetchEncontroLista(filtro, status = "ativos") {
@@ -96,9 +102,9 @@ function EncontrosView() {
       setImpacto(null);
       setCancelError(null);
       setFiltro("");
-      const info = await fetchEncontroLista("");
+      const info = await fetchEncontroLista("", "ativos");
       setEncontros(info);
-    } catch (error) {
+    } catch {
       setCancelError("Erro de rede ao cancelar encontro.");
     }
   }
@@ -109,8 +115,21 @@ function EncontrosView() {
     setCancelError(null);
   }
 
+  async function handleChangeView(nextView) {
+    setActiveView(nextView);
+    setSelectedEncontro(null);
+    setImpacto(null);
+    setCancelError(null);
+    setFiltro("");
+
+    const status = nextView === views.cancelados ? "cancelados" : "ativos";
+    const info = await fetchEncontroLista("", status);
+    setEncontros(info);
+  }
+
   const [encontros, setEncontros] = useState([]);
   const [filtro, setFiltro] = useState("");
+  const [activeView, setActiveView] = useState(views.encontros);
   const [selectedEncontro, setSelectedEncontro] = useState(null);
   const [impacto, setImpacto] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -122,11 +141,12 @@ function EncontrosView() {
 
   useEffect(() => {
     async function carregar() {
-      const info = await fetchEncontroLista(filtro);
+      const status = activeView === views.cancelados ? "cancelados" : "ativos";
+      const info = await fetchEncontroLista(filtro, status);
       setEncontros(info);
     }
     carregar();
-  }, [filtro]);
+  }, [filtro, activeView]);
 
   return (
     <>
@@ -134,18 +154,24 @@ function EncontrosView() {
       <Styled.PageHeader>
         <Styled.PageTitle>Encontros</Styled.PageTitle>
         <Styled.EncontroOptions>
-          <button type="button" className="active">
+          <button
+            type="button"
+            className={activeView === views.encontros ? "active" : ""}
+            onClick={() => handleChangeView(views.encontros)}>
             Encontros
           </button>
           <button type="button">Finalizar Encontro</button>
-          <button type="button">Cancelar Encontro</button>
+          <button
+            type="button"
+            className={activeView === views.cancelar ? "active" : ""}
+            onClick={() => handleChangeView(views.cancelar)}>
+            Cancelar Encontro
+          </button>
           <button type="button">Substituir Tutor</button>
           <button
             type="button"
-            onClick={async () => {
-              const info = await fetchEncontroLista("", "cancelados");
-              setEncontros(info);
-            }}>
+            className={activeView === views.cancelados ? "active" : ""}
+            onClick={() => handleChangeView(views.cancelados)}>
             Encontros Cancelados
           </button>
         </Styled.EncontroOptions>
@@ -158,10 +184,18 @@ function EncontrosView() {
           onChange={(e) => setFiltro(e.target.value)}
         />
         <Styled.Actions>
-          <button onClick={() => navigate("/encontros/cadastro")}>
-            + Cadastrar Encontro
-          </button>
+          {activeView !== views.cancelados && (
+            <button onClick={() => navigate("/encontros/cadastro")}>
+              + Cadastrar Encontro
+            </button>
+          )}
         </Styled.Actions>
+
+        {activeView === views.cancelar && (
+          <Styled.ModeMessage>
+            Selecione abaixo o encontro disponivel que deseja cancelar.
+          </Styled.ModeMessage>
+        )}
 
         {selectedEncontro && impacto && (
           <Styled.CancelCard>
@@ -280,7 +314,7 @@ function EncontrosView() {
               <th>qtdeMax</th>
               <th>qtde</th>
               <th>disponibilidade</th>
-              <th>Ações</th>
+              {activeView === views.cancelar && <th>Acoes</th>}
             </tr>
           </thead>
           <tbody>
@@ -306,8 +340,8 @@ function EncontrosView() {
                     ? "Cancelado"
                     : "Desconhecido"}
                 </td>
-                <td>
-                  {f.disponibilidade !== "C" && (
+                {activeView === views.cancelar && (
+                  <td>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -316,8 +350,8 @@ function EncontrosView() {
                       }}>
                       Cancelar
                     </button>
-                  )}
-                </td>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

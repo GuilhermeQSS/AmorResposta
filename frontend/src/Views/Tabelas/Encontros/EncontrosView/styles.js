@@ -69,6 +69,16 @@ const Styled = {
         }
     `,
 
+    ModeMessage: styled.p`
+        width: 90%;
+        margin: 20px auto 0;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: #fff8e1;
+        color: #5d4037;
+        border: 1px solid #ffe0a3;
+    `,
+
     CancelCard: styled.section`
         width: 90%;
         margin: 20px auto;
