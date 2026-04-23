@@ -1,5 +1,3 @@
-import connection from "../db/connection.js"
-
 class Documento {
     constructor(id, titulo, tipo, dataCriacao, descricao, link) {
         this.id = id;
@@ -10,7 +8,7 @@ class Documento {
         this.link = link;
     }
 
-    static async listar(filtroTitulo, filtroTipo) {
+    static async listar(connection, filtroTitulo, filtroTipo) {
         let queryString = `select * from documentos`;
         const conditions = [];
         if (filtroTitulo) {
@@ -37,7 +35,7 @@ class Documento {
         return documentoList;
     }
 
-    static async buscarPorId(id) {
+    static async buscarPorId(connection, id) {
         let queryString = `select * from documentos where doc_id = ?`
         const [[documento]] = await connection.query(queryString, [id]);
         if (!documento) {
@@ -54,7 +52,7 @@ class Documento {
         }
     }
 
-    async gravar() {
+    async gravar(connection) {
         let queryString = `insert into documentos(
             doc_titulo,
             doc_tipo,
@@ -72,7 +70,7 @@ class Documento {
         return resultado;
     }
 
-    async alterar() {
+    async alterar(connection) {
         let queryString = `
             update documentos set
                 doc_titulo = ?,
@@ -93,7 +91,7 @@ class Documento {
         return resultado;
     }
 
-    async excluir() {
+    async excluir(connection) {
         let queryString = `delete from documentos where doc_id = ?`;
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;

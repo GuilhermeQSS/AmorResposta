@@ -1,9 +1,11 @@
 import Funcionario from "../models/funcionarioModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class FuncionarioController{
     static async listar(req,res){
         try{
-            let resp = await Funcionario.listar(req.query.filtroUsuario, req.query.filtroNome);
+            const connection = await SingletonDB.getConnection();
+            let resp = await Funcionario.listar(connection, req.query.filtroUsuario, req.query.filtroNome);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
@@ -12,7 +14,8 @@ class FuncionarioController{
 
     static async buscarPorId(req,res){
         try{
-            let resp = await Funcionario.buscarPorId(req.query.id);
+            const connection = await SingletonDB.getConnection();
+            let resp = await Funcionario.buscarPorId(connection, req.query.id);
             if(!resp){
                 return res.status(500).json({Erro:`Não existe funcionario com id ${req.query.id}`})
             }else{
@@ -25,6 +28,7 @@ class FuncionarioController{
 
     static async alterar(req, res){
         try {
+            const connection = await SingletonDB.getConnection();
             const { id, nome, usuario, senha, cargo, camposAlterados } = req.body;
             if (!nome || !usuario || !senha || !cargo) {
                 return res.status(500).json({ 
@@ -37,7 +41,7 @@ class FuncionarioController{
                     }
                 });
             }
-            if(camposAlterados.usuario && await Funcionario.buscarPorUsuario(usuario) ){
+            if(camposAlterados.usuario && await Funcionario.buscarPorUsuario(connection, usuario) ){
                 return res.status(500).json({
                     err: "Usuario já exite",
                 });
@@ -49,7 +53,7 @@ class FuncionarioController{
                 senha,
                 cargo
             );
-            const resultado = await funcionario.alterar();
+            const resultado = await funcionario.alterar(connection);
             return res.status(200).json(resultado);
         } catch (error) {
             return res.status(500).json({ erro: "Erro ao alterar funcionário" });
@@ -58,9 +62,10 @@ class FuncionarioController{
 
     static async excluir(req, res){
         try {
+            const connection = await SingletonDB.getConnection();
             const { id } = req.body;
             const funcionario = new Funcionario(id);
-            const resultado = await funcionario.excluir();
+            const resultado = await funcionario.excluir(connection);
             res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
@@ -70,6 +75,7 @@ class FuncionarioController{
 
     static async cadastrar(req,res){
         try{
+            const connection = await SingletonDB.getConnection();
             const {nome, usuario, senha, cargo} = req.body;
             if (!nome || !usuario || !senha || !cargo) {
                 return res.status(500).json({ 
@@ -82,7 +88,7 @@ class FuncionarioController{
                     }
                 });
             }
-            if(await Funcionario.buscarPorUsuario(usuario)){
+            if(await Funcionario.buscarPorUsuario(connection, usuario)){
                 return res.status(500).json({ 
                     err: "Usuario já exite",
                 });
@@ -94,7 +100,7 @@ class FuncionarioController{
                 senha,
                 cargo
             );
-            let resp = await funcionario.gravar();
+            let resp = await funcionario.gravar(connection);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json(err);

@@ -1,5 +1,3 @@
-import connection from "../db/connection.js"
-
 class Encontro{
     constructor(id, data, disponibilidade, qtdeMax, qtde, local){
         this.id = id;
@@ -10,7 +8,7 @@ class Encontro{
         this.local = local;
     }
 
-    static async listar(filtro) {
+    static async listar(connection, filtro) {
         let queryString = `select * from encontros`
         if (filtro) {
             queryString += ` where enc_local like '%${filtro}%'`;
@@ -30,7 +28,7 @@ class Encontro{
         return encontroList;
     }
     
-    async alterar(){
+    async alterar(connection){
         let queryString = `
             update encontros set
                 enc_data = '${this.data}',
@@ -45,7 +43,7 @@ class Encontro{
         return resultado;
     }
 
-    async excluir(){
+    async excluir(connection){
         let queryString = `
             delete from encontros
             where enc_id = ${this.id};
@@ -55,7 +53,7 @@ class Encontro{
         return resultado;
     }
 
-    static async buscarPorLocal(local){
+    static async buscarPorLocal(connection, local){
         let queryString = `select * from encontros where enc_local = '${local}'`
         const [[encontro]] = await connection.query(queryString);
         if(!encontro){
@@ -72,7 +70,7 @@ class Encontro{
         }
     }
 
-    static async buscarPorId(id){
+    static async buscarPorId(connection, id){
         let queryString = `select * from encontros where enc_id = ${id}`
         const [[encontro]] = await connection.query(queryString);
         if(!encontro){
@@ -89,7 +87,7 @@ class Encontro{
         }
     }
 
-    async gravar(){
+    async gravar(connection){
         let queryString = `
             insert into encontros(
                 enc_data,

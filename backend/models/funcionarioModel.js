@@ -1,5 +1,3 @@
-import connection from "../db/connection.js"
-
 class Funcionario{
     constructor(id, nome, usuario, senha, cargo){
         this.id = id;
@@ -9,7 +7,7 @@ class Funcionario{
         this.cargo = cargo;
     }
 
-    static async listar(usuario, nome) {
+    static async listar(connection, usuario, nome) {
         let queryString = `select * from funcionarios`
         if(usuario || nome){
             queryString += ' where'
@@ -38,7 +36,7 @@ class Funcionario{
         return funcionarioList;
     }
     
-    async alterar(){
+    async alterar(connection){
         let queryString = `
             update funcionarios set
                 fun_nome = '${this.nome}',
@@ -52,7 +50,7 @@ class Funcionario{
         return resultado;
     }
 
-    async excluir(){
+    async excluir(connection){
         let queryString = `
             delete from funcionarios
             where fun_id = ${this.id};
@@ -62,7 +60,7 @@ class Funcionario{
         return resultado;
     }
 
-    static async buscarPorUsuario(usuario){
+    static async buscarPorUsuario(connection, usuario){
         let queryString = `select * from funcionarios where fun_usuario = '${usuario}'`
         const [[funcionario]] = await connection.query(queryString);
         if(!funcionario){
@@ -77,7 +75,7 @@ class Funcionario{
             );
         }
     }
-    static async buscarPorId(id){
+    static async buscarPorId(connection, id){
         let queryString = `select * from funcionarios where fun_id = ${id}`
         const [[funcionario]] = await connection.query(queryString);
         if(!funcionario){
@@ -93,7 +91,7 @@ class Funcionario{
         }
     }
 
-    async gravar(){
+    async gravar(connection){
         let queryString = `
             insert into funcionarios(
                 fun_nome,

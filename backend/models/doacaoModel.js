@@ -1,4 +1,3 @@
-import connection from "../db/connection.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -60,7 +59,7 @@ class Doacao {
         return extensaoOriginal || ".bin";
     }
 
-    static async salvarDocumento(documento) {
+    static async salvarDocumento(connection, documento) {
         await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
 
         const extensao = Doacao.obterExtensaoDocumento(documento.nomeArquivo);
@@ -87,7 +86,7 @@ class Doacao {
         }
     }
 
-    static async listar(filtro, tipoFiltro = "doador") {
+    static async listar(connection, filtro, tipoFiltro = "doador") {
         let queryString = "select * from doacoes";
         const params = [];
 
@@ -116,7 +115,7 @@ class Doacao {
         ));
     }
 
-    static async buscarPorId(id) {
+    static async buscarPorId(connection, id) {
         const queryString = "select * from doacoes where doa_id = ?";
         const [[doacao]] = await connection.query(queryString, [id]);
 
@@ -136,14 +135,14 @@ class Doacao {
         );
     }
 
-    async gravar() {
+    async gravar(connection) {
         let documentoPersistido = null;
 
         await connection.beginTransaction();
 
         try {
             if (this.documento) {
-                documentoPersistido = await Doacao.salvarDocumento(this.documento);
+                documentoPersistido = await Doacao.salvarDocumento(connection, this.documento);
             }
 
             const queryString = `
@@ -183,7 +182,7 @@ class Doacao {
         }
     }
 
-    async alterar() {
+    async alterar(connection) {
         const queryString = `
             update doacoes set
                 doa_doadorNome = ?,
@@ -210,7 +209,7 @@ class Doacao {
         return resultado;
     }
 
-    async excluir() {
+    async excluir(connection) {
         const queryString = "delete from doacoes where doa_id = ?";
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;

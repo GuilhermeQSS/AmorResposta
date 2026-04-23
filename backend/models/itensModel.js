@@ -1,5 +1,3 @@
-import connection from "../db/connection.js"
-
 class Itens{
     constructor(id, descricao, qtde, validade){
         this.id = id;
@@ -9,7 +7,7 @@ class Itens{
     }
 
     
-    static async listar(filtro) {
+    static async listar(connection, filtro) {
         let queryString = `select * from itens`
         if (filtro) {
             queryString += ` where item_descricao like '%${filtro}%'`;
@@ -27,7 +25,7 @@ class Itens{
         return itensList;
     }
     
-    async alterar(){
+    async alterar(connection){
         let queryString = `
             update itens set
                 item_descricao = '${this.descricao}',
@@ -40,7 +38,7 @@ class Itens{
         return resultado;
     }
 
-    async excluir(){
+    async excluir(connection){
         let queryString = `
             delete from itens
             where item_id = ${this.id};
@@ -50,7 +48,7 @@ class Itens{
         return resultado;
     }
 
-    static async buscarPorId(id){
+    static async buscarPorId(connection, id){
             let queryString = `select * from itens where item_id = ${id}`
             const [[itens]] = await connection.query(queryString);
             if(!itens){
@@ -65,7 +63,7 @@ class Itens{
             }
         }
 
-    static async buscarPorValidade(intervalo){
+    static async buscarPorValidade(connection, intervalo){
         const queryString = `
             SELECT *
             FROM itens
@@ -86,7 +84,7 @@ class Itens{
         return itensList;
     }
     
-    static async buscarPorDescricaoEValidade(descricao,dias){
+    static async buscarPorDescricaoEValidade(connection, descricao,dias){
         const queryString = `
             SELECT *
             FROM itens
@@ -109,7 +107,7 @@ class Itens{
     }
 
 
-    async gravar(){
+    async gravar(connection){
         let queryString = `
             insert into itens(
                 item_descricao,

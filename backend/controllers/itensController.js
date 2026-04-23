@@ -1,17 +1,19 @@
 import Itens from "../models/itensModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class ItensController{
     static async listar(req,res){
         try{
+            const connection = await SingletonDB.getConnection();
             const { descricao, dias } = req.query;
             let resp;
 
             if (descricao && dias){
-                resp = await Itens.buscarPorDescricaoEValidade(descricao, dias);
+                resp = await Itens.buscarPorDescricaoEValidade(connection, descricao, dias);
             } else if (dias){
-                resp = await Itens.buscarPorValidade(dias);
+                resp = await Itens.buscarPorValidade(connection, dias);
             } else {
-                resp = await Itens.listar(descricao);
+                resp = await Itens.listar(connection, descricao);
             }
             return res.status(200).json(resp);
         }catch(err){
@@ -21,7 +23,8 @@ class ItensController{
 
     static async buscarPorId(req,res){
         try{
-            let resp = await Itens.buscarPorId(req.query.id);
+            const connection = await SingletonDB.getConnection();
+            let resp = await Itens.buscarPorId(connection, req.query.id);
             if(!resp){
                 return res.status(500).json({Erro:`Não existe itens com id ${req.query.id}`})
             }else{
@@ -35,6 +38,7 @@ class ItensController{
 
     static async alterar(req, res){
         try {
+            const connection = await SingletonDB.getConnection();
             const { id, descricao, qtde, validade, camposAlterados } = req.body;
             if (!descricao || qtde === undefined) {
                 return res.status(500).json({ 
@@ -51,7 +55,7 @@ class ItensController{
                 qtde,
                 validade
             );
-            const resultado = await itens.alterar();
+            const resultado = await itens.alterar(connection);
             return res.status(200).json(resultado);
         } catch (error) {
             return res.status(500).json({ erro: "Erro ao alterar itens" });
@@ -60,9 +64,10 @@ class ItensController{
 
     static async excluir(req, res){
         try {
+            const connection = await SingletonDB.getConnection();
             const { id } = req.body;
             const itens = new Itens(id);
-            const resultado = await itens.excluir();
+            const resultado = await itens.excluir(connection);
             res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
@@ -72,6 +77,7 @@ class ItensController{
     
     static async cadastrar(req,res){
         try{
+            const connection = await SingletonDB.getConnection();
             const {descricao, qtde, validade} = req.body;
             if (qtde < 0) {
                 return res.status(500).json({ 
@@ -101,7 +107,7 @@ class ItensController{
                 qtde,
                 validade
             );
-            let resp = await itens.gravar();
+            let resp = await itens.gravar(connection);
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json(err);
