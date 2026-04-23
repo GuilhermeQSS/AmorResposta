@@ -5,7 +5,17 @@ import logo from '../../assets/logo perfil oaear.png'
 import Sociais from "../Sociais";
 
 function Header(){
-    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [dropdownTabela, setDropdownTabela] = useState(false);
+    const [dropdownCadastro, setDropdownCadastro] = useState(false);
+    
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const handleLogout = () => {
+        localStorage.clear();
+        window.location.href = "/login";
+    };
+    
     return (
         <Styled.Container>
             <Link to={'/'}><img src={logo}/></Link>
@@ -16,22 +26,47 @@ function Header(){
                 <li><Link to={'/doacao'}>Doação</Link></li>
                 <li><Link to={'/portal'}>Portal da Transparência</Link></li>
                 <li><Link to={'/sobre'}>Sobre</Link></li>
-                <li><Link to={'/tabelas/encontros'}>Encontros</Link></li>
-                <li
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                >
-                    <p>Tabelas</p>
-                    {dropdownOpen && (
-                        <div>
-                            <Link to="/tabelas/funcionarios">Funcionários</Link>
-                            <Link to="/tabelas/beneficiarios">Beneficiarios</Link>
-                            <Link to="/tabelas/doacoes">Doacoes</Link>
-                            <Link to="/tabelas/itens">Itens</Link>
-                            <Link to="/tabelas/documentos">Documentos</Link>
-                            <Link to="/tabelas/despesas">Despesas</Link>
-                        </div>
-                    )}
-                </li>
+                {user?.perfil === "Administrador" && (
+                    <li
+                        onClick={() => {
+                            setDropdownTabela(!dropdownTabela)
+                            setDropdownCadastro(false)
+                        }}
+                    >
+                        <p>Tabelas</p>
+                        {dropdownTabela && (
+                            <div>
+                                <Link to="/tabelas/funcionarios">Funcionários</Link>
+                            </div>
+                        )}
+                    </li>
+                )}
+                {user?.perfil === "Administrador" && (
+                    <li
+                        onClick={() => {
+                            setDropdownCadastro(!dropdownCadastro)
+                            setDropdownTabela(false);
+                        }}
+                    >
+                        <p>Cadastrar</p>
+                        {dropdownCadastro && (
+                            <div>
+                                <Link to="/funcionarios/cadastro">Funcionários</Link>
+                            </div>
+                        )}
+                    </li>
+                )}
+                {!token ? (
+                    <li><Link to={'/login'}>Login</Link></li>
+                ) : (
+                    <li>
+                        <span className="ola-usuario">
+                            Olá, {user.nome}
+                        </span>
+                        <button onClick={handleLogout} style={{ cursor: 'pointer' }}>Sair</button>
+                    </li>
+                )}
+                
             </Styled.Atalhos>
             <Sociais/>
         </Styled.Container>

@@ -3,102 +3,126 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-
-
+import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
 
 
 function EditarFuncionarioView() {
-    function fetchFuncionario(id){
-        return fetch(`http://localhost:3000/funcionarios/buscar?id=${id}`, {
-            method: "GET"
-        })
-        .then((response) =>  response.json())
-        .catch((error) => alert(error));
+    const [camposVazios,setCamposVazios] = useState({});
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const {id} = useParams();
+    const [form, setForm] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const [formOriginal, setFormOriginal] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const [editado, setEditado] = useState(false);
+    const navigate = useNavigate();
+
+    async function fetchFuncionario(id){
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await  fetch(`http://localhost:3000/api/funcionarios/buscar?id=${id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            alert("Erro ao conectar com o servidor: " + err.message);
+            return null;
+        }
     }
 
     async function fetchAlterarFuncionario(){
+        const token = localStorage.getItem("token");
+        const camposVazios = {
+            nome: !form.nome,
+            usuario: !form.usuario,
+            senha: !form.senha,
+            cargo: !form.cargo,
+            cpf: !form.cpf,
+            telefone: !form.telefone
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
         try {
-            const response = await fetch("http://localhost:3000/funcionarios/alterar", {
+            const response = await fetch("http://localhost:3000/api/funcionarios/alterar", {
                 method: "PUT",
                 headers: {
+                    "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    id: form.id,
+                    id: id,
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
                     cargo: form.cargo,
-                    camposAlterados: {
-                        nome: form.nome !== formOriginal.nome,
-                        usuario: form.usuario !== formOriginal.usuario,
-                        senha: form.senha !== formOriginal.senha,
-                        cargo: form.cargo !== formOriginal.cargo,
-                    }
+                    cpf: String(form.cpf).replace(/\D/g, ""),
+                    telefone: String(form.telefone).replace(/\D/g, "")
                 })
             });
+            
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
             if(response.ok){
                 setFormOriginal(form);
             }else{
-                const json = await response.json(); 
-                setErros(json.campos || {});
+                const json = await response.json();
                 alert(json.err || 'Erro desconhecido no servidor');
             }
-        } catch (error) {
-            alert("Erro ao atualizar");
-        }
-    }
-
-    async function fetchExcluirFuncionario(){
-        const confirmar = confirm("Tem certeza que deseja excluir?");
-        if(!confirmar) return;
-
-        try {
-            await fetch("http://localhost:3000/funcionarios/excluir", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    id: form.id
-                })
-            });
-            navigate("/tabelas/funcionarios");
-        } catch (error) {
-            alert("Erro ao excluir");
+        } catch (err) {
+            alert("Erro ao atualizar: ", err.message);
         }
     }
 
     function atualizarForm(e){
         const { name, value } = e.target;
+        let valor = value;
+        if(name === 'cpf'){
+            valor = maskCPF(value);
+        }else if(name === 'telefone'){
+            valor = maskTelefone(value);
+        }
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: valor
         }));
     }
-    const [erros,setErros] = useState({});
-    const [mostrarSenha, setMostrarSenha] = useState(false);
-    const navigate = useNavigate();
-    const {id} = useParams();
-    const [form, setForm] = useState({
-        id:0,
-        nome: "",
-        usuario: "",
-        senha: "",
-        cargo: ""
-    });
-    const [formOriginal, setFormOriginal] = useState({
-        id:0,
-        nome: "",
-        usuario: "",
-        senha: "",
-        cargo: ""
-    });
-    const [editado, setEditado] = useState(false);
 
     useEffect(() => {
         async function carregar(){
             const data = await fetchFuncionario(id);
+            data.cpf  = maskCPF(data.cpf);
+            data.telefone  = maskTelefone(data.telefone);
             setForm(data)
             setFormOriginal(data);
         }
@@ -127,6 +151,7 @@ function EditarFuncionarioView() {
                                 name="nome"
                                 value={form.nome}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.nome ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -136,6 +161,7 @@ function EditarFuncionarioView() {
                                 name="usuario"
                                 value={form.usuario}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.usuario ? "2px solid red" : "" }}
                             />
                         </div>
 
@@ -147,6 +173,7 @@ function EditarFuncionarioView() {
                                 value={form.senha}
                                 onChange={atualizarForm}
                                 disabled={!mostrarSenha}
+                                style={{ border: camposVazios.senha ? "2px solid red" : "" }}
                             />
                             <button
                                 type="button"
@@ -157,11 +184,41 @@ function EditarFuncionarioView() {
                         </div>
 
                         <div>
+                            <label htmlFor="cpf">CPF: </label>
+                            <input
+                                name="cpf"
+                                value={form.cpf}
+                                onChange={atualizarForm}
+                                pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+                                placeholder="000.000.000-00"
+                                inputMode="numeric"
+                                maxLength={14}
+                                style={{ border: camposVazios.cpf ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="telefone">Telefone: </label>
+                            <input
+                                name="telefone"
+                                value={form.telefone}
+                                onChange={atualizarForm}
+                                pattern="\(\d{2}\)\s\d{4,5}-\d{4}"
+                                placeholder="(00) 00000-0000"
+                                inputMode="numeric"
+                                maxLength={15}
+                                required
+                                style={{ border: camposVazios.telefone ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
                             <label htmlFor="cargo">Cargo:</label>
                             <select
                                 name="cargo"
                                 value={form.cargo}
                                 onChange={atualizarForm}
+                                style={{ border: camposVazios.cargo ? "2px solid red" : "" }}
                             >
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
@@ -174,13 +231,6 @@ function EditarFuncionarioView() {
                             onClick={fetchAlterarFuncionario}
                         >
                             Editar
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={fetchExcluirFuncionario}
-                        >
-                            Excluir
                         </button>
                 </Styled.Form>
             </main>
