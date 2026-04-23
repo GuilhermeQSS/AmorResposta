@@ -17,6 +17,34 @@ async function garantirEstruturaDoacoes(connection) {
     `);
 }
 
+async function garantirEstruturaBeneficiarios(connection) {
+    const colunas = [
+        "ben_estado",
+        "ben_cidade",
+        "ben_bairro",
+        "ben_rua",
+        "ben_numero"
+    ];
+
+    for (const coluna of colunas) {
+        const [resultado] = await connection.query(`SHOW COLUMNS FROM beneficiarios LIKE '${coluna}'`);
+        if (resultado.length === 0) {
+            const definicoes = {
+                ben_estado: "VARCHAR(2) NULL AFTER ben_nome",
+                ben_cidade: "VARCHAR(100) NULL AFTER ben_estado",
+                ben_bairro: "VARCHAR(100) NULL AFTER ben_cidade",
+                ben_rua: "VARCHAR(100) NULL AFTER ben_bairro",
+                ben_numero: "INT NULL AFTER ben_rua"
+            };
+
+            await connection.query(`
+                ALTER TABLE beneficiarios
+                ADD COLUMN ${coluna} ${definicoes[coluna]}
+            `);
+        }
+    }
+}
+
 let connection;
 
 try {
@@ -28,6 +56,7 @@ try {
     });
 
     await garantirEstruturaDoacoes(connection);
+    await garantirEstruturaBeneficiarios(connection);
     console.log("Conectado ao MySQL com sucesso!");
 } catch (err) {
     console.log("Erro:", err.message);
