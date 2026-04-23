@@ -14,6 +14,12 @@ import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFunc
 import EncontrosView from './Views/Tabelas/Encontros/EncontrosView'
 import EditarEncontroView from './Views/Tabelas/Encontros/EditarEncontroView'
 import CadastrarEncontroView from './Views/Tabelas/Encontros/CadastrarEncontroView'
+import CadastrarItensView from './Views/Tabelas/Itens/CadastrarItensView'
+import EditarItensView from './Views/Tabelas/Itens/EditarItensView'
+import ItensView from './Views/Tabelas/Itens/ItensView'
+import CadastrarLotesView from './Views/Tabelas/Lotes/CadastrarLotesView'
+import EditarLotesView from './Views/Tabelas/Lotes/EditarLotesView'
+import LotesView from './Views/Tabelas/Lotes/LotesView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,6 +37,12 @@ createRoot(document.getElementById('root')).render(
         <Route Component={EncontrosView} path='/tabelas/encontros'/>
         <Route Component={EditarEncontroView} path="/encontros/:id" />
         <Route Component={CadastrarEncontroView} path="/encontros/cadastro" />
+        <Route Component={ItensView} path='/tabelas/itens'/>
+        <Route Component={CadastrarItensView} path="/itens/cadastro" />
+        <Route Component={EditarItensView} path="/itens/:id" />
+        <Route Component={LotesView} path='/tabelas/lotes'/>
+        <Route Component={CadastrarLotesView} path="/lotes/cadastro" />
+        <Route Component={EditarLotesView} path="/lotes/:id" />
       </Routes>
     </BrowserRouter>
   </StrictMode>
