@@ -1,3 +1,28 @@
+function validarCPF(cpf) {
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false;
+
+    let soma = 0;
+    let resto;
+
+    for (let i = 0; i < 9; i++) {
+        soma += parseInt(cpf[i]) * (10 - i);
+    }
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf[9])) return false;
+
+    soma = 0;
+    for (let i = 0; i < 10; i++) {
+        soma += parseInt(cpf[i]) * (11 - i);
+    }
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf[10])) return false;
+
+    return true;
+}
+
 class Beneficiario{
     constructor(id,nome,endereco,telefone,usuario,senha,cpf) {
         if (!id || !nome || !usuario || !senha || !endereco || !cpf || !telefone) {
@@ -5,7 +30,7 @@ class Beneficiario{
         }
 
         const cpfLimpo = String(cpf).replace(/\D/g, "");
-        if (!Funcionario.validarCPF(cpfLimpo)) {
+        if (!validarCPF(cpfLimpo)) {
             throw new Error("CPF inválido");
         }
 
@@ -21,31 +46,6 @@ class Beneficiario{
         this.senha = senha;
         this.cpf = cpfLimpo;
         this.telefone = telefoneLimpo;
-    }
-
-    static validarCPF(cpf) {
-        if (cpf.length !== 11) return false;
-        if (/^(\d)\1+$/.test(cpf)) return false;
-
-        let soma = 0;
-        let resto;
-
-        for (let i = 0; i < 9; i++) {
-            soma += parseInt(cpf[i]) * (10 - i);
-        }
-        resto = (soma * 10) % 11;
-        if (resto === 10 || resto === 11) resto = 0;
-        if (resto !== parseInt(cpf[9])) return false;
-
-        soma = 0;
-        for (let i = 0; i < 10; i++) {
-            soma += parseInt(cpf[i]) * (11 - i);
-        }
-        resto = (soma * 10) % 11;
-        if (resto === 10 || resto === 11) resto = 0;
-        if (resto !== parseInt(cpf[10])) return false;
-
-        return true;
     }
 
     static async buscarPorId(connection, id){
@@ -90,7 +90,29 @@ class Beneficiario{
         }
     }
 
-
+    async listarEncontros(connection){
+        let queryString = `select enc_id,enc_data,enc_disponibilidade,enc_qtdeMax,enc_qtde,enc_local,enc_titulo,enc_descricao
+        	from beneficiariosEncontros natural join encontros
+	        where ben_id=?`
+        let valores = [
+            this.id
+        ];
+        const [beneficiarios] = await connection.query(queryString,valores);
+        let encontrosList = [];
+        beneficiarios.forEach(e => {
+            encontrosList.push(new Beneficiario(
+                e.enc_id,
+                e.enc_data,
+                e.enc_disponibilidade,
+                e.enc_qtdeMax,
+                e.enc_qtde,
+                e.enc_local,
+                e.enc_titulo,
+                e.enc_descricao
+            ));
+        });
+        return encontrosList;
+    }
 }
 
 export default Beneficiario;

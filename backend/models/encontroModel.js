@@ -1,4 +1,4 @@
-import Beneficiario from "./beneficiarioModel";
+import Beneficiario from "./beneficiarioModel.js";
 
 class Encontro{
     constructor(id,data,disponibilidade,qtdeMax,qtde,local,titulo,descricao) {
@@ -88,7 +88,8 @@ class Encontro{
 
     async listarBeneficiarios(connection){
         let queryString = `select ben_id,ben_nome,ben_endereco,ben_telefone,ben_usuario,ben_senha,ben_cpf
-	        from beneficiariosEncontros natural join beneficiarios`
+        	from beneficiariosEncontros natural join beneficiarios
+	        where enc_id=?`
         let valores = [
             this.id
         ];
@@ -105,7 +106,7 @@ class Encontro{
                 b.ben_cpf
             ));
         });
-        return encontroList;
+        return beneficiariosList;
     }
 
     async cadastrarBeneficiario(connection, beneficiario){

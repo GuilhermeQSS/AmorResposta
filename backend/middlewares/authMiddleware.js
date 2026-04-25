@@ -22,7 +22,7 @@ export const autenticarAdmin = (req, res, next) => {
     }
 };
 
-export const autenticarUsuario = (req, res, next) => {
+export const autenticarBeneficiario = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -32,6 +32,11 @@ export const autenticarUsuario = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.CHAVE_SECRETA);
+
+        if (decoded.perfil !== "Beneficiario") {
+            return res.status(403).json({ message: "Acesso negado. Apenas administradores." });
+        }
+
         req.usuarioLogado = decoded;
         next();
     } catch (err) {

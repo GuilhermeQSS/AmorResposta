@@ -28,7 +28,7 @@ class EncontroControl {
         }
     }
 
-    static async confirmarParticipacao(req, res){
+    static async cadastrarBeneficiario(req, res){
         try {
             const connection = await SingletonDB.getConnection();
             let beneficiario = await Beneficiario.buscarPorId(connection, req.query.idBeneficiario);
@@ -50,7 +50,7 @@ class EncontroControl {
         }
     }
 
-    static async cancelarParticipacao(req, res){
+    static async retirarBeneficiario(req, res){
         try {
             const connection = await SingletonDB.getConnection();
             let beneficiario = await Beneficiario.buscarPorId(connection, req.query.idBeneficiario);

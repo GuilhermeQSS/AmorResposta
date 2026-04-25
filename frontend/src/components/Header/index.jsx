@@ -57,19 +57,7 @@ function Header(){
                     </li>
                 )}
                 {user?.perfil === "Beneficiario" && (
-                    <li
-                        onClick={() => {
-                            setDropdownCadastro(!dropdownCadastro)
-                            setDropdownTabela(false);
-                        }}
-                    >
-                        <p>Cadastrar</p>
-                        {dropdownCadastro && (
-                            <div>
-                                <Link to="/funcionarios/cadastro">Funcionários</Link>
-                            </div>
-                        )}
-                    </li>
+                    <li><Link to={'/beneficiario/encontros'}>Encontros</Link></li>
                 )}
                 {!token ? (
                     <li><Link to={'/login'}>Login</Link></li>
