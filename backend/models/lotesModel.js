@@ -19,8 +19,6 @@ class Lotes{
     constructor(id, idItem, unidadeMed, data, quantidade) {
         if (!idItem || !unidadeMed || !quantidade)
             throw new Error("Todos os campos devem ser preenchidos");
-        if (data && ehAnteriorHoje(data))
-            throw new Error("Data anterior a atual");
 
         this.id = id;
         this.idItem = idItem;
@@ -97,13 +95,15 @@ class Lotes{
             WHERE lot_id = ?;
         `;
 
-        // Busca o item para verificar se possui validade
         const item = await Itens.buscarPorId(connection, this.idItem);
         if (item == null)
             throw new Error("Item não encontrado");
 
-        if (item.item_possuiValidade == '0')
+        if (item.item_possuiValidade == '0' || item.possuiValidade == false)
             this.data = null;
+        else
+            if(this.data == null)
+                throw new Error("Validade é necessária");
 
         const valores = [
             this.idItem,
@@ -135,7 +135,7 @@ class Lotes{
         if (!lote)
             return null;
 
-        console.log(lote);
+        //console.log(lote);
 
         return new Lotes(
             lote.lot_id,
@@ -151,11 +151,15 @@ class Lotes{
         if (item == null)
             throw new Error("Item não encontrado");
 
-        console.log("possuiValidade:", item.possuiValidade, typeof item.possuiValidade);
-
         if (item.item_possuiValidade == '0' || item.possuiValidade == false)
             this.data = null;
-
+        else
+            if(this.data == null)
+                throw new Error("Validade é necessária");
+            else 
+                if (this.data && ehAnteriorHoje(this.data))
+                    throw new Error("Data anterior a atual");
+        
         const queryString = `
             INSERT INTO lotes (
                 item_id,
