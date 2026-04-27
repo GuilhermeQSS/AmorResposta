@@ -5,11 +5,10 @@ import despesasRoutes from "./routes/despesasRoute.js"
 import doacaoRoutes from "./routes/doacoesRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import itensRoutes from "./routes/itensRoute.js"
+import "./config/loadEnv.js";
 import e from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
-dotenv.config();
 const app = e();
 const port = 3000
 
