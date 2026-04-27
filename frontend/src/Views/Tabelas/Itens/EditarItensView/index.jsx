@@ -5,7 +5,7 @@ import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function EditarItensView() {
-    function fetchItens(id){
+    function fetchItenId(id){
         return fetch(`http://localhost:3000/itens/buscar?id=${id}`, {
             method: "GET"
         })
@@ -14,6 +14,16 @@ function EditarItensView() {
     }
 
     async function fetchAlterarItem(){
+        const camposVazios = {
+            descricao: !form.descricao,
+            nome: !form.nome,
+            tipo: !form.tipo,
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
         try {
             const response = await fetch("http://localhost:3000/itens/alterar", {
                 method: "PUT",
@@ -23,89 +33,55 @@ function EditarItensView() {
                 body: JSON.stringify({
                     id: form.id,
                     descricao: form.descricao,
-                    qtde: form.qtde,
-                    validade: form.validade || null,
-                    camposAlterados: {
-                        descricao: form.descricao !== formOriginal.descricao,
-                        qtde: form.qtde !== formOriginal.qtde,
-                        validade: form.validade !== formOriginal.validade
-                    }
+                    nome: form.nome,
+                    tipo: form.tipo,
+                    possuiValidade: form.possuiValidade
                 })
             });
             if(response.ok){
+                alert("alterado com sucesso");
                 setFormOriginal(form);
             }else{
-                const json = await response.json(); 
-                setErros(json.campos || {});
+                const json = await response.json();
                 alert(json.err || 'Erro desconhecido no servidor');
             }
-        } catch (error) {
+        } catch (err) {
             alert("Erro ao atualizar");
         }
     }
 
-    async function fetchExcluirItem(){
-        const confirmar = confirm("Tem certeza que deseja excluir?");
-        if(!confirmar) return;
-
-        try {
-            await fetch("http://localhost:3000/itens/excluir", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    id: form.id
-                })
-            });
-            navigate("/tabelas/itens");
-        } catch (error) {
-            alert("Erro ao excluir");
-        }
-    }
-
     function atualizarForm(e){
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: type === "checkbox" ? checked : value,
         }));
     }
-    const [erros,setErros] = useState({});
+
+    const [camposVazios,setCamposVazios] = useState({});
     const navigate = useNavigate();
     const {id} = useParams();
     const [form, setForm] = useState({
         id:0,
         descricao: "",
-        qtde: "",
-        validade: ""
+        nome: "",
+        tipo: "",
+        possuiValidade: false
     });
     const [formOriginal, setFormOriginal] = useState({
         id:0,
         descricao: "",
-        qtde: "",
-        validade: ""
+        nome: "",
+        tipo: "",
+        possuiValidade: false
     });
     const [editado, setEditado] = useState(false);
 
-    function formataData(data = {})
-    {
-        return {
-            id: data.id ?? 0,
-            descricao: data.descricao ?? "",
-            qtde: data.qtde ?? "",
-            validade: data.validade
-                ? data.validade.split("T")[0]
-                : ""
-        }
-    }
-
     useEffect(() => {
         async function carregar(){
-            const data = await fetchItens(id);
-            const dataFormatada = formataData(data);
-            setForm(dataFormatada);
-            setFormOriginal(dataFormatada);
+            const data = await fetchItenId(id);
+            setForm(data);
+            setFormOriginal(data);
         }
         carregar();
     }, []);
@@ -127,32 +103,46 @@ function EditarItensView() {
                 </Styled.BackBtn>
                 <Styled.Form>
                     <div>
-                        <label htmlFor="descricao">Descrição </label>
+                        <label htmlFor="nome">Nome: </label>
+                        <input
+                            type="text"
+                            name="nome"
+                            value={form.nome}
+                            onChange={atualizarForm}
+                            style={{ border: camposVazios.nome ? "2px solid red" : "" }}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="descricao">Descricão: </label>
                         <input
                             type="text"
                             name="descricao"
                             value={form.descricao}
                             onChange={atualizarForm}
+                            style={{ border: camposVazios.descricao ? "2px solid red" : "" }}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="qtde">Quantidade: </label>
+                        <label htmlFor="tipo">Tipo: </label>
                         <input
-                            type="number"
-                            name="qtde"
-                            value={form.qtde}
+                            type="text"
+                            name="tipo"
+                            value={form.tipo}
                             onChange={atualizarForm}
+                            style={{ border: camposVazios.tipo ? "2px solid red" : "" }}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="validade">Validade: </label>
+                        <label htmlFor="possuiValidade">Possui Validade</label>
                         <input
-                            type="date"
-                            name="validade"
-                            value={form.validade}
-                            onChange={atualizarForm}
+                        type="checkbox"
+                        name="possuiValidade"
+                        id="possuiValidade"
+                        checked={!!form.possuiValidade}
+                        onChange={atualizarForm}
                         />
                     </div>
 
@@ -162,13 +152,6 @@ function EditarItensView() {
                         onClick={fetchAlterarItem}
                     >
                         Editar
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={fetchExcluirItem}
-                    >
-                        Excluir
                     </button>
                 </Styled.Form>
             </main>

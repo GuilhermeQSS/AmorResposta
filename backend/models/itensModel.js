@@ -1,31 +1,34 @@
 class Itens{
-    constructor(id, descricao, nome, tipo){
-        if(!id || !descricao || !tipo || !nome)
+    constructor(id, descricao, nome, tipo, possuiValidade){
+        if(!descricao || !tipo || !nome)
             throw new Error("Todos os campos devem ser preenchidos");    
         this.id = id;
         this.descricao = descricao;
         this.tipo = tipo;
         this.nome = nome;
+        this.possuiValidade = possuiValidade
     }
 
     static async listar(connection, nome, tipo) {
-        let queryString = `select * from itens where `
+        let queryString = `select * from itens`
         if(nome && tipo)
-            queryString += `item_nome like '%${nome}%' and item_tipo = '${tipo}'`;
+            queryString += ` where item_nome like '%${nome}%' and item_tipo like '%${tipo}%'`;
         else
             if (nome)
-                queryString += `item_nome like '%${nome}%'`;
+                queryString += ` where item_nome like '%${nome}%'`;
             else
                 if(tipo)
-                    queryString += `item_tipo = '${tipo}'`;
+                    queryString += ` where item_tipo like '%${tipo}%'`;
+        queryString += ` order by item_nome asc`;
         const [itens] = await connection.query(queryString);
         let itensList = [];
         itens.forEach(e => {
             itensList.push(new Itens(
                 e.item_id,
                 e.item_descricao,
-                e.nome,
-                e.tipo
+                e.item_nome,
+                e.item_tipo,
+                e.item_possuiValidade
             ));
         });
         return itensList;
@@ -35,8 +38,9 @@ class Itens{
         let queryString = `
             update itens set
                 item_descricao = '${this.descricao}',
-                item_tipo = '${this.tipo},
-                item_nome = '${this.nome}
+                item_tipo = '${this.tipo}',
+                item_nome = '${this.nome}',
+                item_possuiValidade = '${this.possuiValidade}'
             where item_id = ${this.id};
         `;
         const [resultado] = await connection.query(queryString,[this.validade]);
@@ -46,14 +50,17 @@ class Itens{
     async excluir(connection){
         let queryString = `
             delete from itens
-            where item_id = ${this.id};
+            where item_id = ?;
         `;
-        const [resultado] = await connection.query(queryString);
+        let valores = [
+            this.id
+        ];
+        const [resultado] = await connection.query(queryString,valores);
         return resultado;
     }
 
     static async buscarPorNome(connection, nome){
-            let queryString = `select * from itens where item_nome = ${nome}`
+            let queryString = `select * from itens where item_nome = '${nome}'`
             const [[itens]] = await connection.query(queryString);
             if(!itens){
                 return null;
@@ -62,27 +69,49 @@ class Itens{
                     itens.item_id,
                     itens.item_descricao,
                     itens.item_nome,
-                    itens.item_tipo
+                    itens.item_tipo,
+                    itens.item_possuiValidade
                 );
             }
         }
 
+    static async buscarPorId(connection, id){
+        let queryString = `select * from itens where item_id = ?`;
+        let valores = [id];
+        const [[item]] = await connection.query(queryString,valores);
+        if(!item){
+            return null;
+        }else{
+            return new Itens(
+                item.item_id,
+                item.item_descricao,
+                item.item_nome,
+                item.item_tipo,
+                item.item_possuiValidade
+            );
+        }
+    }
+
     async gravar(connection){
-        if(buscarPorNome(connection,this.nome) == null)
+        if(await Itens.buscarPorNome(connection, this.nome) != null)
             throw new Error("Item ja cadastrado");
         let queryString = `
             insert into itens(
                 item_descricao,
                 item_nome,
-                item_tipo
-            ) values (?, ?, ?);
+                item_tipo,
+                item_possuiValidade
+            ) values (?, ?, ?, ?);
         `;
 
-        const [resultado] = await connection.query(queryString, [
+        let valores = [
             this.descricao,
             this.nome,
-            this.tipo
-        ]);
+            this.tipo,
+            this.possuiValidade
+        ];
+
+        const [resultado] = await connection.query(queryString, valores);
 
         return resultado;
     }
