@@ -1,6 +1,8 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
+import iconEditar from "../../../../assets/iconeEditar.png";
+import iconExcluir from "../../../../assets/iconeExcluir.png";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
@@ -108,12 +110,23 @@ function BeneficiariosView() {
                                     <td>{formatarTelefone(b.telefone)}</td>
                                     <td>{b.usuario}</td>
                                     <td>
-                                        <Styled.DeleteButton
-                                            type="button"
-                                            onClick={(event) => excluirBeneficiario(b.id, event)}
-                                        >
-                                            Excluir
-                                        </Styled.DeleteButton>
+                                        <Styled.ActionGroup>
+                                            <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    navigate(`/beneficiarios/${b.id}`);
+                                                }}
+                                            >
+                                                <img src={iconEditar} alt="Editar" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(event) => excluirBeneficiario(b.id, event)}
+                                            >
+                                                <img src={iconExcluir} alt="Excluir" />
+                                            </button>
+                                        </Styled.ActionGroup>
                                     </td>
                                 </tr>
                             ))

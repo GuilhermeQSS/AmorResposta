@@ -1,69 +1,133 @@
 import Encontro from "../models/encontroModel.js";
 
-class EncontroController{
-    static async listar(req,res){
-        try{
-            let resp = await Encontro.listar(req.query.filtro, req.query.status);
-            return res.status(200).json(resp);
-        }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
-        }
-    }
-
-    static async buscarPorId(req,res){
-        try{
-            let resp = await Encontro.buscarPorId(req.query.id);
-            if(!resp){
-                return res.status(500).json({Erro:`Não existe encontro com id ${req.query.id}`})
-            }else{
-                return res.status(200).json(resp);
-            }
-        }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"})
-        }
-    }
-
-    static async impacto(req,res){
+class EncontroController {
+    static async listar(req, res) {
         try {
-            const { id } = req.query;
-            const resp = await Encontro.buscarImpacto(id);
-            if(!resp){
-                return res.status(500).json({Erro:`Não existe encontro com id ${id}`});
+            const resp = await Encontro.listar(req.query.filtro, req.query.status);
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ Erro: "Aconteceu um erro na hora de listar" });
+        }
+    }
+
+    static async buscarPorId(req, res) {
+        try {
+            const resp = await Encontro.buscarPorId(req.query.id);
+            if (!resp) {
+                return res.status(500).json({ Erro: `Nao existe encontro com id ${req.query.id}` });
             }
             return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar o impacto"});
+            return res.status(500).json({ Erro: "Aconteceu um erro na hora de buscar" });
         }
     }
 
-    static async cancelar(req,res){
+    static async impacto(req, res) {
         try {
-            const { id, motivo, detalhes, opcao, novaData } = req.body;
-            const motivosValidos = [
-                "falta de beneficiários mínimos",
-                "ausência de tutor/funcionário responsável",
-                "indisponibilidade do local",
-                "problema climático",
-                "falta de materiais/itens necessários",
-                "conflito de agenda",
-                "motivo emergencial/outros"
-            ];
+            const { id } = req.query;
+            const resp = await Encontro.buscarImpacto(id);
+            if (!resp) {
+                return res.status(500).json({ Erro: `Nao existe encontro com id ${id}` });
+            }
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ Erro: "Aconteceu um erro na hora de buscar o impacto" });
+        }
+    }
 
-            if (!id || !motivo) {
-                return res.status(500).json({ err: "ID e motivo são obrigatórios" });
+    static async listarResponsaveis(req, res) {
+        try {
+            const { id, filtroNome, filtroUsuario } = req.query;
+            if (!id) {
+                return res.status(400).json({ err: "ID do encontro e obrigatorio" });
             }
 
-            if (!motivosValidos.includes(motivo)) {
-                return res.status(500).json({ err: "Motivo inválido" });
+            const encontro = await Encontro.buscarPorId(id);
+            if (!encontro) {
+                return res.status(404).json({ err: `Nao existe encontro com id ${id}` });
+            }
+
+            const resp = await Encontro.listarResponsaveis(id, filtroNome, filtroUsuario);
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ err: "Aconteceu um erro na hora de listar responsaveis" });
+        }
+    }
+
+    static async listarSubstitutos(req, res) {
+        try {
+            const { id, funIdAtual, filtroNome, filtroUsuario } = req.query;
+            if (!id || !funIdAtual) {
+                return res.status(400).json({ err: "ID do encontro e funcionario atual sao obrigatorios" });
+            }
+
+            const encontro = await Encontro.buscarPorId(id);
+            if (!encontro) {
+                return res.status(404).json({ err: `Nao existe encontro com id ${id}` });
+            }
+
+            const resp = await Encontro.listarSubstitutosDisponiveis(
+                id,
+                funIdAtual,
+                filtroNome,
+                filtroUsuario
+            );
+
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ err: "Aconteceu um erro na hora de listar substitutos" });
+        }
+    }
+
+    static async listarFuncionariosDisponiveis(req, res) {
+        try {
+            const { data, hora, filtroNome, filtroUsuario } = req.query;
+            if (!data || !hora) {
+                return res.status(400).json({ err: "Data e hora sao obrigatorias" });
+            }
+
+            const resp = await Encontro.listarFuncionariosDisponiveis(
+                data,
+                hora,
+                filtroNome,
+                filtroUsuario
+            );
+
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ err: "Aconteceu um erro na hora de listar funcionarios disponiveis" });
+        }
+    }
+
+    static async substituirTutor(req, res) {
+        try {
+            const { encId, funIdAtual, funIdNovo } = req.body;
+            if (!encId || !funIdAtual || !funIdNovo) {
+                return res.status(400).json({ err: "Encontro, tutor atual e tutor substituto sao obrigatorios" });
+            }
+
+            const resp = await Encontro.substituirTutor(encId, funIdAtual, funIdNovo);
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(err.status || 500).json({ err: err.message || "Erro ao substituir tutor" });
+        }
+    }
+
+    static async cancelar(req, res) {
+        try {
+            const { id, motivo, detalhes, opcao, novaData } = req.body;
+
+            if (!id || !motivo) {
+                return res.status(500).json({ err: "ID e motivo sao obrigatorios" });
             }
 
             const encontroExistente = await Encontro.buscarPorId(id);
             if (!encontroExistente) {
-                return res.status(500).json({ err: `Não existe encontro com id ${id}` });
+                return res.status(500).json({ err: `Nao existe encontro com id ${id}` });
             }
 
-            if (encontroExistente.cancelado === 'S') {
-                return res.status(400).json({ err: "Encontro já está cancelado" });
+            if (encontroExistente.cancelado === "S") {
+                return res.status(400).json({ err: "Encontro ja esta cancelado" });
             }
 
             await encontroExistente.cancelar(motivo, detalhes || "");
@@ -76,7 +140,7 @@ class EncontroController{
 
             if (opcao === "reagendar" || opcao === "transferirInscritos") {
                 if (!novaData) {
-                    return res.status(500).json({ err: "Nova data é obrigatória para reagendamento" });
+                    return res.status(500).json({ err: "Nova data e obrigatoria para reagendamento" });
                 }
 
                 const newEncontroId = await Encontro.criarReagendamento(
@@ -99,38 +163,49 @@ class EncontroController{
         }
     }
 
-    static async alterar(req, res){
+    static async alterar(req, res) {
         try {
-            const { id, data, disponibilidade, qtdeMax, qtde, local, camposAlterados } = req.body;
-            if (data == "" || (disponibilidade != 'A' && disponibilidade != 'E' && disponibilidade != 'F') || qtdeMax <= 0 || qtde == null || qtde < 0 || local == ""){
-                if(qtdeMax == 0){
-                     return res.status(500).json({ 
-                    err: "Quantidade maxima não pode ser menor ou igual a 0" ,
-                    campos:{
-                        enc_data: !data,
-                        enc_disponibilidade: !disponibilidade,
-                        enc_qtdeMax: !qtdeMax,
-                        enc_qtde: !qtde,
-                        enc_local: !local
-                    }
-                });
+            const { id, data, hora, disponibilidade, qtdeMax, qtde, local } = req.body;
+            if (
+                data == "" ||
+                hora == "" ||
+                (disponibilidade != "A" && disponibilidade != "E" && disponibilidade != "F") ||
+                qtdeMax <= 0 ||
+                qtde == null ||
+                qtde < 0 ||
+                local == ""
+            ) {
+                if (qtdeMax == 0) {
+                    return res.status(500).json({
+                        err: "Quantidade maxima nao pode ser menor ou igual a 0",
+                        campos: {
+                            enc_data: !data,
+                            enc_hora: !hora,
+                            enc_disponibilidade: !disponibilidade,
+                            enc_qtdeMax: !qtdeMax,
+                            enc_qtde: !qtde,
+                            enc_local: !local
+                        }
+                    });
                 }
-                if(qtde < 0){
-                     return res.status(500).json({ 
-                    err: "Quantidade não pode ser menor que 0" ,
-                    campos:{
-                        enc_data: !data,
-                        enc_disponibilidade: !disponibilidade,
-                        enc_qtdeMax: !qtdeMax,
-                        enc_qtde: !qtde,
-                        enc_local: !local
-                    }
-                });
+                if (qtde < 0) {
+                    return res.status(500).json({
+                        err: "Quantidade nao pode ser menor que 0",
+                        campos: {
+                            enc_data: !data,
+                            enc_hora: !hora,
+                            enc_disponibilidade: !disponibilidade,
+                            enc_qtdeMax: !qtdeMax,
+                            enc_qtde: !qtde,
+                            enc_local: !local
+                        }
+                    });
                 }
-                return res.status(500).json({ 
-                    err: "Algum campo está vazio" ,
-                    campos:{
+                return res.status(500).json({
+                    err: "Algum campo esta vazio",
+                    campos: {
                         enc_data: !data,
+                        enc_hora: !hora,
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
                         enc_qtde: !qtde,
@@ -138,27 +213,29 @@ class EncontroController{
                     }
                 });
             }
+
             if (qtde > qtdeMax) {
-                return res.status(500).json({ err: "Quantidade atual não pode ser maior que a máxima" });
+                return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
+
             const encontro = new Encontro(
                 id,
                 data,
+                hora,
                 disponibilidade,
                 qtdeMax,
                 qtde,
                 local
             );
-            
+
             const resultado = await encontro.alterar();
             return res.status(200).json(resultado);
-            
         } catch (error) {
             return res.status(500).json({ err: "Erro ao alterar encontro" });
         }
     }
 
-    static async excluir(req, res){
+    static async excluir(req, res) {
         try {
             const { id } = req.body;
             const encontro = new Encontro(id);
@@ -170,38 +247,49 @@ class EncontroController{
         }
     }
 
-    static async cadastrar(req,res){
-        try{
-            const {data, disponibilidade, qtdeMax, qtde, local} = req.body;
-            if (data == "" || (disponibilidade != 'A' && disponibilidade != 'E' && disponibilidade != 'F') || qtdeMax <= 0 || qtde == null || qtde < 0 || local == ""){
-                if(qtdeMax == 0){
-                     return res.status(500).json({ 
-                    err: "Quantidade maxima não pode ser menor ou igual a 0" ,
-                    campos:{
-                        enc_data: !data,
-                        enc_disponibilidade: !disponibilidade,
-                        enc_qtdeMax: !qtdeMax,
-                        enc_qtde: !qtde,
-                        enc_local: !local
-                    }
-                });
+    static async cadastrar(req, res) {
+        try {
+            const { data, hora, disponibilidade, qtdeMax, qtde, local, responsaveis = [] } = req.body;
+            if (
+                data == "" ||
+                hora == "" ||
+                (disponibilidade != "A" && disponibilidade != "E" && disponibilidade != "F") ||
+                qtdeMax <= 0 ||
+                qtde == null ||
+                qtde < 0 ||
+                local == ""
+            ) {
+                if (qtdeMax == 0) {
+                    return res.status(500).json({
+                        err: "Quantidade maxima nao pode ser menor ou igual a 0",
+                        campos: {
+                            enc_data: !data,
+                            enc_hora: !hora,
+                            enc_disponibilidade: !disponibilidade,
+                            enc_qtdeMax: !qtdeMax,
+                            enc_qtde: !qtde,
+                            enc_local: !local
+                        }
+                    });
                 }
-                if(qtde < 0){
-                     return res.status(500).json({ 
-                    err: "Quantidade não pode ser menor que 0" ,
-                    campos:{
-                        enc_data: !data,
-                        enc_disponibilidade: !disponibilidade,
-                        enc_qtdeMax: !qtdeMax,
-                        enc_qtde: !qtde,
-                        enc_local: !local
-                    }
-                });
+                if (qtde < 0) {
+                    return res.status(500).json({
+                        err: "Quantidade nao pode ser menor que 0",
+                        campos: {
+                            enc_data: !data,
+                            enc_hora: !hora,
+                            enc_disponibilidade: !disponibilidade,
+                            enc_qtdeMax: !qtdeMax,
+                            enc_qtde: !qtde,
+                            enc_local: !local
+                        }
+                    });
                 }
-                return res.status(500).json({ 
-                    err: "Algum campo está vazio" ,
-                    campos:{
+                return res.status(500).json({
+                    err: "Algum campo esta vazio",
+                    campos: {
                         enc_data: !data,
+                        enc_hora: !hora,
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
                         enc_qtde: !qtde,
@@ -209,28 +297,27 @@ class EncontroController{
                     }
                 });
             }
-            // if(await Encontro.buscarPorLocal(local)){
-            //     return res.status(500).json({ 
-            //         err: "Local já exite",
-            //     });
-            // }
+
             if (qtde > qtdeMax) {
-                return res.status(500).json({ err: "Quantidade atual não pode ser maior que a máxima" });
+                return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
-            let encontro = new Encontro(
+
+            const encontro = new Encontro(
                 0,
                 data,
+                hora,
                 disponibilidade,
                 qtdeMax,
                 qtde,
                 local
             );
-            let resp = await encontro.gravar();
+
+            const resp = await encontro.gravar();
+            await Encontro.vincularResponsaveis(resp.insertId, responsaveis);
             return res.status(200).json(resp);
-        }catch(err){
+        } catch (err) {
             return res.status(500).json(err);
         }
-        
     }
 }
 

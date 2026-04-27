@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 const Styled = {
     Form: styled.form`
-        width: 400px;
+        width: min(900px, 92%);
         margin: 0 auto;
         padding: 20px;
         border-radius: 16px;
@@ -49,7 +49,7 @@ const Styled = {
             }
         }
 
-        button{
+        > button{
             margin-top: 10px;
             padding: 10px;
             border: black 1px solid;
@@ -58,12 +58,7 @@ const Styled = {
             font-weight: bold;
         }
 
-        button:nth-of-type(2){
-            background-color: #ff0000;
-            color: white;
-        }
-
-        button:disabled{
+        > button:disabled{
             background-color: #ccc;
             color: #666;
             cursor: not-allowed;
@@ -82,8 +77,85 @@ const Styled = {
                 color: black;
             }
         }
-        
-        
+    `,
+    FunctionariosPanel: styled.section`
+        width: 100%;
+        text-align: left;
+        margin-top: 10px;
+        padding: 18px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
+
+        h3 {
+            margin: 0 0 8px;
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: #444;
+        }
+    `,
+    EmptyState: styled.div`
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #fff;
+        color: #555;
+        border: 1px dashed #d0d0d0;
+    `,
+    SelectionInfo: styled.div`
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #fff7fb;
+        border: 1px solid #f2bfd2;
+        color: #444;
+    `,
+    Table: styled.table`
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+
+        thead {
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+        }
+
+        th {
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 12px 14px;
+            font-size: 14px;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #fff6fa;
+        }
+
+        tbody tr.selected {
+            background: #ffe4ec;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            box-shadow: none;
+        }
     `
 };
 

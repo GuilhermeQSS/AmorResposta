@@ -36,6 +36,16 @@ async function garantirEstruturaBeneficiarios(connection) {
   }
 }
 
+async function garantirEstruturaEncontros(connection) {
+  const [resultado] = await connection.query("SHOW COLUMNS FROM encontros LIKE 'enc_hora'");
+  if (resultado.length === 0) {
+    await connection.query(`
+      ALTER TABLE encontros
+      ADD COLUMN enc_hora TIME NULL AFTER enc_data
+    `);
+  }
+}
+
 class SingletonDB {
   static connection = null;
   static async getConnection() {
@@ -49,6 +59,7 @@ class SingletonDB {
         });
 
         await garantirEstruturaBeneficiarios(this.connection);
+        await garantirEstruturaEncontros(this.connection);
         console.log('Conectado ao MySQL com sucesso!');
       } catch (err) {
         console.log("Erro:", err.message);

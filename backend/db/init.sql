@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS `entradaDoacoes` (
 CREATE TABLE IF NOT EXISTS `encontros` (
   `enc_id` INT NOT NULL AUTO_INCREMENT,
   `enc_data` DATE NULL,
+  `enc_hora` TIME NULL,
   `enc_disponibilidade` CHAR(1) NULL,
   `enc_qtdeMax` INT NULL,
   `enc_qtde` INT NULL,

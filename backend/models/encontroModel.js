@@ -4,6 +4,7 @@ class Encontro{
     constructor(
         id,
         data,
+        hora,
         disponibilidade,
         qtdeMax,
         qtde,
@@ -15,6 +16,7 @@ class Encontro{
     ){
         this.id = id;
         this.data = data;
+        this.hora = hora;
         this.disponibilidade = disponibilidade;
         this.qtdeMax = qtdeMax;
         this.qtde = qtde;
@@ -42,6 +44,7 @@ class Encontro{
             encontroList.push(new Encontro(
                 f.enc_id,
                 f.enc_data,
+                f.enc_hora,
                 f.enc_disponibilidade,
                 f.enc_qtdeMax,
                 f.enc_qtde,
@@ -59,6 +62,7 @@ class Encontro{
         let queryString = `
             update encontros set
                 enc_data = ?,
+                enc_hora = ?,
                 enc_disponibilidade = ?,
                 enc_qtdeMax = ?,
                 enc_qtde = ?,
@@ -68,6 +72,7 @@ class Encontro{
 
         const [resultado] = await connection.query(queryString, [
             this.data,
+            this.hora,
             this.disponibilidade,
             this.qtdeMax,
             this.qtde,
@@ -115,6 +120,7 @@ class Encontro{
             return new Encontro(
                 encontro.enc_id,
                 encontro.enc_data,
+                encontro.enc_hora,
                 encontro.enc_disponibilidade,
                 encontro.enc_qtdeMax,
                 encontro.enc_qtde,
@@ -136,6 +142,7 @@ class Encontro{
             return new Encontro(
                 encontro.enc_id,
                 encontro.enc_data,
+                encontro.enc_hora,
                 encontro.enc_disponibilidade,
                 encontro.enc_qtdeMax,
                 encontro.enc_qtde,
@@ -152,15 +159,17 @@ class Encontro{
         let queryString = `
             insert into encontros(
                 enc_data,
+                enc_hora,
                 enc_disponibilidade,
                 enc_qtdeMax,
                 enc_qtde,
                 enc_local
-            ) values (?, ?, ?, ?, ?);
+            ) values (?, ?, ?, ?, ?, ?);
         `;
 
         const [resultado] = await connection.query(queryString, [
             this.data,
+            this.hora,
             this.disponibilidade,
             this.qtdeMax,
             this.qtde,
@@ -198,6 +207,7 @@ class Encontro{
             encontro: new Encontro(
                 encontro.enc_id,
                 encontro.enc_data,
+                encontro.enc_hora,
                 encontro.enc_disponibilidade,
                 encontro.enc_qtdeMax,
                 encontro.enc_qtde,
@@ -225,6 +235,7 @@ class Encontro{
         const novoEncontro = new Encontro(
             0,
             novaData,
+            encontroAnterior.hora,
             'A',
             encontroAnterior.qtdeMax,
             0,
@@ -265,6 +276,210 @@ class Encontro{
         }
 
         return newId;
+    }
+
+    static mapFuncionarioRow(funcionario) {
+        return {
+            id: funcionario.fun_id,
+            nome: funcionario.fun_nome,
+            usuario: funcionario.fun_usuario,
+            cargo: funcionario.fun_cargo,
+            cpf: funcionario.fun_cpf,
+            telefone: funcionario.fun_telefone
+        };
+    }
+
+    static async listarResponsaveis(idEncontro, filtroNome = "", filtroUsuario = "") {
+        let queryString = `
+            select f.*
+            from responsaveis r
+            inner join funcionarios f on f.fun_id = r.fun_id
+            where r.enc_id = ?
+        `;
+        const valores = [idEncontro];
+
+        if (filtroNome) {
+            queryString += ` and f.fun_nome like ?`;
+            valores.push(`%${filtroNome}%`);
+        }
+
+        if (filtroUsuario) {
+            queryString += ` and f.fun_usuario like ?`;
+            valores.push(`%${filtroUsuario}%`);
+        }
+
+        queryString += ` order by f.fun_nome asc`;
+
+        const [responsaveis] = await connection.query(queryString, valores);
+        return responsaveis.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    }
+
+    static async listarSubstitutosDisponiveis(idEncontro, idFuncionarioAtual, filtroNome = "", filtroUsuario = "") {
+        let queryString = `
+            select f.*
+            from funcionarios f
+            inner join encontros atual on atual.enc_id = ?
+            where atual.enc_cancelado = 'N'
+              and f.fun_id <> ?
+              and not exists (
+                  select 1
+                  from responsaveis mesmo_encontro
+                  where mesmo_encontro.enc_id = atual.enc_id
+                    and mesmo_encontro.fun_id = f.fun_id
+              )
+              and not exists (
+                  select 1
+                  from responsaveis conflito
+                  inner join encontros outro on outro.enc_id = conflito.enc_id
+                  where conflito.fun_id = f.fun_id
+                    and conflito.enc_id <> atual.enc_id
+                    and outro.enc_cancelado = 'N'
+                    and outro.enc_data = atual.enc_data
+                    and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
+              )
+        `;
+        const valores = [idEncontro, idFuncionarioAtual];
+
+        if (filtroNome) {
+            queryString += ` and f.fun_nome like ?`;
+            valores.push(`%${filtroNome}%`);
+        }
+
+        if (filtroUsuario) {
+            queryString += ` and f.fun_usuario like ?`;
+            valores.push(`%${filtroUsuario}%`);
+        }
+
+        queryString += ` order by f.fun_nome asc`;
+
+        const [substitutos] = await connection.query(queryString, valores);
+        return substitutos.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    }
+
+    static async substituirTutor(idEncontro, idFuncionarioAtual, idFuncionarioNovo) {
+        const encontro = await Encontro.buscarPorId(idEncontro);
+        if (!encontro) {
+            throw Object.assign(new Error("Encontro nao encontrado"), { status: 404 });
+        }
+
+        if (encontro.cancelado === "S") {
+            throw Object.assign(new Error("Nao e possivel substituir tutor em encontro cancelado"), { status: 400 });
+        }
+
+        const [[responsavelAtual]] = await connection.query(
+            `select * from responsaveis where enc_id = ? and fun_id = ?`,
+            [idEncontro, idFuncionarioAtual]
+        );
+
+        if (!responsavelAtual) {
+            throw Object.assign(new Error("Funcionario atual nao esta vinculado a este encontro"), { status: 404 });
+        }
+
+        const [[funcionarioNovo]] = await connection.query(
+            `select * from funcionarios where fun_id = ?`,
+            [idFuncionarioNovo]
+        );
+
+        if (!funcionarioNovo) {
+            throw Object.assign(new Error("Funcionario substituto nao encontrado"), { status: 404 });
+        }
+
+        const [[jaResponsavel]] = await connection.query(
+            `select * from responsaveis where enc_id = ? and fun_id = ?`,
+            [idEncontro, idFuncionarioNovo]
+        );
+
+        if (jaResponsavel) {
+            throw Object.assign(new Error("Funcionario substituto ja esta vinculado a este encontro"), { status: 400 });
+        }
+
+        const [[conflito]] = await connection.query(
+            `
+                select outro.enc_id, outro.enc_local, outro.enc_data
+                from responsaveis conflito
+                inner join encontros outro on outro.enc_id = conflito.enc_id
+                inner join encontros atual on atual.enc_id = ?
+                where conflito.fun_id = ?
+                  and conflito.enc_id <> atual.enc_id
+                  and outro.enc_cancelado = 'N'
+                  and outro.enc_data = atual.enc_data
+                  and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
+                limit 1
+            `,
+            [idEncontro, idFuncionarioNovo]
+        );
+
+        if (conflito) {
+            throw Object.assign(
+                new Error(`Funcionario ja esta vinculado ao encontro ${conflito.enc_id} na mesma data`),
+                { status: 400 }
+            );
+        }
+
+        const [resultado] = await connection.query(
+            `
+                update responsaveis
+                set fun_id = ?
+                where enc_id = ? and fun_id = ?
+            `,
+            [idFuncionarioNovo, idEncontro, idFuncionarioAtual]
+        );
+
+        if (!resultado.affectedRows) {
+            throw Object.assign(new Error("Nao foi possivel substituir o tutor"), { status: 400 });
+        }
+
+        return {
+            encontroId: Number(idEncontro),
+            tutorAnteriorId: Number(idFuncionarioAtual),
+            tutorNovoId: Number(idFuncionarioNovo)
+        };
+    }
+
+    static async listarFuncionariosDisponiveis(data, hora, filtroNome = "", filtroUsuario = "") {
+        let queryString = `
+            select f.*
+            from funcionarios f
+            where not exists (
+                select 1
+                from responsaveis r
+                inner join encontros e on e.enc_id = r.enc_id
+                where r.fun_id = f.fun_id
+                  and e.enc_cancelado = 'N'
+                  and e.enc_data = ?
+                  and coalesce(e.enc_hora, '') = coalesce(?, '')
+            )
+        `;
+        const valores = [data, hora];
+
+        if (filtroNome) {
+            queryString += ` and f.fun_nome like ?`;
+            valores.push(`%${filtroNome}%`);
+        }
+
+        if (filtroUsuario) {
+            queryString += ` and f.fun_usuario like ?`;
+            valores.push(`%${filtroUsuario}%`);
+        }
+
+        queryString += ` order by f.fun_nome asc`;
+
+        const [funcionarios] = await connection.query(queryString, valores);
+        return funcionarios.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    }
+
+    static async vincularResponsaveis(idEncontro, responsaveisIds = []) {
+        if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
+            return;
+        }
+
+        const idsUnicos = [...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean))];
+        for (const funId of idsUnicos) {
+            await connection.query(
+                `insert ignore into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
+                [funId, idEncontro]
+            );
+        }
     }
 }
 

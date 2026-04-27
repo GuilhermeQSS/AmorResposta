@@ -186,6 +186,102 @@ const Styled = {
         }
     `,
 
+    SubstituteCard: styled.section`
+        width: 90%;
+        margin: 20px auto;
+        padding: 24px;
+        border-radius: 18px;
+        background: #f8fbff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid #cfe0f3;
+
+        h2 {
+            margin-top: 0;
+            color: #1e4d7b;
+        }
+
+        p {
+            color: #334;
+        }
+    `,
+
+    SubstituteSection: styled.section`
+        margin-top: 22px;
+
+        h3 {
+            margin-bottom: 8px;
+            color: #243b53;
+        }
+
+        p {
+            margin-top: 0;
+            color: #52606d;
+        }
+    `,
+
+    MiniTable: styled.table`
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+
+        thead {
+            background: linear-gradient(90deg, #dbeafe, #eff6ff);
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 14px;
+            color: #334155;
+            border-bottom: 1px solid #e5edf5;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        tbody tr.selected {
+            background: #e0f2fe;
+        }
+
+        tbody tr.selected td {
+            font-weight: 600;
+        }
+    `,
+
+    EmptyState: styled.div`
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        color: #475569;
+    `,
+
+    SelectButton: styled.button`
+        padding: 8px 14px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #fff;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.2s;
+
+        &:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    `,
+
     Table: styled.table`
         width: 90%;
         margin: 40px auto;
@@ -244,6 +340,23 @@ const Styled = {
 
         &:hover {
             background: #b71c1c;
+            transform: translateY(-1px);
+        }
+    `,
+
+    TableSelectButton: styled.button`
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        background: #1565c0;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+
+        &:hover {
+            background: #0d47a1;
             transform: translateY(-1px);
         }
     `

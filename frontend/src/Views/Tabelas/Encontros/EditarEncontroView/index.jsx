@@ -16,21 +16,20 @@ function getAuthHeaders(extraHeaders = {}) {
 
 function EditarEncontroView() {
   function validar() {
-    let novosErros = {};
-    if (!form.data) novosErros.data = "Data obrigatória";
-    if (!form.disponibilidade)
-      novosErros.disponibilidade = "Selecione uma opção";
-    if (!form.local) novosErros.local = "Local obrigatório";
-    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade máxima";
+    const novosErros = {};
+    if (!form.data) novosErros.data = "Data obrigatoria";
+    if (!form.hora) novosErros.hora = "Hora obrigatoria";
+    if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opcao";
+    if (!form.local) novosErros.local = "Local obrigatorio";
+    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
     if (form.qtdeMax <= 0) {
       novosErros.qtdeMax = "Deve ser maior que 0";
     }
     if (form.qtde > form.qtdeMax) {
-      novosErros.qtde = "Não pode ser maior que a máxima";
+      novosErros.qtde = "Nao pode ser maior que a maxima";
     }
 
     setErros(novosErros);
-
     return Object.keys(novosErros).length === 0;
   }
 
@@ -45,7 +44,10 @@ function EditarEncontroView() {
         }
         return response.json();
       })
-      .catch((error) => alert(error));
+      .catch((error) => {
+        alert(error.message || error);
+        return null;
+      });
   }
 
   async function fetchAlterarEncontro() {
@@ -59,14 +61,15 @@ function EditarEncontroView() {
         body: JSON.stringify({
           id: form.id,
           data: form.data,
+          hora: form.hora,
           disponibilidade: form.disponibilidade,
           qtdeMax: form.qtdeMax,
           qtde: form.qtde,
           local: form.local,
           camposAlterados: {
             data: form.data !== formOriginal.data,
-            disponibilidade:
-              form.disponibilidade !== formOriginal.disponibilidade,
+            hora: form.hora !== formOriginal.hora,
+            disponibilidade: form.disponibilidade !== formOriginal.disponibilidade,
             qtdeMax: form.qtdeMax !== formOriginal.qtdeMax,
             qtde: form.qtde !== formOriginal.qtde,
             local: form.local !== formOriginal.local,
@@ -113,12 +116,14 @@ function EditarEncontroView() {
       [name]: name.includes("qtde") ? Number(value) : value,
     }));
   }
+
   const [erros, setErros] = useState({});
   const navigate = useNavigate();
   const { id } = useParams();
   const [form, setForm] = useState({
     id: 0,
     data: "",
+    hora: "",
     disponibilidade: "",
     qtdeMax: 0,
     qtde: 0,
@@ -127,6 +132,7 @@ function EditarEncontroView() {
   const [formOriginal, setFormOriginal] = useState({
     id: 0,
     data: "",
+    hora: "",
     disponibilidade: "",
     qtdeMax: 0,
     qtde: 0,
@@ -137,7 +143,9 @@ function EditarEncontroView() {
   useEffect(() => {
     async function carregar() {
       const data = await fetchEncontro(id);
+      if (!data) return;
       data.data = data.data?.split("T")[0];
+      data.hora = String(data.hora || "").slice(0, 5);
       setForm(data);
       setFormOriginal(data);
     }
@@ -161,9 +169,21 @@ function EditarEncontroView() {
               value={form.data}
               type="date"
               onChange={atualizarForm}
-              style={{ border: erros.data ? "2px solid red" : "" }}
+              style={{ border: erros.data || erros.enc_data ? "2px solid red" : "" }}
             />
-            {erros.data && <span style={{ color: "red" }}>{erros.data}</span>}
+            {(erros.data || erros.enc_data) && <span style={{ color: "red" }}>{erros.data || erros.enc_data}</span>}
+          </div>
+
+          <div>
+            <label htmlFor="hora">Hora: </label>
+            <input
+              name="hora"
+              value={form.hora}
+              type="time"
+              onChange={atualizarForm}
+              style={{ border: erros.hora || erros.enc_hora ? "2px solid red" : "" }}
+            />
+            {(erros.hora || erros.enc_hora) && <span style={{ color: "red" }}>{erros.hora || erros.enc_hora}</span>}
           </div>
 
           <div>
@@ -172,28 +192,28 @@ function EditarEncontroView() {
               name="disponibilidade"
               value={form.disponibilidade}
               onChange={atualizarForm}
-              style={{ border: erros.disponibilidade ? "2px solid red" : "" }}>
+              style={{ border: erros.disponibilidade || erros.enc_disponibilidade ? "2px solid red" : "" }}>
               <option value="">Selecione</option>
               <option value="A">Ativo</option>
               <option value="E">Em andamento</option>
               <option value="F">Finalizado</option>
             </select>
-            {erros.disponibilidade && (
-              <span style={{ color: "red" }}>{erros.disponibilidade}</span>
+            {(erros.disponibilidade || erros.enc_disponibilidade) && (
+              <span style={{ color: "red" }}>{erros.disponibilidade || erros.enc_disponibilidade}</span>
             )}
           </div>
 
           <div>
-            <label>Quantidade Máxima:</label>
+            <label>Quantidade Maxima:</label>
             <input
               type="number"
               name="qtdeMax"
               value={form.qtdeMax}
               onChange={atualizarForm}
-              style={{ border: erros.qtdeMax ? "2px solid red" : "" }}
+              style={{ border: erros.qtdeMax || erros.enc_qtdeMax ? "2px solid red" : "" }}
             />
-            {erros.qtdeMax && (
-              <span style={{ color: "red" }}>{erros.qtdeMax}</span>
+            {(erros.qtdeMax || erros.enc_qtdeMax) && (
+              <span style={{ color: "red" }}>{erros.qtdeMax || erros.enc_qtdeMax}</span>
             )}
           </div>
 
@@ -204,9 +224,9 @@ function EditarEncontroView() {
               name="qtde"
               value={form.qtde}
               onChange={atualizarForm}
-              style={{ border: erros.qtde ? "2px solid red" : "" }}
+              style={{ border: erros.qtde || erros.enc_qtde ? "2px solid red" : "" }}
             />
-            {erros.qtde && <span style={{ color: "red" }}>{erros.qtde}</span>}
+            {(erros.qtde || erros.enc_qtde) && <span style={{ color: "red" }}>{erros.qtde || erros.enc_qtde}</span>}
           </div>
 
           <div>
@@ -215,9 +235,9 @@ function EditarEncontroView() {
               name="local"
               value={form.local}
               onChange={atualizarForm}
-              style={{ border: erros.local ? "2px solid red" : "" }}
+              style={{ border: erros.local || erros.enc_local ? "2px solid red" : "" }}
             />
-            {erros.local && <span style={{ color: "red" }}>{erros.local}</span>}
+            {(erros.local || erros.enc_local) && <span style={{ color: "red" }}>{erros.local || erros.enc_local}</span>}
           </div>
 
           <button
