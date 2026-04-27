@@ -13,7 +13,7 @@ function LotesView() {
         const resultado = await response.json();
 
         if (!response.ok) {
-            console.log("Erro:", resultado);
+            alert("Erro:", resultado);
             return [];
         }
 
