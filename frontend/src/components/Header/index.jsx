@@ -98,7 +98,7 @@ function Header(){
                     </li>
                 )}
             </Styled.Atalhos>
-            <Sociais/>
+            <Sociais />
         </Styled.Container>
     );
 }

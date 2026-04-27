@@ -1,101 +1,185 @@
-import connection from "../db/connection.js"
+import connection from "../db/connection.js";
 
-function limparTelefone(telefone = ""){
+function limparTelefone(telefone = "") {
     return String(telefone).replace(/\D/g, "");
 }
 
-class Beneficiario{
-    constructor(id, nome, endereco, telefone, usuario, senha){
+function limparNumero(numero = "") {
+    return String(numero).replace(/\D/g, "");
+}
+
+function montarEnderecoResumo(estado, cidade, bairro, rua, numero) {
+    const partes = [
+        rua ? String(rua).trim() : "",
+        numero ? String(numero).trim() : "",
+        bairro ? String(bairro).trim() : "",
+        cidade ? String(cidade).trim() : "",
+        estado ? String(estado).trim() : ""
+    ].filter(Boolean);
+
+    return partes.join(", ");
+}
+
+class Beneficiario {
+    constructor(id, nome, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
         this.id = id;
         this.nome = nome;
-        this.endereco = endereco;
-        this.telefone = limparTelefone(telefone);
-        this.usuario = usuario;
-        this.senha = senha;
+
+        if (arguments.length <= 6) {
+            this.estado = "";
+            this.cidade = "";
+            this.bairro = "";
+            this.rua = "";
+            this.numero = "";
+            this.endereco = String(arg3 || "").trim();
+            this.telefone = limparTelefone(arg4);
+            this.usuario = arg5;
+            this.senha = arg6;
+            return;
+        }
+
+        this.estado = String(arg3 || "").trim();
+        this.cidade = String(arg4 || "").trim();
+        this.bairro = String(arg5 || "").trim();
+        this.rua = String(arg6 || "").trim();
+        this.numero = limparNumero(arg7);
+        this.telefone = limparTelefone(arg8);
+        this.usuario = arg9;
+        this.senha = arg10;
+        this.endereco = montarEnderecoResumo(this.estado, this.cidade, this.bairro, this.rua, this.numero);
+    }
+
+    static fromRow(row) {
+        const beneficiario = new Beneficiario(
+            row.ben_id,
+            row.ben_nome,
+            row.ben_estado ?? "",
+            row.ben_cidade ?? "",
+            row.ben_bairro ?? "",
+            row.ben_rua ?? row.ben_endereco ?? "",
+            row.ben_numero ?? "",
+            row.ben_telefone,
+            row.ben_usuario,
+            row.ben_senha
+        );
+
+        if (!beneficiario.endereco && row.ben_endereco) {
+            beneficiario.endereco = String(row.ben_endereco).trim();
+        }
+
+        return beneficiario;
     }
 
     static async listar(filtro, telefone) {
         let queryString = `select * from beneficiarios where 1=1`;
+        const valores = [];
+
         if (filtro) {
-            queryString += ` and (ben_nome like '%${filtro}%' or ben_usuario like '%${filtro}%')`;
+            queryString += ` and (ben_nome like ? or ben_usuario like ?)`;
+            valores.push(`%${filtro}%`, `%${filtro}%`);
         }
+
         const telefoneLimpo = limparTelefone(telefone);
         if (telefoneLimpo) {
-            queryString += ` and replace(replace(replace(replace(replace(replace(replace(ben_telefone, '(', ''), ')', ''), '-', ''), ' ', ''), '.', ''), '+', ''), '/', '') like '%${telefoneLimpo}%'`;
+            queryString += ` and replace(replace(replace(replace(replace(replace(replace(ben_telefone, '(', ''), ')', ''), '-', ''), ' ', ''), '.', ''), '+', ''), '/', '') like ?`;
+            valores.push(`%${telefoneLimpo}%`);
         }
-        const [beneficiarios] = await connection.query(queryString);
-        let beneficiarioList = [];
-        beneficiarios.forEach(b => {
-            beneficiarioList.push(new Beneficiario(
-                b.ben_id,
-                b.ben_nome,
-                b.ben_endereco,
-                b.ben_telefone,
-                b.ben_usuario,
-                b.ben_senha
-            ));
-        });
-        return beneficiarioList;
+
+        queryString += ` order by ben_nome asc`;
+
+        const [beneficiarios] = await connection.query(queryString, valores);
+        return beneficiarios.map((b) => Beneficiario.fromRow(b));
     }
-    
-    async alterar(){
-        let queryString = `
+
+    async alterar() {
+        const queryString = `
             update beneficiarios set
-                ben_nome = '${this.nome}',
-                ben_endereco = '${this.endereco}',
-                ben_telefone = '${this.telefone}',
-                ben_usuario = '${this.usuario}',
-                ben_senha = '${this.senha}'
-            where ben_id = ${this.id};
+                ben_nome = ?,
+                ben_estado = ?,
+                ben_cidade = ?,
+                ben_bairro = ?,
+                ben_rua = ?,
+                ben_numero = ?,
+                ben_endereco = ?,
+                ben_telefone = ?,
+                ben_usuario = ?,
+                ben_senha = ?
+            where ben_id = ?;
         `;
 
-        const [resultado] = await connection.query(queryString);
+        const valores = [
+            this.nome,
+            this.estado || null,
+            this.cidade || null,
+            this.bairro || null,
+            this.rua || null,
+            this.numero ? Number(this.numero) : null,
+            this.endereco || null,
+            this.telefone,
+            this.usuario,
+            this.senha,
+            this.id
+        ];
+
+        const [resultado] = await connection.query(queryString, valores);
         return resultado;
     }
 
-    async excluir(){
-        let queryString = `
-            delete from beneficiarios
-            where ben_id = ${this.id};
-        `;
-
-        const [resultado] = await connection.query(queryString);
+    async excluir() {
+        const queryString = `delete from beneficiarios where ben_id = ?;`;
+        const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;
     }
 
-    static async buscarPorId(id){
-        let queryString = `select * from beneficiarios where ben_id = ${id}`
-        const [[beneficiario]] = await connection.query(queryString);
-        if(!beneficiario){
+    static async buscarPorUsuario(usuario) {
+        const queryString = `select * from beneficiarios where ben_usuario = ?`;
+        const [[beneficiario]] = await connection.query(queryString, [usuario]);
+        if (!beneficiario) {
             return null;
-        }else{
-            return new Beneficiario(
-                beneficiario.ben_id,
-                beneficiario.ben_nome,
-                beneficiario.ben_endereco,
-                beneficiario.ben_telefone,
-                beneficiario.ben_usuario,
-                beneficiario.ben_senha
-            );
         }
+        return Beneficiario.fromRow(beneficiario);
     }
 
-    async gravar(){
-        let queryString = `insert into beneficiarios(
-            ben_nome,
-            ben_endereco,
-            ben_telefone,
-            ben_usuario,
-            ben_senha
-        )values(
-            '${this.nome}',
-            '${this.endereco}',
-            '${this.telefone}',
-            '${this.usuario}',
-            '${this.senha}'
-        );`;
-        const [coisa] = await connection.query(queryString);
-        return coisa
+    static async buscarPorId(id) {
+        const queryString = `select * from beneficiarios where ben_id = ?`;
+        const [[beneficiario]] = await connection.query(queryString, [id]);
+        if (!beneficiario) {
+            return null;
+        }
+        return Beneficiario.fromRow(beneficiario);
+    }
+
+    async gravar() {
+        const queryString = `
+            insert into beneficiarios(
+                ben_nome,
+                ben_estado,
+                ben_cidade,
+                ben_bairro,
+                ben_rua,
+                ben_numero,
+                ben_endereco,
+                ben_telefone,
+                ben_usuario,
+                ben_senha
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `;
+
+        const valores = [
+            this.nome,
+            this.estado || null,
+            this.cidade || null,
+            this.bairro || null,
+            this.rua || null,
+            this.numero ? Number(this.numero) : null,
+            this.endereco || null,
+            this.telefone,
+            this.usuario,
+            this.senha
+        ];
+
+        const [resultado] = await connection.query(queryString, valores);
+        return resultado;
     }
 }
 

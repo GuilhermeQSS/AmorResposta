@@ -18,6 +18,19 @@ const Styled = {
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
+    DeleteButton: styled.button`
+        padding: 10px 16px;
+        border: 1px solid black;
+        border-radius: 10px;
+        background-color: #ff0000;
+        color: white;
+        cursor: pointer;
+        transition: 0.2s;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    `,
     Actions: styled.div`
         width: 100%;
         display: flex;
@@ -76,6 +89,12 @@ const Styled = {
 
         td:nth-child(4) {
             cursor: pointer;
+        }
+
+        td:last-child {
+            width: 1%;
+            white-space: nowrap;
+            text-align: center;
         }
 
         tbody tr:nth-child(even) {

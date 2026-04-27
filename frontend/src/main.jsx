@@ -68,7 +68,6 @@ createRoot(document.getElementById('root')).render(
           <Route path="/despesas/:id" element={<EditarDespesaView />} />
           <Route path="/despesas/cadastro" element={<CadastrarDespesaView />} />
         </Route>
-        
       </Routes>
     </BrowserRouter>
   </StrictMode>

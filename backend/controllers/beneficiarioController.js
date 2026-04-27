@@ -1,107 +1,221 @@
 import Beneficiario from "../models/beneficiarioModel.js";
 
-function campoVazio(valor){
+function campoVazio(valor) {
     return !valor || !String(valor).trim();
 }
 
-function telefoneVazio(valor){
+function telefoneVazio(valor) {
     return !String(valor || "").replace(/\D/g, "");
+}
+
+function numeroVazio(valor) {
+    return !String(valor || "").replace(/\D/g, "");
+}
+
+function usaEnderecoSeparado(body) {
+    return ["estado", "cidade", "bairro", "rua", "numero"].some((campo) => body[campo] !== undefined);
+}
+
+function normalizarEndereco(body) {
+    return {
+        estado: String(body.estado ?? "").trim(),
+        cidade: String(body.cidade ?? "").trim(),
+        bairro: String(body.bairro ?? "").trim(),
+        rua: String(body.rua ?? body.endereco ?? "").trim(),
+        numero: String(body.numero ?? "").trim(),
+        endereco: String(body.endereco ?? "").trim()
+    };
+}
+
+function validarCamposEnderecoSeparados(dados) {
+    return (
+        campoVazio(dados.estado) ||
+        campoVazio(dados.cidade) ||
+        campoVazio(dados.bairro) ||
+        campoVazio(dados.rua) ||
+        numeroVazio(dados.numero)
+    );
 }
 
 class BeneficiarioController{
     static async listar(req,res){
         try{
-            let resp = await Beneficiario.listar(req.query.filtro, req.query.telefone);
+            const resp = await Beneficiario.listar(req.query.filtro, req.query.telefone);
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"})
+            return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"});
         }
     }
 
     static async buscarPorId(req,res){
         try{
-            let resp = await Beneficiario.buscarPorId(req.query.id);
+            const resp = await Beneficiario.buscarPorId(req.query.id);
             if(!resp){
-                return res.status(500).json({Erro:`Nao existe beneficiario com id ${req.query.id}`})
-            }else{
-                return res.status(200).json(resp);
+                return res.status(500).json({Erro:`Nao existe beneficiario com id ${req.query.id}`});
             }
+            return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"})
+            return res.status(500).json({Erro:"Aconteceu um erro na hora de buscar"});
         }
     }
 
     static async alterar(req, res){
         try {
-            const { id, nome, endereco, telefone, usuario, senha } = req.body;
-            if (campoVazio(nome) || campoVazio(endereco) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
+            const { id, nome, telefone, usuario, senha } = req.body;
+            const endereco = normalizarEndereco(req.body);
+            const camposEnderecoSeparado = usaEnderecoSeparado(req.body);
+
+            if (campoVazio(nome) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
                 return res.status(500).json({
-                    err: "Algum campo está vazio",
+                    err: "Algum campo esta vazio",
                     campos: {
                         ben_nome: campoVazio(nome),
-                        ben_endereco: campoVazio(endereco),
                         ben_telefone: telefoneVazio(telefone),
                         ben_usuario: campoVazio(usuario),
                         ben_senha: campoVazio(senha)
                     }
                 });
             }
-            const beneficiario = new Beneficiario(
-                id,
-                nome,
-                endereco,
-                telefone,
-                usuario,
-                senha
-            );
+
+            if (camposEnderecoSeparado) {
+                if (validarCamposEnderecoSeparados(endereco)) {
+                    return res.status(500).json({
+                        err: "Algum campo esta vazio",
+                        campos: {
+                            ben_estado: campoVazio(endereco.estado),
+                            ben_cidade: campoVazio(endereco.cidade),
+                            ben_bairro: campoVazio(endereco.bairro),
+                            ben_rua: campoVazio(endereco.rua),
+                            ben_numero: numeroVazio(endereco.numero)
+                        }
+                    });
+                }
+            } else if (campoVazio(endereco.endereco)) {
+                return res.status(500).json({
+                    err: "Algum campo esta vazio",
+                    campos: {
+                        ben_endereco: campoVazio(endereco.endereco)
+                    }
+                });
+            }
+
+            const beneficiario = camposEnderecoSeparado
+                ? new Beneficiario(
+                    id,
+                    nome,
+                    endereco.estado,
+                    endereco.cidade,
+                    endereco.bairro,
+                    endereco.rua,
+                    endereco.numero,
+                    telefone,
+                    usuario,
+                    senha
+                )
+                : new Beneficiario(
+                    id,
+                    nome,
+                    endereco.endereco,
+                    telefone,
+                    usuario,
+                    senha
+                );
+
             const resultado = await beneficiario.alterar();
-            res.status(200).json(resultado);
+            return res.status(200).json(resultado);
         } catch (error) {
-            res.status(500).json({ erro: "Erro ao alterar beneficiario" });
+            return res.status(500).json({ erro: "Erro ao alterar beneficiario" });
         }
     }
 
     static async excluir(req, res){
         try {
-            const { id } = req.body;
+            const id = req.body?.id ?? req.query?.id;
             const beneficiario = new Beneficiario(id);
             const resultado = await beneficiario.excluir();
-            res.status(200).json(resultado);
+            return res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ erro: "Erro ao excluir beneficiario" });
+            return res.status(500).json({ erro: "Erro ao excluir beneficiario" });
         }
     }
 
     static async cadastrar(req,res){
         try{
-            const { nome, endereco, telefone, usuario, senha } = req.body;
-            if (campoVazio(nome) || campoVazio(endereco) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
+            const { nome, telefone, usuario, senha } = req.body;
+            const endereco = normalizarEndereco(req.body);
+            const camposEnderecoSeparado = usaEnderecoSeparado(req.body);
+
+            if (campoVazio(nome) || telefoneVazio(telefone) || campoVazio(usuario) || campoVazio(senha)) {
                 return res.status(500).json({
-                    err: "Algum campo está vazio",
+                    err: "Algum campo esta vazio",
                     campos: {
                         ben_nome: campoVazio(nome),
-                        ben_endereco: campoVazio(endereco),
                         ben_telefone: telefoneVazio(telefone),
                         ben_usuario: campoVazio(usuario),
                         ben_senha: campoVazio(senha)
                     }
                 });
             }
-            let beneficiario = new Beneficiario(
-                0,
-                nome,
-                endereco,
-                telefone,
-                usuario,
-                senha
-            );
-            let resp = await beneficiario.gravar();
+
+            if (camposEnderecoSeparado) {
+                if (validarCamposEnderecoSeparados(endereco)) {
+                    return res.status(500).json({
+                        err: "Algum campo esta vazio",
+                        campos: {
+                            ben_estado: campoVazio(endereco.estado),
+                            ben_cidade: campoVazio(endereco.cidade),
+                            ben_bairro: campoVazio(endereco.bairro),
+                            ben_rua: campoVazio(endereco.rua),
+                            ben_numero: numeroVazio(endereco.numero)
+                        }
+                    });
+                }
+            } else if (campoVazio(endereco.endereco)) {
+                return res.status(500).json({
+                    err: "Algum campo esta vazio",
+                    campos: {
+                        ben_endereco: campoVazio(endereco.endereco)
+                    }
+                });
+            }
+
+            if (await Beneficiario.buscarPorUsuario(usuario)) {
+                return res.status(500).json({
+                    err: "Usuario ja existe"
+                });
+            }
+
+            const beneficiario = camposEnderecoSeparado
+                ? new Beneficiario(
+                    0,
+                    nome,
+                    endereco.estado,
+                    endereco.cidade,
+                    endereco.bairro,
+                    endereco.rua,
+                    endereco.numero,
+                    telefone,
+                    usuario,
+                    senha
+                )
+                : new Beneficiario(
+                    0,
+                    nome,
+                    endereco.endereco,
+                    telefone,
+                    usuario,
+                    senha
+                );
+
+            const resp = await beneficiario.gravar();
             return res.status(200).json(resp);
         }catch(err){
-            return res.status(500).json({Erro:"Aconteceu um erro na hora de gravar"})
+            console.error("Erro ao gravar beneficiario:", err);
+            return res.status(500).json({
+                Erro: err?.message || "Aconteceu um erro na hora de gravar"
+            });
         }
-        
     }
 }
 
