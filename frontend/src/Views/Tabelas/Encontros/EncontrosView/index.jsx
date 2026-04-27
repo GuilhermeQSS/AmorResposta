@@ -345,12 +345,6 @@ function EncontrosView() {
                 <strong>Materiais vinculados:</strong> {impacto.materiais}
               </div>
               <div>
-                <strong>Documentos vinculados:</strong> {impacto.documentos}
-              </div>
-              <div>
-                <strong>Observacoes vinculadas:</strong> {impacto.observacoes}
-              </div>
-              <div>
                 <strong>Proximo da data:</strong> {impacto.proximo ? "Sim" : "Nao"}
               </div>
             </Styled.Summary>

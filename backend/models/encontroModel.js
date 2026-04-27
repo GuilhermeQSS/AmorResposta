@@ -200,8 +200,6 @@ class Encontro {
         return {
             encontro,
             ...impacto,
-            documentos: 0,
-            observacoes: 0,
             proximo,
             exigeDetalhes: encontro.disponibilidade === "E" || proximo,
             confirmacaoReforcada:
