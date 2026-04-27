@@ -44,13 +44,81 @@ CREATE TABLE IF NOT EXISTS `doadores` (
 
 CREATE TABLE IF NOT EXISTS `doacoes` (
   `doa_id` INT NOT NULL AUTO_INCREMENT,
+  `doa_doadorNome` VARCHAR(100) NULL,
   `doa_dataEntrega` DATE NULL,
   `doa_origem` VARCHAR(100) NULL,
   `doa_formaEntrega` VARCHAR(45) NULL,
+  `doa_tipo` VARCHAR(45) NULL,
+  `doa_quantidadeItens` INT NOT NULL DEFAULT 1,
   `doa_observacao` VARCHAR(255) NULL,
-  `doad_id` INT NOT NULL,
+  `doa_detalhes` TEXT NULL,
+  `doc_id` INT NULL,
+  `doad_id` INT NULL,
   PRIMARY KEY (`doa_id`)
 );
+
+SET @add_doa_doadorNome = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'doacoes'
+      AND COLUMN_NAME = 'doa_doadorNome') = 0,
+  'ALTER TABLE doacoes ADD COLUMN doa_doadorNome VARCHAR(100) NULL AFTER doa_id',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_doa_doadorNome;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_doa_tipo = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'doacoes'
+      AND COLUMN_NAME = 'doa_tipo') = 0,
+  'ALTER TABLE doacoes ADD COLUMN doa_tipo VARCHAR(45) NULL AFTER doa_formaEntrega',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_doa_tipo;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_doa_quantidadeItens = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'doacoes'
+      AND COLUMN_NAME = 'doa_quantidadeItens') = 0,
+  'ALTER TABLE doacoes ADD COLUMN doa_quantidadeItens INT NOT NULL DEFAULT 1 AFTER doa_tipo',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_doa_quantidadeItens;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_doa_detalhes = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'doacoes'
+      AND COLUMN_NAME = 'doa_detalhes') = 0,
+  'ALTER TABLE doacoes ADD COLUMN doa_detalhes TEXT NULL AFTER doa_observacao',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_doa_detalhes;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_doacoes_doc_id = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'doacoes'
+      AND COLUMN_NAME = 'doc_id') = 0,
+  'ALTER TABLE doacoes ADD COLUMN doc_id INT NULL AFTER doa_detalhes',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_doacoes_doc_id;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+ALTER TABLE `doacoes`
+  MODIFY COLUMN `doad_id` INT NULL;
 
 CREATE TABLE IF NOT EXISTS `itens` (
   `item_id` INT NOT NULL AUTO_INCREMENT,
@@ -337,6 +405,11 @@ CALL `add_foreign_key_if_missing`(
 CALL `add_foreign_key_if_missing`(
   'fk_doacoes_doador',
   'ALTER TABLE `doacoes` ADD CONSTRAINT `fk_doacoes_doador` FOREIGN KEY (`doad_id`) REFERENCES `doadores` (`doad_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+  'fk_doacoes_documentos',
+  'ALTER TABLE `doacoes` ADD CONSTRAINT `fk_doacoes_documentos` FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`)'
 );
 
 CALL `add_foreign_key_if_missing`(

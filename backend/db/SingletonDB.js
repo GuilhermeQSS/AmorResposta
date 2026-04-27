@@ -71,6 +71,63 @@ async function garantirEstruturaFuncionarios(connection) {
   }
 }
 
+async function garantirEstruturaDoacoes(connection) {
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "doacoes",
+    "doa_doadorNome",
+    "VARCHAR(100) NULL AFTER doa_id"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "doacoes",
+    "doa_tipo",
+    "VARCHAR(45) NULL AFTER doa_formaEntrega"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "doacoes",
+    "doa_quantidadeItens",
+    "INT NOT NULL DEFAULT 1 AFTER doa_tipo"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "doacoes",
+    "doa_detalhes",
+    "TEXT NULL AFTER doa_observacao"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "doacoes",
+    "doc_id",
+    "INT NULL AFTER doa_detalhes"
+  );
+
+  const colunaDoadId = await obterColuna(connection, "doacoes", "doad_id");
+  if (colunaDoadId && colunaDoadId.Null === "NO") {
+    await connection.query(`
+      ALTER TABLE \`doacoes\`
+      MODIFY COLUMN doad_id INT NULL
+    `);
+  }
+
+  await connection.query(`
+    UPDATE doacoes
+    SET doa_doadorNome = 'anonimo'
+    WHERE doa_doadorNome IS NULL OR TRIM(doa_doadorNome) = ''
+  `);
+
+  await connection.query(`
+    UPDATE doacoes
+    SET doa_quantidadeItens = 1
+    WHERE doa_quantidadeItens IS NULL OR doa_quantidadeItens <= 0
+  `);
+}
+
 async function garantirEstruturaEncontros(connection) {
   await adicionarColunaSeNaoExistir(
     connection,
@@ -190,6 +247,7 @@ class SingletonDB {
 
         await garantirEstruturaBeneficiarios(this.connection);
         await garantirEstruturaFuncionarios(this.connection);
+        await garantirEstruturaDoacoes(this.connection);
         await garantirEstruturaEncontros(this.connection);
         console.log("Conectado ao MySQL com sucesso!");
       } catch (err) {
