@@ -31,107 +31,189 @@ function getAuthHeaders(extraHeaders = {}) {
   };
 }
 
-function formatarData(data) {
-  return data ? data.split("T")[0].split("-").reverse().join("/") : "";
+function formatDate(value, includeTime = false) {
+  if (!value) return "";
+
+  if (!includeTime && typeof value === "string" && value.includes("T")) {
+    return value.split("T")[0].split("-").reverse().join("/");
+  }
+
+  if (!includeTime && typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return value.split("-").reverse().join("/");
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const data = date.toLocaleDateString("pt-BR");
+  if (!includeTime) return data;
+
+  return `${data} ${date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+}
+
+function getDisponibilidadeLabel(value) {
+  if (value === "A") return "Ativo";
+  if (value === "E") return "Em andamento";
+  if (value === "F") return "Finalizado";
+  if (value === "C") return "Cancelado";
+  return "Desconhecido";
+}
+
+function getAcaoCancelamentoLabel(value) {
+  if (value === "reagendar") return "Cancelar e reagendar";
+  if (value === "transferirInscritos") return "Cancelar e transferir inscritos";
+  return "Cancelar sem reposicao";
+}
+
+function buildAlertas(impacto) {
+  const alertas = [];
+
+  if (!impacto) {
+    return alertas;
+  }
+
+  if (impacto.motivosBloqueio?.length) {
+    alertas.push(...impacto.motivosBloqueio);
+  }
+
+  if (impacto.confirmacaoReforcada) {
+    alertas.push(
+      "Este cancelamento afeta participantes, responsaveis ou materiais vinculados."
+    );
+  }
+
+  if (impacto.exigeDetalhes) {
+    alertas.push(
+      "Uma justificativa detalhada e obrigatoria e necessaria para este cancelamento."
+    );
+  }
+
+  if (impacto.proximo) {
+    alertas.push("O encontro esta muito proximo da data planejada.");
+  }
+
+  return alertas;
+}
+
+async function parseResponse(response, fallbackMessage) {
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(json.err || json.Erro || fallbackMessage);
+  }
+  return json;
 }
 
 function EncontrosView() {
-  function fetchEncontroLista(filtroBusca, status = "ativos") {
-    return fetch(
-      `${API_URL}/listar?status=${status}&filtro=${encodeURIComponent(filtroBusca)}`,
+  const [encontros, setEncontros] = useState([]);
+  const [filtro, setFiltro] = useState("");
+  const [activeView, setActiveView] = useState(views.encontros);
+  const [selectedEncontro, setSelectedEncontro] = useState(null);
+  const [selectedHistorico, setSelectedHistorico] = useState(null);
+  const [impacto, setImpacto] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelDetails, setCancelDetails] = useState("");
+  const [cancelOption, setCancelOption] = useState("semReposicao");
+  const [reagendamentoDate, setReagendamentoDate] = useState("");
+  const [cancelError, setCancelError] = useState(null);
+  const [listError, setListError] = useState(null);
+  const [loadingImpacto, setLoadingImpacto] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [selectedEncontroSubstituicao, setSelectedEncontroSubstituicao] = useState(null);
+  const [responsaveis, setResponsaveis] = useState([]);
+  const [responsavelSelecionado, setResponsavelSelecionado] = useState(null);
+  const [substitutos, setSubstitutos] = useState([]);
+  const [substituicaoError, setSubstituicaoError] = useState(null);
+  const navigate = useNavigate();
+
+  async function fetchEncontroLista(filtroAtual, status = "ativos") {
+    const response = await fetch(
+      `${API_URL}/listar?status=${status}&filtro=${encodeURIComponent(filtroAtual || "")}`,
       {
         method: "GET",
         headers: getAuthHeaders(),
       }
-    )
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Erro ao carregar encontros.");
-        }
-        return response.json();
-      })
-      .catch((error) => {
-        alert(error.message || error);
-        return [];
-      });
+    );
+
+    return parseResponse(response, "Erro ao carregar encontros.");
   }
 
-  function fetchImpacto(id) {
-    return fetch(`${API_URL}/impacto?id=${id}`, {
+  async function fetchImpacto(id) {
+    const response = await fetch(`${API_URL}/impacto?id=${id}`, {
       method: "GET",
       headers: getAuthHeaders(),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Erro ao carregar impacto do encontro.");
-        }
-        return response.json();
-      })
-      .catch((error) => {
-        alert(error.message || error);
-        return null;
-      });
+    });
+
+    return parseResponse(response, "Erro ao buscar impacto do encontro.");
   }
 
-  function fetchResponsaveis(id) {
-    return fetch(`${API_URL}/responsaveis?id=${id}`, {
+  async function fetchResponsaveis(id) {
+    const response = await fetch(`${API_URL}/responsaveis?id=${id}`, {
       method: "GET",
       headers: getAuthHeaders(),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          const json = await response.json();
-          throw new Error(json.err || "Erro ao carregar funcionarios responsaveis.");
-        }
-        return response.json();
-      })
-      .catch((error) => {
-        alert(error.message || error);
-        return [];
-      });
+    });
+
+    return parseResponse(response, "Erro ao carregar funcionarios responsaveis.");
   }
 
-  function fetchSubstitutos(id, funIdAtual) {
+  async function fetchSubstitutos(id, funIdAtual) {
     const params = new URLSearchParams({
       id: String(id),
       funIdAtual: String(funIdAtual),
     });
 
-    return fetch(`${API_URL}/substitutos?${params.toString()}`, {
+    const response = await fetch(`${API_URL}/substitutos?${params.toString()}`, {
       method: "GET",
       headers: getAuthHeaders(),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          const json = await response.json();
-          throw new Error(json.err || "Erro ao carregar substitutos.");
-        }
-        return response.json();
-      })
-      .catch((error) => {
-        alert(error.message || error);
-        return [];
-      });
+    });
+
+    return parseResponse(response, "Erro ao carregar substitutos.");
+  }
+
+  async function carregarLista(filtroAtual, viewAtual) {
+    try {
+      setListError(null);
+      const status = viewAtual === views.cancelados ? "cancelados" : "ativos";
+      const info = await fetchEncontroLista(filtroAtual, status);
+      setEncontros(info);
+    } catch (error) {
+      setEncontros([]);
+      setListError(error.message);
+    }
   }
 
   async function handleOpenCancelar(encontro) {
-    const impactoInfo = await fetchImpacto(encontro.id);
-    setSelectedEncontro(encontro);
-    setImpacto(impactoInfo);
-    setCancelReason("");
-    setCancelDetails("");
-    setCancelOption("semReposicao");
-    setReagendamentoDate("");
-    setCancelError(null);
+    try {
+      setLoadingImpacto(true);
+      setCancelError(null);
+      const impactoInfo = await fetchImpacto(encontro.id);
+      setSelectedHistorico(null);
+      setSelectedEncontro(encontro);
+      setImpacto(impactoInfo);
+      setCancelReason("");
+      setCancelDetails("");
+      setCancelOption("semReposicao");
+      setReagendamentoDate("");
+    } catch (error) {
+      setCancelError(error.message);
+    } finally {
+      setLoadingImpacto(false);
+    }
   }
 
   async function handleOpenSubstituir(encontro) {
-    const listaResponsaveis = await fetchResponsaveis(encontro.id);
-    setSelectedEncontroSubstituicao(encontro);
-    setResponsaveis(listaResponsaveis);
-    setResponsavelSelecionado(null);
-    setSubstitutos([]);
-    setSubstituicaoError(null);
+    try {
+      const listaResponsaveis = await fetchResponsaveis(encontro.id);
+      setSelectedEncontroSubstituicao(encontro);
+      setResponsaveis(listaResponsaveis);
+      setResponsavelSelecionado(null);
+      setSubstitutos([]);
+      setSubstituicaoError(null);
+    } catch (error) {
+      setSubstituicaoError(error.message);
+    }
   }
 
   async function handleSelectResponsavel(funcionario) {
@@ -139,14 +221,18 @@ function EncontrosView() {
       return;
     }
 
-    const listaSubstitutos = await fetchSubstitutos(
-      selectedEncontroSubstituicao.id,
-      funcionario.id
-    );
+    try {
+      const listaSubstitutos = await fetchSubstitutos(
+        selectedEncontroSubstituicao.id,
+        funcionario.id
+      );
 
-    setResponsavelSelecionado(funcionario);
-    setSubstitutos(listaSubstitutos);
-    setSubstituicaoError(null);
+      setResponsavelSelecionado(funcionario);
+      setSubstitutos(listaSubstitutos);
+      setSubstituicaoError(null);
+    } catch (error) {
+      setSubstituicaoError(error.message);
+    }
   }
 
   async function handleConfirmarSubstituicao(substituto) {
@@ -174,12 +260,7 @@ function EncontrosView() {
         }),
       });
 
-      const json = await response.json();
-      if (!response.ok) {
-        setSubstituicaoError(json.err || "Nao foi possivel substituir o tutor.");
-        return;
-      }
-
+      await parseResponse(response, "Nao foi possivel substituir o tutor.");
       alert("Tutor substituido com sucesso.");
 
       const listaResponsaveis = await fetchResponsaveis(selectedEncontroSubstituicao.id);
@@ -193,9 +274,17 @@ function EncontrosView() {
   }
 
   async function handleSubmitCancelamento() {
-    if (!selectedEncontro) return;
+    if (!selectedEncontro || !impacto) return;
+
     if (!cancelReason) {
       setCancelError("Selecione um motivo de cancelamento.");
+      return;
+    }
+
+    if (impacto.exigeDetalhes && cancelDetails.trim().length < 15) {
+      setCancelError(
+        "Informe pelo menos 15 caracteres de justificativa para concluir o cancelamento."
+      );
       return;
     }
 
@@ -208,6 +297,7 @@ function EncontrosView() {
     }
 
     try {
+      setCancelLoading(true);
       const response = await fetch(`${API_URL}/cancelar`, {
         method: "POST",
         headers: getAuthHeaders({
@@ -222,29 +312,31 @@ function EncontrosView() {
         }),
       });
 
-      const json = await response.json();
-      if (!response.ok) {
-        setCancelError(json.err || "Erro ao cancelar encontro.");
-        return;
-      }
+      const json = await parseResponse(response, "Erro ao cancelar encontro.");
 
-      let mensagem = `Encontro cancelado com sucesso. Motivo: ${cancelReason}`;
+      let mensagem = "Encontro cancelado com sucesso.\n";
+      mensagem += `Beneficiarios liberados: ${json.liberados?.beneficiarios ?? 0}\n`;
+      mensagem += `Responsaveis liberados: ${json.liberados?.responsaveis ?? 0}\n`;
+      mensagem += `Materiais liberados: ${json.liberados?.materiais ?? 0}`;
+
       if (json.reagendamento) {
-        mensagem += `\nNovo encontro criado para ${json.reagendamento.novaData}`;
+        mensagem += `\nNovo encontro criado para ${formatDate(json.reagendamento.novaData)}.`;
         if (json.reagendamento.transferencia) {
-          mensagem += " e inscritos transferidos.";
+          mensagem += " Inscritos transferidos automaticamente.";
         }
       }
 
       alert(mensagem);
       setSelectedEncontro(null);
+      setSelectedHistorico(null);
       setImpacto(null);
       setCancelError(null);
       setFiltro("");
-      const info = await fetchEncontroLista("", "ativos");
-      setEncontros(info);
-    } catch {
-      setCancelError("Erro de rede ao cancelar encontro.");
+      setActiveView(views.cancelados);
+    } catch (error) {
+      setCancelError(error.message || "Erro de rede ao cancelar encontro.");
+    } finally {
+      setCancelLoading(false);
     }
   }
 
@@ -262,9 +354,10 @@ function EncontrosView() {
     setSubstituicaoError(null);
   }
 
-  async function handleChangeView(nextView) {
+  function handleChangeView(nextView) {
     setActiveView(nextView);
     setSelectedEncontro(null);
+    setSelectedHistorico(null);
     setImpacto(null);
     setCancelError(null);
     setSelectedEncontroSubstituicao(null);
@@ -273,50 +366,21 @@ function EncontrosView() {
     setSubstitutos([]);
     setSubstituicaoError(null);
     setFiltro("");
-
-    const status = nextView === views.cancelados ? "cancelados" : "ativos";
-    const info = await fetchEncontroLista("", status);
-    setEncontros(info);
   }
 
-  function handleClickEncontro(encontro) {
-    if (activeView === views.cancelar) {
-      handleOpenCancelar(encontro);
+  function handleRowClick(encontro) {
+    if (activeView === views.encontros) {
+      navigate(`/encontros/${encontro.id}`);
       return;
     }
 
-    if (activeView === views.substituir) {
-      handleOpenSubstituir(encontro);
-      return;
+    if (activeView === views.cancelados) {
+      setSelectedHistorico(encontro);
     }
-
-    navigate(`/encontros/${encontro.id}`);
   }
-
-  const [encontros, setEncontros] = useState([]);
-  const [filtro, setFiltro] = useState("");
-  const [activeView, setActiveView] = useState(views.encontros);
-  const [selectedEncontro, setSelectedEncontro] = useState(null);
-  const [impacto, setImpacto] = useState(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const [cancelDetails, setCancelDetails] = useState("");
-  const [cancelOption, setCancelOption] = useState("semReposicao");
-  const [reagendamentoDate, setReagendamentoDate] = useState("");
-  const [cancelError, setCancelError] = useState(null);
-  const [selectedEncontroSubstituicao, setSelectedEncontroSubstituicao] = useState(null);
-  const [responsaveis, setResponsaveis] = useState([]);
-  const [responsavelSelecionado, setResponsavelSelecionado] = useState(null);
-  const [substitutos, setSubstitutos] = useState([]);
-  const [substituicaoError, setSubstituicaoError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    async function carregar() {
-      const status = activeView === views.cancelados ? "cancelados" : "ativos";
-      const info = await fetchEncontroLista(filtro, status);
-      setEncontros(info);
-    }
-    carregar();
+    carregarLista(filtro, activeView);
   }, [filtro, activeView]);
 
   return (
@@ -355,7 +419,11 @@ function EncontrosView() {
       <main>
         <Styled.Busca
           type="text"
-          placeholder="Buscar encontros..."
+          placeholder={
+            activeView === views.cancelados
+              ? "Buscar por local, id ou motivo..."
+              : "Buscar encontros..."
+          }
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
         />
@@ -369,7 +437,7 @@ function EncontrosView() {
 
         {activeView === views.cancelar && (
           <Styled.ModeMessage>
-            Selecione abaixo o encontro que deseja cancelar.
+            Selecione um encontro ativo para analisar o impacto e executar o cancelamento.
           </Styled.ModeMessage>
         )}
 
@@ -379,6 +447,15 @@ function EncontrosView() {
           </Styled.ModeMessage>
         )}
 
+        {activeView === views.cancelados && (
+          <Styled.ModeMessage>
+            Consulte o historico de cancelamentos, o motivo registrado e a acao tomada apos
+            cada evento.
+          </Styled.ModeMessage>
+        )}
+
+        {listError && <Styled.InlineError>{listError}</Styled.InlineError>}
+
         {selectedEncontro && impacto && (
           <Styled.CancelCard>
             <h2>Cancelar encontro #{selectedEncontro.id}</h2>
@@ -386,7 +463,7 @@ function EncontrosView() {
               Local: <strong>{selectedEncontro.local}</strong>
             </p>
             <p>
-              Data: <strong>{formatarData(selectedEncontro.data)}</strong>
+              Data: <strong>{formatDate(selectedEncontro.data)}</strong>
             </p>
             <Styled.Summary>
               <div>
@@ -399,20 +476,21 @@ function EncontrosView() {
                 <strong>Materiais vinculados:</strong> {impacto.materiais}
               </div>
               <div>
-                <strong>Documentos vinculados:</strong> {impacto.documentos}
-              </div>
-              <div>
-                <strong>Observacoes vinculadas:</strong> {impacto.observacoes}
-              </div>
-              <div>
                 <strong>Proximo da data:</strong> {impacto.proximo ? "Sim" : "Nao"}
               </div>
             </Styled.Summary>
+
+            {buildAlertas(impacto).length > 0 && (
+              <Styled.AlertList>
+                {buildAlertas(impacto).map((alerta) => (
+                  <li key={alerta}>{alerta}</li>
+                ))}
+              </Styled.AlertList>
+            )}
+
             <label>
               Motivo obrigatorio:
-              <select
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}>
+              <select value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}>
                 <option value="">Selecione</option>
                 {motivos.map((motivo) => (
                   <option key={motivo} value={motivo}>
@@ -426,7 +504,7 @@ function EncontrosView() {
               <textarea
                 value={cancelDetails}
                 onChange={(e) => setCancelDetails(e.target.value)}
-                placeholder="Contexto operacional do cancelamento"
+                placeholder="Explique o contexto operacional do cancelamento"
               />
             </label>
             <div>
@@ -474,10 +552,10 @@ function EncontrosView() {
                 />
               </label>
             )}
-            {cancelError && <p style={{ color: "red" }}>{cancelError}</p>}
+            {cancelError && <Styled.InlineError>{cancelError}</Styled.InlineError>}
             <Styled.CancelActions>
-              <button type="button" onClick={handleSubmitCancelamento}>
-                Confirmar cancelamento
+              <button type="button" onClick={handleSubmitCancelamento} disabled={cancelLoading}>
+                {cancelLoading ? "Cancelando..." : "Confirmar cancelamento"}
               </button>
               <button type="button" className="secondary" onClick={handleCloseCancelamento}>
                 Fechar
@@ -493,7 +571,7 @@ function EncontrosView() {
               Local: <strong>{selectedEncontroSubstituicao.local}</strong>
             </p>
             <p>
-              Data: <strong>{formatarData(selectedEncontroSubstituicao.data)}</strong>
+              Data: <strong>{formatDate(selectedEncontroSubstituicao.data)}</strong>
             </p>
 
             <Styled.SubstituteSection>
@@ -538,7 +616,8 @@ function EncontrosView() {
               <Styled.SubstituteSection>
                 <h3>Substitutos disponiveis para {responsavelSelecionado.nome}</h3>
                 <p>
-                  A lista abaixo exclui funcionarios ja vinculados a outro encontro ativo na mesma data.
+                  A lista abaixo exclui funcionarios ja vinculados a outro encontro ativo na
+                  mesma data.
                 </p>
                 {substitutos.length === 0 ? (
                   <Styled.EmptyState>
@@ -581,7 +660,7 @@ function EncontrosView() {
               </Styled.SubstituteSection>
             )}
 
-            {substituicaoError && <p style={{ color: "red" }}>{substituicaoError}</p>}
+            {substituicaoError && <Styled.InlineError>{substituicaoError}</Styled.InlineError>}
 
             <Styled.CancelActions>
               <button type="button" className="secondary" onClick={handleCloseSubstituicao}>
@@ -591,65 +670,146 @@ function EncontrosView() {
           </Styled.SubstituteCard>
         )}
 
-        <Styled.Table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>local</th>
-              <th>data</th>
-              <th>qtdeMax</th>
-              <th>qtde</th>
-              <th>disponibilidade</th>
-              {(activeView === views.cancelar || activeView === views.substituir) && <th>Acoes</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {encontros.map((encontro) => (
-              <tr key={encontro.id} onClick={() => handleClickEncontro(encontro)}>
-                <td>{encontro.id}</td>
-                <td>{encontro.local}</td>
-                <td>{formatarData(encontro.data)}</td>
-                <td>{encontro.qtdeMax}</td>
-                <td>{encontro.qtde}</td>
-                <td>
-                  {encontro.disponibilidade === "A"
-                    ? "Ativo"
-                    : encontro.disponibilidade === "E"
-                    ? "Em Andamento"
-                    : encontro.disponibilidade === "F"
-                    ? "Finalizado"
-                    : encontro.disponibilidade === "C"
-                    ? "Cancelado"
-                    : "Desconhecido"}
-                </td>
-                {activeView === views.cancelar && (
-                  <td>
-                    <Styled.TableCancelButton
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleOpenCancelar(encontro);
-                      }}>
-                      Cancelar
-                    </Styled.TableCancelButton>
-                  </td>
-                )}
-                {activeView === views.substituir && (
-                  <td>
-                    <Styled.TableSelectButton
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleOpenSubstituir(encontro);
-                      }}>
-                      Selecionar
-                    </Styled.TableSelectButton>
-                  </td>
+        {selectedHistorico && activeView === views.cancelados && (
+          <Styled.CancelCard>
+            <h2>Historico do encontro cancelado #{selectedHistorico.id}</h2>
+            <p>
+              Local: <strong>{selectedHistorico.local}</strong>
+            </p>
+            <p>
+              Data original: <strong>{formatDate(selectedHistorico.data)}</strong>
+            </p>
+            <Styled.HistoryGrid>
+              <div>
+                <strong>Data do cancelamento:</strong>
+                <div>{formatDate(selectedHistorico.dataCancelamento, true)}</div>
+              </div>
+              <div>
+                <strong>Motivo:</strong>
+                <div>{selectedHistorico.motivoCancelamento || "Nao informado"}</div>
+              </div>
+              <div>
+                <strong>Acao apos cancelamento:</strong>
+                <div>{getAcaoCancelamentoLabel(selectedHistorico.acaoCancelamento)}</div>
+              </div>
+              <div>
+                <strong>Novo encontro:</strong>
+                <div>
+                  {selectedHistorico.reagendadoPara
+                    ? `#${selectedHistorico.reagendadoPara}`
+                    : "Nao houve"}
+                </div>
+              </div>
+              <div>
+                <strong>Beneficiarios afetados:</strong>
+                <div>{selectedHistorico.beneficiariosAfetados ?? 0}</div>
+              </div>
+              <div>
+                <strong>Responsaveis afetados:</strong>
+                <div>{selectedHistorico.responsaveisAfetados ?? 0}</div>
+              </div>
+              <div>
+                <strong>Materiais afetados:</strong>
+                <div>{selectedHistorico.materiaisAfetados ?? 0}</div>
+              </div>
+            </Styled.HistoryGrid>
+            <label>
+              Detalhamento registrado:
+              <textarea value={selectedHistorico.detalhesCancelamento || ""} readOnly />
+            </label>
+          </Styled.CancelCard>
+        )}
+
+        {loadingImpacto && (
+          <Styled.ModeMessage>Carregando impacto do cancelamento...</Styled.ModeMessage>
+        )}
+
+        {encontros.length === 0 ? (
+          <Styled.EmptyState>Nenhum encontro encontrado para o filtro atual.</Styled.EmptyState>
+        ) : (
+          <Styled.Table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Local</th>
+                <th>Data</th>
+                {activeView === views.cancelados ? (
+                  <>
+                    <th>Data cancelamento</th>
+                    <th>Motivo</th>
+                    <th>Acao</th>
+                    <th>Acoes</th>
+                  </>
+                ) : (
+                  <>
+                    <th>QtdeMax</th>
+                    <th>Qtde</th>
+                    <th>Disponibilidade</th>
+                    {(activeView === views.cancelar || activeView === views.substituir) && (
+                      <th>Acoes</th>
+                    )}
+                  </>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </Styled.Table>
+            </thead>
+            <tbody>
+              {encontros.map((encontro) => (
+                <tr key={encontro.id} onClick={() => handleRowClick(encontro)}>
+                  <td>{encontro.id}</td>
+                  <td>{encontro.local}</td>
+                  <td>{formatDate(encontro.data)}</td>
+                  {activeView === views.cancelados ? (
+                    <>
+                      <td>{formatDate(encontro.dataCancelamento, true)}</td>
+                      <td>{encontro.motivoCancelamento || "-"}</td>
+                      <td>{getAcaoCancelamentoLabel(encontro.acaoCancelamento)}</td>
+                      <td>
+                        <Styled.TableSecondaryButton
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedHistorico(encontro);
+                          }}>
+                          Ver historico
+                        </Styled.TableSecondaryButton>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{encontro.qtdeMax}</td>
+                      <td>{encontro.qtde}</td>
+                      <td>{getDisponibilidadeLabel(encontro.disponibilidade)}</td>
+                      {activeView === views.cancelar && (
+                        <td>
+                          <Styled.TableCancelButton
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleOpenCancelar(encontro);
+                            }}>
+                            Cancelar
+                          </Styled.TableCancelButton>
+                        </td>
+                      )}
+                      {activeView === views.substituir && (
+                        <td>
+                          <Styled.TableSelectButton
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleOpenSubstituir(encontro);
+                            }}>
+                            Selecionar
+                          </Styled.TableSelectButton>
+                        </td>
+                      )}
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </Styled.Table>
+        )}
       </main>
       <Footer />
     </>

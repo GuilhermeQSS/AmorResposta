@@ -1,5 +1,21 @@
 import Encontro from "../models/encontroModel.js";
 
+const MOTIVOS_CANCELAMENTO = [
+    "falta de beneficiarios minimos",
+    "ausencia de tutor/funcionario responsavel",
+    "indisponibilidade do local",
+    "problema climatico",
+    "falta de materiais/itens necessarios",
+    "conflito de agenda",
+    "motivo emergencial/outros",
+];
+
+const OPCOES_CANCELAMENTO = [
+    "semReposicao",
+    "reagendar",
+    "transferirInscritos",
+];
+
 class EncontroController {
     static async listar(req, res) {
         try {
@@ -16,6 +32,7 @@ class EncontroController {
             if (!resp) {
                 return res.status(500).json({ Erro: `Nao existe encontro com id ${req.query.id}` });
             }
+
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ Erro: "Aconteceu um erro na hora de buscar" });
@@ -29,6 +46,7 @@ class EncontroController {
             if (!resp) {
                 return res.status(500).json({ Erro: `Nao existe encontro com id ${id}` });
             }
+
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ Erro: "Aconteceu um erro na hora de buscar o impacto" });
@@ -118,48 +136,44 @@ class EncontroController {
             const { id, motivo, detalhes, opcao, novaData } = req.body;
 
             if (!id || !motivo) {
-                return res.status(500).json({ err: "ID e motivo sao obrigatorios" });
+                return res.status(400).json({ err: "ID e motivo sao obrigatorios" });
             }
 
-            const encontroExistente = await Encontro.buscarPorId(id);
-            if (!encontroExistente) {
-                return res.status(500).json({ err: `Nao existe encontro com id ${id}` });
+            if (!MOTIVOS_CANCELAMENTO.includes(motivo)) {
+                return res.status(400).json({ err: "Motivo invalido" });
             }
 
-            if (encontroExistente.cancelado === "S") {
-                return res.status(400).json({ err: "Encontro ja esta cancelado" });
+            if (opcao && !OPCOES_CANCELAMENTO.includes(opcao)) {
+                return res.status(400).json({ err: "Opcao de cancelamento invalida" });
             }
 
-            await encontroExistente.cancelar(motivo, detalhes || "");
-
-            const resposta = {
-                cancelled: true,
+            const resposta = await Encontro.cancelarComFluxo({
+                id,
                 motivo,
                 detalhes: detalhes || "",
-            };
+                opcao,
+                novaData,
+            });
 
-            if (opcao === "reagendar" || opcao === "transferirInscritos") {
-                if (!novaData) {
-                    return res.status(500).json({ err: "Nova data e obrigatoria para reagendamento" });
-                }
-
-                const newEncontroId = await Encontro.criarReagendamento(
-                    id,
-                    novaData,
-                    opcao === "transferirInscritos"
-                );
-
-                resposta.reagendamento = {
-                    novoEncontroId: newEncontroId,
-                    transferencia: opcao === "transferirInscritos",
-                    novaData,
-                };
-            }
-
-            return res.status(200).json(resposta);
+            return res.status(200).json({
+                cancelled: true,
+                motivo: resposta.motivo,
+                detalhes: resposta.detalhes,
+                acao: resposta.opcao,
+                liberados: resposta.liberados,
+                reagendamento: resposta.novoEncontroId
+                    ? {
+                        novoEncontroId: resposta.novoEncontroId,
+                        transferencia: resposta.opcao === "transferirInscritos",
+                        novaData: resposta.novaData,
+                    }
+                    : null,
+            });
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ err: "Erro ao cancelar encontro" });
+            return res.status(err.status || 500).json({
+                err: err.message || "Erro ao cancelar encontro",
+            });
         }
     }
 
@@ -184,8 +198,8 @@ class EncontroController {
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
-                            enc_local: !local
-                        }
+                            enc_local: !local,
+                        },
                     });
                 }
                 if (qtde < 0) {
@@ -197,8 +211,8 @@ class EncontroController {
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
-                            enc_local: !local
-                        }
+                            enc_local: !local,
+                        },
                     });
                 }
                 return res.status(500).json({
@@ -209,8 +223,8 @@ class EncontroController {
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
                         enc_qtde: !qtde,
-                        enc_local: !local
-                    }
+                        enc_local: !local,
+                    },
                 });
             }
 
@@ -268,8 +282,8 @@ class EncontroController {
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
-                            enc_local: !local
-                        }
+                            enc_local: !local,
+                        },
                     });
                 }
                 if (qtde < 0) {
@@ -281,8 +295,8 @@ class EncontroController {
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
-                            enc_local: !local
-                        }
+                            enc_local: !local,
+                        },
                     });
                 }
                 return res.status(500).json({
@@ -293,8 +307,8 @@ class EncontroController {
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
                         enc_qtde: !qtde,
-                        enc_local: !local
-                    }
+                        enc_local: !local,
+                    },
                 });
             }
 
