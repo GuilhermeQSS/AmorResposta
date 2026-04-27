@@ -11,7 +11,15 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
   );
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-	`ben_id` INT NOT NULL,
+	`ben_id` INT NOT NULL auto_increment,
+	`ben_nome` VARCHAR(45) NULL,
+	`ben_estado` VARCHAR(2) NULL,
+	`ben_cidade` VARCHAR(100) NULL,
+	`ben_bairro` VARCHAR(100) NULL,
+	`ben_rua` VARCHAR(100) NULL,
+	`ben_numero` INT NULL,
+	`ben_endereco` VARCHAR(255) NULL,
+	`ben_telefone` VARCHAR(20) NULL,
 	`ben_usuario` VARCHAR(45) NULL,
 	`ben_senha` VARCHAR(45) NULL,
 	PRIMARY KEY (`ben_id`)
