@@ -79,6 +79,13 @@ const Styled = {
         border: 1px solid #ffe0a3;
     `,
 
+    InlineError: styled.p`
+        width: 90%;
+        margin: 16px auto 0;
+        color: #b71c1c;
+        font-weight: 600;
+    `,
+
     CancelCard: styled.section`
         width: 90%;
         margin: 20px auto;
@@ -121,6 +128,16 @@ const Styled = {
         }
     `,
 
+    AlertList: styled.ul`
+        margin: 16px 0;
+        padding-left: 20px;
+        color: #6d1b1b;
+
+        li + li {
+            margin-top: 6px;
+        }
+    `,
+
     Summary: styled.div`
         display: grid;
         grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
@@ -132,6 +149,20 @@ const Styled = {
             padding: 12px;
             border-radius: 12px;
             border: 1px solid #f0c2c2;
+        }
+    `,
+
+    HistoryGrid: styled.div`
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+        gap: 14px;
+        margin: 16px 0;
+
+        div {
+            background: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #eadede;
         }
     `,
 
@@ -155,6 +186,17 @@ const Styled = {
         input {
             margin: 0;
         }
+    `,
+
+    EmptyState: styled.div`
+        width: 90%;
+        margin: 24px auto;
+        padding: 18px;
+        border-radius: 14px;
+        background: #fafafa;
+        border: 1px dashed #d8d8d8;
+        color: #555;
+        text-align: center;
     `,
 
     CancelActions: styled.div`
@@ -244,6 +286,23 @@ const Styled = {
 
         &:hover {
             background: #b71c1c;
+            transform: translateY(-1px);
+        }
+    `,
+
+    TableSecondaryButton: styled.button`
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        background: #455a64;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+
+        &:hover {
+            background: #263238;
             transform: translateY(-1px);
         }
     `

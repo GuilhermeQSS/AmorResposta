@@ -60,7 +60,12 @@ CREATE TABLE IF NOT EXISTS `encontros` (
 	`enc_cancelado` CHAR(1) NOT NULL DEFAULT 'N',
 	`enc_motivo_cancelamento` VARCHAR(255) NULL,
 	`enc_detalhes_cancelamento` TEXT NULL,
-	`enc_data_cancelamento` DATE NULL,
+	`enc_data_cancelamento` DATETIME NULL,
+	`enc_acao_cancelamento` VARCHAR(40) NULL,
+	`enc_reagendado_para` INT NULL,
+	`enc_beneficiarios_afetados` INT NOT NULL DEFAULT 0,
+	`enc_responsaveis_afetados` INT NOT NULL DEFAULT 0,
+	`enc_materiais_afetados` INT NOT NULL DEFAULT 0,
   	PRIMARY KEY (`enc_id`)
 );
 
