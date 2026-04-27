@@ -111,36 +111,83 @@ CREATE TABLE IF NOT EXISTS `itensDoados` (
   	PRIMARY KEY (`item_id`, `ben_id`)
 );
 
-ALTER TABLE `doacoes`
-	ADD CONSTRAINT `fk_Doacoes_Documentos`
-    	FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
+DELIMITER $$
 
-ALTER TABLE `participantes`
-	ADD CONSTRAINT `fk_Participantes_Encontros`
-    	FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
-  	ADD CONSTRAINT `fk_EParticipantes_Beneficiarios`
-    	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
+DROP PROCEDURE IF EXISTS `add_foreign_key_if_missing`$$
+CREATE PROCEDURE `add_foreign_key_if_missing`(
+	IN p_constraint_name VARCHAR(64),
+	IN p_alter_sql TEXT
+)
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM information_schema.TABLE_CONSTRAINTS
+		WHERE CONSTRAINT_SCHEMA = DATABASE()
+		  AND CONSTRAINT_NAME = p_constraint_name
+		  AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+	) THEN
+		SET @alter_sql = p_alter_sql;
+		PREPARE stmt FROM @alter_sql;
+		EXECUTE stmt;
+		DEALLOCATE PREPARE stmt;
+	END IF;
+END$$
 
-ALTER TABLE `responsaveis`
-	ADD CONSTRAINT `fk_Responsaveis_Funcionarios`
-    	FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`),
-  	ADD CONSTRAINT `fk_Responsaveis_Encontros`
-    	FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`);
+DELIMITER ;
 
-ALTER TABLE `materiais`
-	ADD CONSTRAINT `fk_Materiais_Encontros`
-    	FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
-  	ADD CONSTRAINT `fk_Materiais_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
+CALL `add_foreign_key_if_missing`(
+	'fk_Doacoes_Documentos',
+	'ALTER TABLE `doacoes` ADD CONSTRAINT `fk_Doacoes_Documentos` FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`)'
+);
 
-ALTER TABLE `doacoesItens`
-	ADD CONSTRAINT `fk_DoacoesItens_Doacoes`
-	    FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`),
-  	ADD CONSTRAINT `fk_DoacoesItens_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
+CALL `add_foreign_key_if_missing`(
+	'fk_Participantes_Encontros',
+	'ALTER TABLE `participantes` ADD CONSTRAINT `fk_Participantes_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
+);
 
-ALTER TABLE `itensDoados`
-	ADD CONSTRAINT `fk_ItensDoados_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
-  	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
-    	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
+CALL `add_foreign_key_if_missing`(
+	'fk_EParticipantes_Beneficiarios',
+	'ALTER TABLE `participantes` ADD CONSTRAINT `fk_EParticipantes_Beneficiarios` FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_Responsaveis_Funcionarios',
+	'ALTER TABLE `responsaveis` ADD CONSTRAINT `fk_Responsaveis_Funcionarios` FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_Responsaveis_Encontros',
+	'ALTER TABLE `responsaveis` ADD CONSTRAINT `fk_Responsaveis_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_Materiais_Encontros',
+	'ALTER TABLE `materiais` ADD CONSTRAINT `fk_Materiais_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_Materiais_Itens',
+	'ALTER TABLE `materiais` ADD CONSTRAINT `fk_Materiais_Itens` FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_DoacoesItens_Doacoes',
+	'ALTER TABLE `doacoesItens` ADD CONSTRAINT `fk_DoacoesItens_Doacoes` FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_DoacoesItens_Itens',
+	'ALTER TABLE `doacoesItens` ADD CONSTRAINT `fk_DoacoesItens_Itens` FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_ItensDoados_Itens',
+	'ALTER TABLE `itensDoados` ADD CONSTRAINT `fk_ItensDoados_Itens` FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`)'
+);
+
+CALL `add_foreign_key_if_missing`(
+	'fk_ItensDoados_Beneficiarios',
+	'ALTER TABLE `itensDoados` ADD CONSTRAINT `fk_ItensDoados_Beneficiarios` FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`)'
+);
+
+DROP PROCEDURE IF EXISTS `add_foreign_key_if_missing`;
