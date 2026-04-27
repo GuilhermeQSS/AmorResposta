@@ -102,7 +102,7 @@ function EncontrosView() {
           </thead>
           <tbody>
             {encontros.map((f) => (
-              <tr key={f.id} >
+              <tr key={f.id}>
                 <td>{f.id}</td>
                 <td>{f.local}</td>
                 <td>
