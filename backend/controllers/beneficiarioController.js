@@ -1,42 +1,4 @@
 import Beneficiario from "../models/beneficiarioModel.js";
-import SingletonDB from "../db/SingletonDB.js";
-
-function campoVazio(valor) {
-    return !valor || !String(valor).trim();
-}
-
-function telefoneVazio(valor) {
-    return !String(valor || "").replace(/\D/g, "");
-}
-
-function numeroVazio(valor) {
-    return !String(valor || "").replace(/\D/g, "");
-}
-
-function usaEnderecoSeparado(body) {
-    return ["estado", "cidade", "bairro", "rua", "numero"].some((campo) => body[campo] !== undefined);
-}
-
-function normalizarEndereco(body) {
-    return {
-        estado: String(body.estado ?? "").trim(),
-        cidade: String(body.cidade ?? "").trim(),
-        bairro: String(body.bairro ?? "").trim(),
-        rua: String(body.rua ?? body.endereco ?? "").trim(),
-        numero: String(body.numero ?? "").trim(),
-        endereco: String(body.endereco ?? "").trim()
-    };
-}
-
-function validarCamposEnderecoSeparados(dados) {
-    return (
-        campoVazio(dados.estado) ||
-        campoVazio(dados.cidade) ||
-        campoVazio(dados.bairro) ||
-        campoVazio(dados.rua) ||
-        numeroVazio(dados.numero)
-    );
-}
 
 function campoVazio(valor) {
     return !valor || !String(valor).trim();
