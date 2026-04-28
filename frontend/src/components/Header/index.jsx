@@ -11,6 +11,7 @@ const tabelas = [
     { label: "Itens", path: "/tabelas/itens" },
     { label: "Documentos", path: "/tabelas/documentos" },
     { label: "Despesas", path: "/tabelas/despesas" },
+    { label: "Lotes", path: "/tabelas/lotes" },
 ];
 
 const cadastros = [
@@ -21,6 +22,7 @@ const cadastros = [
     { label: "Itens", path: "/itens/cadastro" },
     { label: "Documentos", path: "/documentos/cadastro" },
     { label: "Despesas", path: "/despesas/cadastro" },
+    { label: "lotes", path: "/lotes/cadastro" },
 ];
 
 function Header(){

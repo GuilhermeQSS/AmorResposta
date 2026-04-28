@@ -5,7 +5,8 @@ import despesasRoutes from "./routes/despesasRoute.js"
 import doacaoRoutes from "./routes/doacoesRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import itensRoutes from "./routes/itensRoute.js"
-import "./config/loadEnv.js";
+import lotesRoute from "./routes/lotesRoute.js"
+import encontroRoutes from "./routes/encontrosRoute.js"
 import e from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
@@ -23,6 +24,7 @@ app.use("/despesas", despesasRoutes);
 app.use("/doacoes", doacaoRoutes);
 app.use("/documentos", documentoRoutes);
 app.use("/itens", itensRoutes);
+app.use("/lotes",lotesRoute);
 
 app.listen(port,()=>{
     console.log(`Servidor iniciado em: http://localhost:${port}`);
