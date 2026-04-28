@@ -328,7 +328,7 @@ class Encontro {
                     enc_qtdeMax,
                     enc_qtde,
                     enc_local
-                ) values (?, ?, ?, ?, ?, ?)
+                ) values (?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 novaData,
