@@ -179,7 +179,7 @@ class EncontroController {
 
     static async alterar(req, res) {
         try {
-            const { id, data, hora, disponibilidade, qtdeMax, qtde, local, funId, status, materiais = [] } = req.body;
+            const { id, data, hora, disponibilidade, qtdeMax, qtde, local } = req.body;
             if (
                 data == "" ||
                 hora == "" ||
@@ -232,26 +232,6 @@ class EncontroController {
                 return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
 
-            // Validações da FF: Agendar Encontro
-            const encontroOriginal = await Encontro.buscarPorId(id);
-            if (!encontroOriginal) {
-                return res.status(404).json({ err: `Encontro ${id} nao encontrado` });
-            }
-
-            if (funId && funId !== encontroOriginal.funId) {
-                const voluntarioDisponivel = await Encontro.verificarDisponibilidadeVoluntario(funId, data, disponibilidade);
-                if (!voluntarioDisponivel) {
-                    return res.status(400).json({ err: "Novo voluntario ja possui um agendamento neste horario." });
-                }
-            }
-
-            if (data !== encontroOriginal.data || disponibilidade !== encontroOriginal.disponibilidade || local !== encontroOriginal.local) {
-                const localDisponivel = await Encontro.verificarConflitoLocal(data, disponibilidade, local, id);
-                if (!localDisponivel) {
-                    return res.status(400).json({ err: "Local ja esta ocupado neste horario." });
-                }
-            }
-
             const encontro = new Encontro(
                 id,
                 data,
@@ -259,33 +239,10 @@ class EncontroController {
                 disponibilidade,
                 qtdeMax,
                 qtde,
-                local,
-                encontroOriginal.cancelado,
-                encontroOriginal.motivoCancelamento,
-                encontroOriginal.detalhesCancelamento,
-                encontroOriginal.dataCancelamento,
-                encontroOriginal.acaoCancelamento,
-                encontroOriginal.reagendadoPara,
-                encontroOriginal.beneficiariosAfetados,
-                encontroOriginal.responsaveisAfetados,
-                encontroOriginal.materiaisAfetados,
-                funId ?? encontroOriginal.funId,
-                status ?? encontroOriginal.status
+                local
             );
 
             const resultado = await encontro.alterar();
-
-            if (materiais.length > 0) {
-                await Encontro.liberarMateriaisDoEncontro(id);
-                for (const material of materiais) {
-                    const disponivel = await Encontro.verificarDisponibilidadeMaterial(material.matId, material.quantidadeUsada);
-                    if (!disponivel) {
-                        return res.status(400).json({ err: `Material ${material.matId} nao disponivel na quantidade solicitada.` });
-                    }
-                    await Encontro.reservarMaterial(id, material.matId, material.quantidadeUsada);
-                }
-            }
-
             return res.status(200).json(resultado);
         } catch (error) {
             return res.status(500).json({ err: "Erro ao alterar encontro" });
@@ -306,7 +263,7 @@ class EncontroController {
 
     static async cadastrar(req, res) {
         try {
-            const { data, hora, disponibilidade, qtdeMax, qtde, local, responsaveis = [], funId, status, materiais = [] } = req.body;
+            const { data, hora, disponibilidade, qtdeMax, qtde, local, responsaveis = [] } = req.body;
             if (
                 data == "" ||
                 hora == "" ||
@@ -359,27 +316,6 @@ class EncontroController {
                 return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
 
-            // Validações da FF: Agendar Encontro
-            if (funId) {
-                const voluntarioDisponivel = await Encontro.verificarDisponibilidadeVoluntario(funId, data, disponibilidade);
-                if (!voluntarioDisponivel) {
-                    return res.status(400).json({ err: "Voluntario ja possui um agendamento neste horario." });
-                }
-            }
-
-            const localDisponivel = await Encontro.verificarConflitoLocal(data, disponibilidade, local);
-            if (!localDisponivel) {
-                return res.status(400).json({ err: "Local ja esta ocupado neste horario." });
-            }
-
-            for (const material of materiais) {
-                const { matId: matId, quantidadeUsada } = material;
-                const disponivel = await Encontro.verificarDisponibilidadeMaterial(matId, quantidadeUsada);
-                if (!disponivel) {
-                    return res.status(400).json({ err: `Material ${matId} nao disponivel na quantidade solicitada.` });
-                }
-            }
-
             const encontro = new Encontro(
                 0,
                 data,
@@ -387,27 +323,11 @@ class EncontroController {
                 disponibilidade,
                 qtdeMax,
                 qtde,
-                local,
-                "N",
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                0,
-                0,
-                funId ?? null,
-                status ?? "Planejado"
+                local
             );
 
             const resp = await encontro.gravar();
             await Encontro.vincularResponsaveis(resp.insertId, responsaveis);
-
-            for (const material of materiais) {
-                await Encontro.reservarMaterial(resp.insertId, material.matId, material.quantidadeUsada);
-            }
-
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json(err);

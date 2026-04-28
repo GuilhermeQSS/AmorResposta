@@ -6,6 +6,16 @@ import { Link, useNavigate } from "react-router-dom";
 
 function CadastrarItensView() {
     async function fetchCadastrarItem(){
+        const camposVazios = {
+            descricao: !form.descricao,
+            nome: !form.nome,
+            tipo: !form.tipo,
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
         try {
             const response = await fetch("http://localhost:3000/itens/gravar", {
                 method: "POST",
@@ -14,38 +24,45 @@ function CadastrarItensView() {
                 },
                 body: JSON.stringify({
                     descricao: form.descricao,
-                    qtde: form.qtde,
-                    validade: form.validade || null
+                    nome: form.nome,
+                    tipo: form.tipo,
+                    possuiValidade: form.possuiValidade
                 })
             });
             if(response.ok){
-                navigate("/tabelas/itens");
+                alert("item cadastrado com sucesso!");
+                    setForm({
+                        descricao: "",
+                        nome: "",
+                        tipo: "",
+                        possuiValidade: false
+                    });
             }else{
                 const json = await response.json(); 
                 console.log(json);
-                setErros(json.campos || {});
                 alert(json.err || 'Erro desconhecido no servidor');
             }
         } catch (error) {
-            alert("Erro ao atualizar");
+            alert("Erro ao atualizar tabela");
         }
     }
 
     function atualizarForm(e){
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setForm((prev) => ({
             ...prev,
-            [name]: value
+            [name]: type === "checkbox" ? checked : value
         }));
     }
-    const [erros,setErros] = useState({});
+    const [camposVazios,setCamposVazios] = useState({});
     const [form, setForm] = useState({
         id:0,
         descricao: "",
-        qtde: "",
-        validade: ""
+        nome: "",
+        tipo: "",
+        possuiValidade: false
     });
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     return (
         <>
@@ -60,35 +77,46 @@ function CadastrarItensView() {
                 </Styled.BackBtn>
                 <Styled.Form>
                     <div>
+                        <label htmlFor="nome">Nome: </label>
+                        <input
+                            type="text"
+                            name="nome"
+                            value={form.nome}
+                            onChange={atualizarForm}
+                            style={{ border: camposVazios.nome ? "2px solid red" : "" }}
+                        />
+                    </div>
+
+                    <div>
                         <label htmlFor="descricao">Descricão: </label>
                         <input
                             type="text"
                             name="descricao"
                             value={form.descricao}
                             onChange={atualizarForm}
-                            style={{ border: erros.est_descricao ? "2px solid red" : "" }}
+                            style={{ border: camposVazios.descricao ? "2px solid red" : "" }}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="qtde">Quantidade: </label>
+                        <label htmlFor="tipo">Tipo: </label>
                         <input
-                            type="number"
-                            name="qtde"
-                            value={form.qtde}
+                            type="text"
+                            name="tipo"
+                            value={form.tipo}
                             onChange={atualizarForm}
-                            style={{ border: erros.est_qtde ? "2px solid red" : "" }}
+                            style={{ border: camposVazios.tipo ? "2px solid red" : "" }}
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="validade">Validade: </label>
+                        <label htmlFor="possuiValidade">Possui Validade</label>
                         <input
-                            type="date"
-                            name="validade"
-                            value={form.validade}
-                            onChange={atualizarForm}
-                            style={{ border: erros.est_validade ? "2px solid red" : "" }}
+                        type="checkbox"
+                        name="possuiValidade"
+                        id="possuiValidade"
+                        checked={form.possuiValidade}
+                        onChange={atualizarForm}
                         />
                     </div>
 

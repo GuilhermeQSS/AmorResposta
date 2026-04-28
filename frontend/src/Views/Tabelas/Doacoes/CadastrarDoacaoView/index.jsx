@@ -83,12 +83,40 @@ function CadastrarDoacaoView() {
     }
 
     async function prepararPayload(dados, detalhes) {
-        return {
+        const payload = {
             ...dados,
             doadorNome: dados.doadorNome.trim() || "anonimo",
             quantidadeItens: Number(dados.quantidadeItens),
             detalhes: montarDetalhesPayload(dados.tipo, detalhes)
         };
+
+        if (documentoArquivo) {
+            payload.documento = await arquivoParaDocumento(documentoArquivo);
+        }
+
+        return payload;
+    }
+
+    function arquivoParaDocumento(arquivo) {
+        return new Promise((resolve, reject) => {
+            const leitor = new FileReader();
+
+            leitor.onload = () => {
+                const resultado = String(leitor.result || "");
+                const conteudoBase64 = resultado.includes(",")
+                    ? resultado.split(",")[1]
+                    : resultado;
+
+                resolve({
+                    nomeArquivo: arquivo.name,
+                    tipoMime: arquivo.type,
+                    conteudoBase64
+                });
+            };
+
+            leitor.onerror = () => reject(new Error("Nao foi possivel ler o documento anexado"));
+            leitor.readAsDataURL(arquivo);
+        });
     }
 
     async function fetchCadastrarDoacao() {
@@ -146,6 +174,11 @@ function CadastrarDoacaoView() {
 
             return validarFormulario(nextForm, detalhesDoacao);
         });
+    }
+
+    function atualizarDocumento(e) {
+        const arquivo = e.target.files?.[0] || null;
+        setDocumentoArquivo(arquivo);
     }
 
     function atualizarDetalhes(e) {
@@ -348,6 +381,7 @@ function CadastrarDoacaoView() {
     const [alimentoParaAdicionar, setAlimentoParaAdicionar] = useState("");
     const [roupaParaAdicionar, setRoupaParaAdicionar] = useState("");
     const [higieneParaAdicionar, setHigieneParaAdicionar] = useState("");
+    const [documentoArquivo, setDocumentoArquivo] = useState(null);
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
@@ -801,6 +835,21 @@ function CadastrarDoacaoView() {
                             rows="4"
                             placeholder="Detalhes importantes da doacao"
                         />
+                    </div>
+
+                    <div>
+                        <label htmlFor="documento">Documento/anexo (opcional):</label>
+                        <input
+                            id="documento"
+                            type="file"
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
+                            onChange={atualizarDocumento}
+                        />
+                        {documentoArquivo && (
+                            <Styled.HelperText>
+                                Arquivo selecionado: {documentoArquivo.name}
+                            </Styled.HelperText>
+                        )}
                     </div>
 
                     <button

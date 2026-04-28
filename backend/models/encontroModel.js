@@ -21,9 +21,7 @@ class Encontro {
         reagendadoPara = null,
         beneficiariosAfetados = 0,
         responsaveisAfetados = 0,
-        materiaisAfetados = 0,
-        funId = null,
-        status = "Planejado"
+        materiaisAfetados = 0
     ) {
         this.id = id;
         this.data = data;
@@ -41,8 +39,6 @@ class Encontro {
         this.beneficiariosAfetados = beneficiariosAfetados;
         this.responsaveisAfetados = responsaveisAfetados;
         this.materiaisAfetados = materiaisAfetados;
-        this.funId = funId;
-        this.status = status;
     }
 
     static fromRow(row) {
@@ -62,9 +58,7 @@ class Encontro {
             row.enc_reagendado_para,
             row.enc_beneficiarios_afetados,
             row.enc_responsaveis_afetados,
-            row.enc_materiais_afetados,
-            row.fun_id ?? null,
-            row.enc_status ?? "Planejado"
+            row.enc_materiais_afetados
         );
     }
 
@@ -101,9 +95,7 @@ class Encontro {
                     enc_disponibilidade = ?,
                     enc_qtdeMax = ?,
                     enc_qtde = ?,
-                    enc_local = ?,
-                    fun_id = ?,
-                    enc_status = ?
+                    enc_local = ?
                 where enc_id = ?
             `,
             [
@@ -113,8 +105,6 @@ class Encontro {
                 this.qtdeMax,
                 this.qtde,
                 this.local,
-                this.funId,
-                this.status,
                 this.id,
             ]
         );
@@ -143,10 +133,8 @@ class Encontro {
                     enc_disponibilidade,
                     enc_qtdeMax,
                     enc_qtde,
-                    enc_local,
-                    fun_id,
-                    enc_status
-                ) values (?, ?, ?, ?, ?, ?, ?, ?)
+                    enc_local
+                ) values (?, ?, ?, ?, ?, ?)
             `,
             [
                 this.data,
@@ -155,12 +143,9 @@ class Encontro {
                 this.qtdeMax,
                 this.qtde,
                 this.local,
-                this.funId,
-                this.status,
             ]
         );
 
-        this.id = resultado.insertId;
         return resultado;
     }
 
@@ -660,66 +645,6 @@ class Encontro {
                 [funId, idEncontro]
             );
         }
-    }
-    // -------------------------------------------------------
-    // FF: Agendar Encontro — verificações e gestão de materiais
-    // -------------------------------------------------------
-
-    static async verificarDisponibilidadeVoluntario(voluntarioId, data, disponibilidade) {
-        const [conflitos] = await connection.query(
-            `SELECT COUNT(*) AS count FROM encontros
-             WHERE fun_id = ? AND enc_data = ? AND enc_disponibilidade = ? AND enc_cancelado = 'N'`,
-            [voluntarioId, data, disponibilidade]
-        );
-        return conflitos[0].count === 0;
-    }
-
-    static async verificarConflitoLocal(data, disponibilidade, local, excluirEncId = null) {
-        let query = `SELECT COUNT(*) AS count FROM encontros
-                     WHERE enc_data = ? AND enc_disponibilidade = ? AND enc_local = ? AND enc_cancelado = 'N'`;
-        const valores = [data, disponibilidade, local];
-        if (excluirEncId) {
-            query += ` AND enc_id <> ?`;
-            valores.push(excluirEncId);
-        }
-        const [conflitos] = await connection.query(query, valores);
-        return conflitos[0].count === 0;
-    }
-
-    static async verificarDisponibilidadeMaterial(matId, quantidadeUsada) {
-        const [[material]] = await connection.query(
-            `SELECT mat_quantidade_total FROM materiais WHERE mat_id = ?`,
-            [matId]
-        );
-        if (!material) return false;
-        return material.mat_quantidade_total >= quantidadeUsada;
-    }
-
-    static async reservarMaterial(encontroId, matId, quantidadeUsada) {
-        await connection.query(
-            `INSERT INTO encontro_materiais (enc_id, mat_id, enc_mat_quantidade_usada)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE enc_mat_quantidade_usada = ?`,
-            [encontroId, matId, quantidadeUsada, quantidadeUsada]
-        );
-        await connection.query(
-            `UPDATE materiais SET mat_quantidade_total = mat_quantidade_total - ? WHERE mat_id = ?`,
-            [quantidadeUsada, matId]
-        );
-    }
-
-    static async liberarMateriaisDoEncontro(encId) {
-        const [materiais] = await connection.query(
-            `SELECT mat_id, enc_mat_quantidade_usada FROM encontro_materiais WHERE enc_id = ?`,
-            [encId]
-        );
-        for (const m of materiais) {
-            await connection.query(
-                `UPDATE materiais SET mat_quantidade_total = mat_quantidade_total + ? WHERE mat_id = ?`,
-                [m.enc_mat_quantidade_usada, m.mat_id]
-            );
-        }
-        await connection.query(`DELETE FROM encontro_materiais WHERE enc_id = ?`, [encId]);
     }
 }
 
