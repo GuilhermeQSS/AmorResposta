@@ -43,12 +43,10 @@ const Styled = {
                 font-size: 14px;
                 transition: 0.2s;
             }
-            input:focus ,
+            input:focus,
             select:focus{
                 box-shadow: 0 0 0 2px #ff6f91;
             }
-
-            
         }
 
         button{
@@ -71,22 +69,6 @@ const Styled = {
             cursor: not-allowed;
         }
     `,
-    BackBtn: styled.div`
-        width: fit-content;
-        a{
-            text-decoration: none;
-            div{
-                border: 1px solid black;
-                border-radius: 16px;
-                padding: 10px;
-                background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
-                box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
-                color: black;
-            }
-        }
-        
-        
-    `
 };
 
 export default Styled;

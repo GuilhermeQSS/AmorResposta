@@ -18,6 +18,7 @@ const Styled = {
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
+<<<<<<< HEAD
     DeleteButton: styled.button`
         padding: 10px 16px;
         border: 1px solid black;
@@ -29,6 +30,47 @@ const Styled = {
 
         &:hover {
             opacity: 0.8;
+=======
+    ActionGroup: styled.div`
+        display: flex;
+        gap: 8px;
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            
+            img {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        button:nth-child(1) {
+            background-color: #ffb74d;
+            color: white;
+
+            &:hover {
+                background-color: #ffa726;
+                transform: scale(1.1);
+            }
+        }
+
+        button:nth-child(2) {
+            background-color: #ef5350;
+            color: white;
+
+            &:hover {
+                background-color: #e53935;
+                transform: scale(1.1);
+            }
+>>>>>>> devMain
         }
     `,
     Actions: styled.div`

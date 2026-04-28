@@ -3,22 +3,49 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import {useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 
+=======
+import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
+>>>>>>> devMain
 
 
 
 function CadastrarFuncionarioView() {
 
+<<<<<<< HEAD
     async function fetchCadastrarFuncionario(){
         const camposVazios = {
             nome: !form.nome,
             usuario: !form.usuario,
             senha: !form.senha,
+=======
+    const [camposVazios,setCamposVazios] = useState({});
+    const [form, setForm] = useState({
+        nome: "",
+        usuario: "",
+        senha: "",
+        confirmarSenha:"",
+        cargo: "",
+        cpf:"",
+        telefone:""
+    });
+    const navigate = useNavigate();
+
+    async function fetchCadastrarFuncionario(){
+        const token = localStorage.getItem("token");
+        let camposVazios = {
+            nome: !form.nome,
+            usuario: !form.usuario,
+            senha: !form.senha,
+            confirmarSenha: !form.confirmarSenha,
+>>>>>>> devMain
             cargo: !form.cargo,
             cpf: !form.cpf,
             telefone: !form.telefone
         };
         setCamposVazios(camposVazios);
+<<<<<<< HEAD
         if (Object.values(camposVazios).includes(true)) {
             alert("Preencha todos os campos!");
             return;
@@ -28,22 +55,54 @@ function CadastrarFuncionarioView() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
+=======
+        if (Object.values(camposVazios).includes(true)) return;
+        if(form.confirmarSenha !== form.senha){
+            camposVazios = {
+                senha: true,
+                confirmarSenha: true
+            }
+        }
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) return;
+        try {
+            const response = await fetch("http://localhost:3000/api/funcionarios/gravar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+>>>>>>> devMain
                 },
                 body: JSON.stringify({
                     nome: form.nome,
                     usuario: form.usuario,
                     senha: form.senha,
                     cargo: form.cargo,
+<<<<<<< HEAD
                     cpf: form.cpf,
                     telefone: form.telefone
                 })
             });
+=======
+                    cpf: String(form.cpf).replace(/\D/g, ""),
+                    telefone: String(form.telefone).replace(/\D/g, "")
+                })
+            });
+            
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
+>>>>>>> devMain
             if(response.ok){
                 navigate("/tabelas/funcionarios");
             }else{
                 const json = await response.json();
                 alert(json.err || 'Erro desconhecido no servidor');
             }
+<<<<<<< HEAD
         } catch (error) {
             alert("Erro ao atualizar");
         }
@@ -66,6 +125,13 @@ function CadastrarFuncionarioView() {
             .slice(0, 15);
     };
 
+=======
+        } catch (err) {
+            alert("Erro ao gravar no banco: " + err.message);
+        }
+    }
+
+>>>>>>> devMain
     function atualizarForm(e){
         const { name, value } = e.target;
         let valor = value;
@@ -79,6 +145,7 @@ function CadastrarFuncionarioView() {
             [name]: valor
         }));
     }
+<<<<<<< HEAD
     const [camposVazios,setCamposVazios] = useState({});
     const [form, setForm] = useState({
         nome: "",
@@ -89,6 +156,8 @@ function CadastrarFuncionarioView() {
         telefone:""
     });
     const navigate = useNavigate();
+=======
+>>>>>>> devMain
 
     return (
         <>
@@ -134,6 +203,20 @@ function CadastrarFuncionarioView() {
                         </div>
 
                         <div>
+<<<<<<< HEAD
+=======
+                            <label htmlFor="confirmaSenha">Confirmar senha: </label>
+                            <input
+                                type="password"
+                                name="confirmarSenha"
+                                value={form.confirmarSenha}
+                                onChange={atualizarForm}
+                                style={{ border: camposVazios.confirmarSenha ? "2px solid red" : "" }}
+                            />
+                        </div>
+
+                        <div>
+>>>>>>> devMain
                             <label htmlFor="cpf">CPF: </label>
                             <input
                                 name="cpf"
@@ -168,7 +251,11 @@ function CadastrarFuncionarioView() {
                                 onChange={atualizarForm}
                                 style={{ border: camposVazios.cargo ? "2px solid red" : "" }}
                             >
+<<<<<<< HEAD
                                 <option value="" disabled>Selecione</option>
+=======
+                                <option value="" selected disabled>Selecione</option>
+>>>>>>> devMain
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
                             </select>

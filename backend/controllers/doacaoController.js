@@ -24,9 +24,23 @@ class DoacaoController {
 
     static async listar(req, res) {
         try {
+<<<<<<< HEAD
             const connection = await SingletonDB.getConnection();
             const tipoFiltro = req.query.tipoFiltro === "data" ? "data" : "doador";
             const resp = await Doacao.listar(connection, req.query.filtro, tipoFiltro);
+=======
+            const tipoFiltro = req.query.tipoFiltro === "data"
+                ? "data"
+                : req.query.tipoFiltro === "periodo"
+                    ? "periodo"
+                    : "doador";
+            const resp = await Doacao.listar(
+                req.query.filtro,
+                tipoFiltro,
+                req.query.dataInicial,
+                req.query.dataFinal
+            );
+>>>>>>> devMain
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de listar doacoes" });
@@ -50,8 +64,12 @@ class DoacaoController {
 
     static async cadastrar(req, res) {
         try {
+<<<<<<< HEAD
             const connection = await SingletonDB.getConnection();
             const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento } = req.body;
+=======
+            const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes, documento } = req.body;
+>>>>>>> devMain
 
             if (!DoacaoController.documentoValido(documento)) {
                 return res.status(400).json({
@@ -80,6 +98,10 @@ class DoacaoController {
                 tipo,
                 quantidadeItens,
                 observacao,
+<<<<<<< HEAD
+=======
+                detalhes,
+>>>>>>> devMain
                 documento
             );
 
@@ -92,8 +114,12 @@ class DoacaoController {
 
     static async alterar(req, res) {
         try {
+<<<<<<< HEAD
             const connection = await SingletonDB.getConnection();
             const { id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao } = req.body;
+=======
+            const { id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes } = req.body;
+>>>>>>> devMain
 
             if (
                 !dataEntrega ||
@@ -115,7 +141,12 @@ class DoacaoController {
                 formaEntrega,
                 tipo,
                 quantidadeItens,
+<<<<<<< HEAD
                 observacao
+=======
+                observacao,
+                detalhes
+>>>>>>> devMain
             );
 
             const resp = await doacao.alterar(connection);

@@ -15,6 +15,7 @@ import {
 } from "../detalhesDoacao";
 
 function CadastrarDoacaoView() {
+<<<<<<< HEAD
     function arquivoParaBase64(arquivo) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -30,6 +31,8 @@ function CadastrarDoacaoView() {
         });
     }
 
+=======
+>>>>>>> devMain
     function validarFormulario(dados, detalhes) {
         const novosErros = {};
 
@@ -98,6 +101,7 @@ function CadastrarDoacaoView() {
     }
 
     async function prepararPayload(dados, detalhes) {
+<<<<<<< HEAD
         let documentoPayload = null;
 
         if (documento) {
@@ -115,6 +119,42 @@ function CadastrarDoacaoView() {
             detalhes: montarDetalhesPayload(dados.tipo, detalhes),
             documento: documentoPayload
         };
+=======
+        const payload = {
+            ...dados,
+            doadorNome: dados.doadorNome.trim() || "anonimo",
+            quantidadeItens: Number(dados.quantidadeItens),
+            detalhes: montarDetalhesPayload(dados.tipo, detalhes)
+        };
+
+        if (documentoArquivo) {
+            payload.documento = await arquivoParaDocumento(documentoArquivo);
+        }
+
+        return payload;
+    }
+
+    function arquivoParaDocumento(arquivo) {
+        return new Promise((resolve, reject) => {
+            const leitor = new FileReader();
+
+            leitor.onload = () => {
+                const resultado = String(leitor.result || "");
+                const conteudoBase64 = resultado.includes(",")
+                    ? resultado.split(",")[1]
+                    : resultado;
+
+                resolve({
+                    nomeArquivo: arquivo.name,
+                    tipoMime: arquivo.type,
+                    conteudoBase64
+                });
+            };
+
+            leitor.onerror = () => reject(new Error("Nao foi possivel ler o documento anexado"));
+            leitor.readAsDataURL(arquivo);
+        });
+>>>>>>> devMain
     }
 
     async function fetchCadastrarDoacao() {
@@ -175,9 +215,14 @@ function CadastrarDoacaoView() {
     }
 
     function atualizarDocumento(e) {
+<<<<<<< HEAD
         const arquivoSelecionado = e.target.files?.[0] || null;
         setDocumento(arquivoSelecionado);
         setNomeDocumento(arquivoSelecionado?.name || "");
+=======
+        const arquivo = e.target.files?.[0] || null;
+        setDocumentoArquivo(arquivo);
+>>>>>>> devMain
     }
 
     function atualizarDetalhes(e) {
@@ -380,8 +425,12 @@ function CadastrarDoacaoView() {
     const [alimentoParaAdicionar, setAlimentoParaAdicionar] = useState("");
     const [roupaParaAdicionar, setRoupaParaAdicionar] = useState("");
     const [higieneParaAdicionar, setHigieneParaAdicionar] = useState("");
+<<<<<<< HEAD
     const [documento, setDocumento] = useState(null);
     const [nomeDocumento, setNomeDocumento] = useState("");
+=======
+    const [documentoArquivo, setDocumentoArquivo] = useState(null);
+>>>>>>> devMain
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
@@ -837,6 +886,7 @@ function CadastrarDoacaoView() {
                         />
                     </div>
 
+<<<<<<< HEAD
                     <div data-error={Boolean(erros.documento)}>
                         <label htmlFor="documento">Documento (opcional):</label>
                         <input
@@ -851,6 +901,21 @@ function CadastrarDoacaoView() {
                         <small>
                             {nomeDocumento || "Voce pode anexar comprovante, recibo ou outro documento."}
                         </small>
+=======
+                    <div>
+                        <label htmlFor="documento">Documento/anexo (opcional):</label>
+                        <input
+                            id="documento"
+                            type="file"
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
+                            onChange={atualizarDocumento}
+                        />
+                        {documentoArquivo && (
+                            <Styled.HelperText>
+                                Arquivo selecionado: {documentoArquivo.name}
+                            </Styled.HelperText>
+                        )}
+>>>>>>> devMain
                     </div>
 
                     <button

@@ -3,6 +3,7 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useEffect,useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+<<<<<<< HEAD
 
 
 
@@ -64,6 +65,12 @@ function EditarFuncionarioView() {
             [name]: value
         }));
     }
+=======
+import { maskCPF,maskTelefone } from "../../../../utils/mascaras";
+
+
+function EditarFuncionarioView() {
+>>>>>>> devMain
     const [camposVazios,setCamposVazios] = useState({});
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const {id} = useParams();
@@ -84,10 +91,108 @@ function EditarFuncionarioView() {
         telefone:""
     });
     const [editado, setEditado] = useState(false);
+<<<<<<< HEAD
+=======
+    const navigate = useNavigate();
+
+    async function fetchFuncionario(id){
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await  fetch(`http://localhost:3000/api/funcionarios/buscar?id=${id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            alert("Erro ao conectar com o servidor: " + err.message);
+            return null;
+        }
+    }
+
+    async function fetchAlterarFuncionario(){
+        const token = localStorage.getItem("token");
+        const camposVazios = {
+            nome: !form.nome,
+            usuario: !form.usuario,
+            senha: !form.senha,
+            cargo: !form.cargo,
+            cpf: !form.cpf,
+            telefone: !form.telefone
+        };
+        setCamposVazios(camposVazios);
+        if (Object.values(camposVazios).includes(true)) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:3000/api/funcionarios/alterar", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id: id,
+                    nome: form.nome,
+                    usuario: form.usuario,
+                    senha: form.senha,
+                    cargo: form.cargo,
+                    cpf: String(form.cpf).replace(/\D/g, ""),
+                    telefone: String(form.telefone).replace(/\D/g, "")
+                })
+            });
+            
+            if (response.status === 401 || response.status === 403) {
+                localStorage.clear();
+                navigate("/login");
+                return [];
+            }
+
+            if(response.ok){
+                setFormOriginal(form);
+            }else{
+                const json = await response.json();
+                alert(json.err || 'Erro desconhecido no servidor');
+            }
+        } catch (err) {
+            alert("Erro ao atualizar: ", err.message);
+        }
+    }
+
+    function atualizarForm(e){
+        const { name, value } = e.target;
+        let valor = value;
+        if(name === 'cpf'){
+            valor = maskCPF(value);
+        }else if(name === 'telefone'){
+            valor = maskTelefone(value);
+        }
+        setForm((prev) => ({
+            ...prev,
+            [name]: valor
+        }));
+    }
+>>>>>>> devMain
 
     useEffect(() => {
         async function carregar(){
             const data = await fetchFuncionario(id);
+<<<<<<< HEAD
+=======
+            data.cpf  = maskCPF(data.cpf);
+            data.telefone  = maskTelefone(data.telefone);
+>>>>>>> devMain
             setForm(data)
             setFormOriginal(data);
         }
