@@ -113,7 +113,7 @@ function LoginView() {
                                 onChange={atualizarForm}
                                 style={{ border: camposVazios.perfil ? "2px solid red" : "" }}
                             >
-                                <option value="" selected disabled>Selecione</option>
+                                <option value="" disabled>Selecione</option>
                                 <option value="Beneficiario">Beneficiario</option>
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
