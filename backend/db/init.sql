@@ -19,9 +19,14 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
 
 CREATE TABLE IF NOT EXISTS `documentos` (
   `doc_id` INT NOT NULL AUTO_INCREMENT,
+  `doc_titulo` VARCHAR(120) NULL,
+  `doc_nome` VARCHAR(120) NULL,
+  `doc_tipo` VARCHAR(45) NULL,
   `doc_descricao` VARCHAR(45) NULL,
+  `doc_data_criacao` DATE NULL,
   `doc_dataCriacao` DATE NULL,
-  `doc_caminho` VARCHAR(45) NOT NULL,
+  `doc_link` VARCHAR(255) NULL,
+  `doc_caminho` VARCHAR(255) NULL,
   PRIMARY KEY (`doc_id`)
 );
 
@@ -149,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `encontros` (
   `enc_id` INT NOT NULL AUTO_INCREMENT,
   `enc_data` DATE NULL,
   `enc_hora` TIME NULL,
+  `enc_hora_fim` TIME NULL,
   `enc_disponibilidade` CHAR(1) NULL,
   `enc_qtdeMax` INT NULL,
   `enc_qtde` INT NULL,

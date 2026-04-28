@@ -99,7 +99,7 @@ class EncontroController {
 
     static async listarFuncionariosDisponiveis(req, res) {
         try {
-            const { data, hora, filtroNome, filtroUsuario } = req.query;
+            const { data, hora, horaFim, filtroNome, filtroUsuario } = req.query;
             if (!data || !hora) {
                 return res.status(400).json({ err: "Data e hora sao obrigatorias" });
             }
@@ -107,6 +107,7 @@ class EncontroController {
             const resp = await Encontro.listarFuncionariosDisponiveis(
                 data,
                 hora,
+                horaFim || hora,
                 filtroNome,
                 filtroUsuario
             );
@@ -179,10 +180,11 @@ class EncontroController {
 
     static async alterar(req, res) {
         try {
-            const { id, data, hora, disponibilidade, qtdeMax, qtde, local } = req.body;
+            const { id, data, hora, horaFim, disponibilidade, qtdeMax, qtde, local } = req.body;
             if (
                 data == "" ||
                 hora == "" ||
+                horaFim == "" ||
                 (disponibilidade != "A" && disponibilidade != "E" && disponibilidade != "F") ||
                 qtdeMax <= 0 ||
                 qtde == null ||
@@ -195,6 +197,8 @@ class EncontroController {
                         campos: {
                             enc_data: !data,
                             enc_hora: !hora,
+                            enc_hora_fim: !horaFim,
+                            enc_hora_fim: !horaFim,
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
@@ -208,6 +212,8 @@ class EncontroController {
                         campos: {
                             enc_data: !data,
                             enc_hora: !hora,
+                            enc_hora_fim: !horaFim,
+                            enc_hora_fim: !horaFim,
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
                             enc_qtde: !qtde,
@@ -232,10 +238,13 @@ class EncontroController {
                 return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
 
+            Encontro.validarHorario(hora, horaFim);
+
             const encontro = new Encontro(
                 id,
                 data,
                 hora,
+                horaFim || null,
                 disponibilidade,
                 qtdeMax,
                 qtde,
@@ -245,7 +254,10 @@ class EncontroController {
             const resultado = await encontro.alterar();
             return res.status(200).json(resultado);
         } catch (error) {
-            return res.status(500).json({ err: "Erro ao alterar encontro" });
+            return res.status(error.status || 500).json({
+                err: error.message || "Erro ao alterar encontro",
+                campos: error.campos || {},
+            });
         }
     }
 
@@ -263,15 +275,18 @@ class EncontroController {
 
     static async cadastrar(req, res) {
         try {
-            const { data, hora, disponibilidade, qtdeMax, qtde, local, responsaveis = [] } = req.body;
+            const { data, hora, horaFim, disponibilidade, qtdeMax, qtde, local, responsaveis = [], materiais = [] } = req.body;
+            const localLimpo = String(local || "").trim();
+
             if (
                 data == "" ||
                 hora == "" ||
+                horaFim == "" ||
                 (disponibilidade != "A" && disponibilidade != "E" && disponibilidade != "F") ||
                 qtdeMax <= 0 ||
                 qtde == null ||
                 qtde < 0 ||
-                local == ""
+                localLimpo == ""
             ) {
                 if (qtdeMax == 0) {
                     return res.status(500).json({
@@ -304,10 +319,12 @@ class EncontroController {
                     campos: {
                         enc_data: !data,
                         enc_hora: !hora,
+                        enc_hora_fim: !horaFim,
+                        enc_hora_fim: !horaFim,
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
                         enc_qtde: !qtde,
-                        enc_local: !local,
+                        enc_local: !localLimpo,
                     },
                 });
             }
@@ -316,21 +333,74 @@ class EncontroController {
                 return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
 
+            Encontro.validarAgendamento({
+                data,
+                hora,
+                horaFim,
+                local: localLimpo,
+                qtdeMax,
+                qtde,
+                responsaveisIds: responsaveis,
+            });
+
+            const conflitoLocal = await Encontro.buscarConflitoLocal(data, hora, horaFim, localLimpo);
+            if (conflitoLocal) {
+                return res.status(400).json({
+                    err: `Ja existe encontro agendado neste local e horario: #${conflitoLocal.enc_id}`,
+                    campos: {
+                        enc_local: "Local indisponivel neste horario",
+                    },
+                });
+            }
+
+            const conflitosResponsaveis = await Encontro.listarResponsaveisComConflito(data, hora, horaFim, responsaveis);
+            if (conflitosResponsaveis.length > 0) {
+                return res.status(400).json({
+                    err: `Responsavel indisponivel neste horario: ${conflitosResponsaveis[0].fun_nome}`,
+                    campos: {
+                        responsaveis: "Um ou mais responsaveis ja possuem encontro neste horario",
+                    },
+                });
+            }
+
+            const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+            if (Array.isArray(materiais) && materiais.length > 0 && materiaisNormalizados.length === 0) {
+                return res.status(400).json({
+                    err: "Informe materiais com item e quantidade valida",
+                    campos: {
+                        materiais: "Selecione item e quantidade maior que 0",
+                    },
+                });
+            }
+
+            const conflitosMateriais = await Encontro.listarMateriaisComConflito(data, hora, horaFim, materiaisNormalizados);
+            if (conflitosMateriais.length > 0) {
+                return res.status(400).json({
+                    err: `Material indisponivel neste horario: ${conflitosMateriais[0].item_nome}`,
+                    campos: {
+                        materiais: "Um ou mais materiais ja estao reservados para outro encontro neste horario",
+                    },
+                });
+            }
+
             const encontro = new Encontro(
                 0,
                 data,
                 hora,
+                horaFim,
                 disponibilidade,
                 qtdeMax,
                 qtde,
-                local
+                localLimpo
             );
 
-            const resp = await encontro.gravar();
-            await Encontro.vincularResponsaveis(resp.insertId, responsaveis);
+            const resp = await Encontro.gravarComRelacionamentos(encontro, responsaveis, materiaisNormalizados);
             return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json(err);
+            return res.status(err.status || 500).json({
+                err: err.message || "Erro ao cadastrar encontro",
+                campos: err.campos || {},
+            });
         }
     }
 }

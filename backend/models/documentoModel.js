@@ -1,4 +1,22 @@
 import connection from "../db/connection.js"
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "documentos");
+
+function mapDocumento(row) {
+    return new Documento(
+        row.doc_id,
+        row.doc_titulo || row.doc_nome || row.doc_descricao,
+        row.doc_tipo,
+        row.doc_data_criacao || row.doc_dataCriacao,
+        row.doc_descricao,
+        row.doc_link || row.doc_caminho
+    );
+}
 
 class Documento {
     constructor(id, titulo, tipo, dataCriacao, descricao, link) {
@@ -13,28 +31,23 @@ class Documento {
     static async listar(filtroTitulo, filtroTipo) {
         let queryString = `select * from documentos`;
         const conditions = [];
+        const params = [];
+
         if (filtroTitulo) {
-            conditions.push(`doc_titulo like '%${filtroTitulo}%'`);
+            conditions.push(`coalesce(doc_titulo, doc_nome, doc_descricao, '') like ?`);
+            params.push(`%${filtroTitulo}%`);
         }
         if (filtroTipo) {
-            conditions.push(`doc_tipo like '%${filtroTipo}%'`);
+            conditions.push(`doc_tipo like ?`);
+            params.push(`%${filtroTipo}%`);
         }
         if (conditions.length > 0) {
             queryString += ` where ` + conditions.join(' and ');
         }
-        const [documentos] = await connection.query(queryString);
-        let documentoList = [];
-        documentos.forEach(d => {
-            documentoList.push(new Documento(
-                d.doc_id,
-                d.doc_titulo,
-                d.doc_tipo,
-                d.doc_data_criacao,
-                d.doc_descricao,
-                d.doc_link
-            ));
-        });
-        return documentoList;
+        queryString += ` order by coalesce(doc_data_criacao, doc_dataCriacao) desc, doc_id desc`;
+
+        const [documentos] = await connection.query(queryString, params);
+        return documentos.map(mapDocumento);
     }
 
     static async buscarPorId(id) {
@@ -43,30 +56,119 @@ class Documento {
         if (!documento) {
             return null;
         } else {
-            return new Documento(
-                documento.doc_id,
-                documento.doc_titulo,
-                documento.doc_tipo,
-                documento.doc_data_criacao,
-                documento.doc_descricao,
-                documento.doc_link
-            );
+            return mapDocumento(documento);
         }
+    }
+
+    static normalizarArquivo(arquivo) {
+        if (!arquivo) {
+            return null;
+        }
+
+        const nomeArquivo = String(arquivo.nomeArquivo || "").trim();
+        const conteudoBase64 = String(arquivo.conteudoBase64 || "").trim();
+        const tipoMime = String(arquivo.tipoMime || "").trim() || null;
+
+        if (!nomeArquivo || !conteudoBase64) {
+            return null;
+        }
+
+        return { nomeArquivo, conteudoBase64, tipoMime };
+    }
+
+    static normalizarDados({ titulo, tipo, dataCriacao, descricao, link, arquivo }) {
+        return {
+            titulo: String(titulo || "").trim(),
+            tipo: String(tipo || "").trim().toUpperCase(),
+            dataCriacao: dataCriacao || null,
+            descricao: String(descricao || "").trim(),
+            link: String(link || "").trim(),
+            arquivo: Documento.normalizarArquivo(arquivo),
+        };
+    }
+
+    static validarDados(dados, exigirFonte = true) {
+        const erros = {};
+
+        if (!dados.titulo) erros.titulo = "Titulo obrigatorio";
+        if (!dados.tipo) erros.tipo = "Tipo obrigatorio";
+        if (!dados.dataCriacao) erros.dataCriacao = "Data obrigatoria";
+        if (!dados.descricao) erros.descricao = "Descricao obrigatoria";
+        if (exigirFonte && !dados.link && !dados.arquivo) {
+            erros.link = "Informe um link ou envie um arquivo";
+        }
+
+        if (dados.link && !dados.arquivo && !dados.link.startsWith("uploads/")) {
+            try {
+                const url = new URL(dados.link);
+                if (!["http:", "https:"].includes(url.protocol)) {
+                    erros.link = "Use um link iniciado por http:// ou https://";
+                }
+            } catch {
+                erros.link = "Informe uma URL valida";
+            }
+        }
+
+        if (Object.keys(erros).length > 0) {
+            const erro = new Error("Revise os dados do documento");
+            erro.status = 400;
+            erro.campos = erros;
+            throw erro;
+        }
+    }
+
+    static obterExtensaoArquivo(nomeArquivo) {
+        const extensao = path.extname(nomeArquivo || "").replace(/[^a-zA-Z0-9.]/g, "").toLowerCase();
+        return extensao || ".bin";
+    }
+
+    static obterNomeSeguro(nomeArquivo) {
+        const base = path.basename(nomeArquivo || "documento").replace(/[^a-zA-Z0-9._-]/g, "_");
+        return base || "documento";
+    }
+
+    static async salvarArquivo(arquivo) {
+        await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
+
+        const extensao = Documento.obterExtensaoArquivo(arquivo.nomeArquivo);
+        const nomeBase = Documento.obterNomeSeguro(arquivo.nomeArquivo).replace(/\.[^.]+$/, "");
+        const nomeSalvo = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${nomeBase}${extensao}`;
+        const caminhoCompleto = path.join(DOCUMENTOS_DIR, nomeSalvo);
+        const caminhoRelativo = `uploads/documentos/${nomeSalvo}`;
+        const conteudo = Buffer.from(arquivo.conteudoBase64, "base64");
+
+        await fs.writeFile(caminhoCompleto, conteudo);
+        return { caminhoRelativo, caminhoCompleto };
+    }
+
+    static async removerArquivoLocal(link) {
+        if (!link || !String(link).startsWith("uploads/documentos/")) {
+            return;
+        }
+
+        const nomeArquivo = path.basename(link);
+        await fs.unlink(path.join(DOCUMENTOS_DIR, nomeArquivo)).catch(() => null);
     }
 
     async gravar() {
         let queryString = `insert into documentos(
             doc_titulo,
+            doc_nome,
             doc_tipo,
             doc_data_criacao,
+            doc_dataCriacao,
             doc_descricao,
-            doc_link
-        ) values (?, ?, ?, ?, ?);`;
+            doc_link,
+            doc_caminho
+        ) values (?, ?, ?, ?, ?, ?, ?, ?);`;
         const [resultado] = await connection.query(queryString, [
+            this.titulo,
             this.titulo,
             this.tipo,
             this.dataCriacao,
+            this.dataCriacao,
             this.descricao,
+            this.link,
             this.link
         ]);
         return resultado;
@@ -76,17 +178,23 @@ class Documento {
         let queryString = `
             update documentos set
                 doc_titulo = ?,
+                doc_nome = ?,
                 doc_tipo = ?,
                 doc_data_criacao = ?,
+                doc_dataCriacao = ?,
                 doc_descricao = ?,
-                doc_link = ?
+                doc_link = ?,
+                doc_caminho = ?
             where doc_id = ?;
         `;
         const [resultado] = await connection.query(queryString, [
             this.titulo,
+            this.titulo,
             this.tipo,
             this.dataCriacao,
+            this.dataCriacao,
             this.descricao,
+            this.link,
             this.link,
             this.id
         ]);

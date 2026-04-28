@@ -54,6 +54,11 @@ function formatDate(value, includeTime = false) {
   })}`;
 }
 
+function formatTime(value) {
+  if (!value) return "-";
+  return String(value).slice(0, 5);
+}
+
 function getDisponibilidadeLabel(value) {
   if (value === "A") return "Ativo";
   if (value === "E") return "Em andamento";
@@ -733,6 +738,7 @@ function EncontrosView() {
                 <th>#</th>
                 <th>Local</th>
                 <th>Data</th>
+                <th>Horario</th>
                 {activeView === views.cancelados ? (
                   <>
                     <th>Data cancelamento</th>
@@ -758,6 +764,10 @@ function EncontrosView() {
                   <td>{encontro.id}</td>
                   <td>{encontro.local}</td>
                   <td>{formatDate(encontro.data)}</td>
+                  <td>
+                    {formatTime(encontro.hora)}
+                    {encontro.horaFim ? ` - ${formatTime(encontro.horaFim)}` : ""}
+                  </td>
                   {activeView === views.cancelados ? (
                     <>
                       <td>{formatDate(encontro.dataCancelamento, true)}</td>

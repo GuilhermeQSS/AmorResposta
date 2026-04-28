@@ -3,7 +3,7 @@ import Documento from "../models/documentoModel.js";
 class DocumentoController {
     static async listar(req, res) {
         try {
-            let resp = await Documento.listar(req.query.filtroTitulo, req.query.filtroTipo);
+            const resp = await Documento.listar(req.query.filtroTitulo, req.query.filtroTipo);
             return res.status(200).json(resp);
         } catch (err) {
             console.error(err);
@@ -13,12 +13,12 @@ class DocumentoController {
 
     static async buscarPorId(req, res) {
         try {
-            let resp = await Documento.buscarPorId(req.query.id);
+            const resp = await Documento.buscarPorId(req.query.id);
             if (!resp) {
                 return res.status(404).json({ Erro: `Nao existe documento com id ${req.query.id}` });
-            } else {
-                return res.status(200).json(resp);
             }
+
+            return res.status(200).json(resp);
         } catch (err) {
             console.error(err);
             return res.status(500).json({ Erro: "Aconteceu um erro na hora de buscar documento" });
@@ -26,46 +26,91 @@ class DocumentoController {
     }
 
     static async cadastrar(req, res) {
+        let arquivoSalvo = null;
+
         try {
-            const { titulo, tipo, dataCriacao, descricao, link } = req.body;
-            if (!titulo || !tipo) {
-                return res.status(400).json({ Erro: "Título e Tipo são obrigatórios" });
+            const dados = Documento.normalizarDados(req.body);
+            Documento.validarDados(dados);
+
+            if (dados.arquivo) {
+                arquivoSalvo = await Documento.salvarArquivo(dados.arquivo);
+                dados.link = arquivoSalvo.caminhoRelativo;
             }
-            let documento = new Documento(
+
+            const documento = new Documento(
                 0,
-                titulo,
-                tipo,
-                dataCriacao,
-                descricao,
-                link
+                dados.titulo,
+                dados.tipo,
+                dados.dataCriacao,
+                dados.descricao,
+                dados.link
             );
-            let resp = await documento.gravar();
+
+            const resp = await documento.gravar();
             return res.status(201).json(resp);
         } catch (err) {
+            if (arquivoSalvo?.caminhoRelativo) {
+                await Documento.removerArquivoLocal(arquivoSalvo.caminhoRelativo);
+            }
+
             console.error(err);
-            return res.status(500).json({ Erro: "Aconteceu um erro na hora de gravar documento" });
+            return res.status(err.status || 500).json({
+                Erro: err.message || "Aconteceu um erro na hora de gravar documento",
+                campos: err.campos || {},
+            });
         }
     }
 
     static async alterar(req, res) {
+        let arquivoSalvo = null;
+
         try {
-            const { id, titulo, tipo, dataCriacao, descricao, link } = req.body;
-            if (!id || !titulo || !tipo) {
-                return res.status(400).json({ Erro: "ID, Título e Tipo são obrigatórios" });
+            const { id } = req.body;
+            const dados = Documento.normalizarDados(req.body);
+
+            if (!id) {
+                return res.status(400).json({ Erro: "ID obrigatorio" });
             }
+
+            const documentoAtual = await Documento.buscarPorId(id);
+            if (!documentoAtual) {
+                return res.status(404).json({ Erro: `Nao existe documento com id ${id}` });
+            }
+
+            Documento.validarDados(dados, !documentoAtual.link);
+
+            if (dados.arquivo) {
+                arquivoSalvo = await Documento.salvarArquivo(dados.arquivo);
+                dados.link = arquivoSalvo.caminhoRelativo;
+            } else if (!dados.link) {
+                dados.link = documentoAtual.link;
+            }
+
             const documento = new Documento(
                 id,
-                titulo,
-                tipo,
-                dataCriacao,
-                descricao,
-                link
+                dados.titulo,
+                dados.tipo,
+                dados.dataCriacao,
+                dados.descricao,
+                dados.link
             );
+
             const resultado = await documento.alterar();
-            res.status(200).json(resultado);
+            if (dados.arquivo) {
+                await Documento.removerArquivoLocal(documentoAtual.link);
+            }
+
+            return res.status(200).json(resultado);
         } catch (err) {
+            if (arquivoSalvo?.caminhoRelativo) {
+                await Documento.removerArquivoLocal(arquivoSalvo.caminhoRelativo);
+            }
+
             console.error(err);
-            res.status(500).json({ Erro: "Erro ao alterar documento" });
+            return res.status(err.status || 500).json({
+                Erro: err.message || "Erro ao alterar documento",
+                campos: err.campos || {},
+            });
         }
     }
 
@@ -73,14 +118,21 @@ class DocumentoController {
         try {
             const { id } = req.body;
             if (!id) {
-                return res.status(400).json({ Erro: "ID é obrigatório para exclusão" });
+                return res.status(400).json({ Erro: "ID obrigatorio para exclusao" });
             }
+
+            const documentoAtual = await Documento.buscarPorId(id);
+            if (!documentoAtual) {
+                return res.status(404).json({ Erro: `Nao existe documento com id ${id}` });
+            }
+
             const documento = new Documento(id);
             const resultado = await documento.excluir();
-            res.status(200).json(resultado);
+            await Documento.removerArquivoLocal(documentoAtual.link);
+            return res.status(200).json(resultado);
         } catch (err) {
             console.error(err);
-            res.status(500).json({ Erro: "Erro ao excluir documento" });
+            return res.status(500).json({ Erro: "Erro ao excluir documento" });
         }
     }
 }

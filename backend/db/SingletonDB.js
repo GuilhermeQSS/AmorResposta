@@ -128,12 +128,116 @@ async function garantirEstruturaDoacoes(connection) {
   `);
 }
 
+async function garantirEstruturaDocumentos(connection) {
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_titulo",
+    "VARCHAR(120) NULL AFTER doc_id"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_nome",
+    "VARCHAR(120) NULL AFTER doc_titulo"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_tipo",
+    "VARCHAR(45) NULL AFTER doc_nome"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_descricao",
+    "VARCHAR(255) NULL AFTER doc_tipo"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_data_criacao",
+    "DATE NULL AFTER doc_descricao"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_dataCriacao",
+    "DATE NULL AFTER doc_data_criacao"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_link",
+    "VARCHAR(255) NULL AFTER doc_dataCriacao"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "documentos",
+    "doc_caminho",
+    "VARCHAR(255) NULL AFTER doc_link"
+  );
+
+  await garantirTipoColuna(
+    connection,
+    "documentos",
+    "doc_caminho",
+    "VARCHAR(255) NULL",
+    ["varchar"]
+  );
+
+  await connection.query(`
+    ALTER TABLE \`documentos\`
+    MODIFY COLUMN doc_descricao VARCHAR(255) NULL,
+    MODIFY COLUMN doc_link VARCHAR(255) NULL,
+    MODIFY COLUMN doc_caminho VARCHAR(255) NULL
+  `);
+
+  await connection.query(`
+    UPDATE documentos
+    SET doc_titulo = COALESCE(NULLIF(TRIM(doc_titulo), ''), NULLIF(TRIM(doc_nome), ''), NULLIF(TRIM(doc_descricao), ''), CONCAT('Documento #', doc_id))
+    WHERE doc_titulo IS NULL OR TRIM(doc_titulo) = ''
+  `);
+
+  await connection.query(`
+    UPDATE documentos
+    SET doc_nome = doc_titulo
+    WHERE doc_nome IS NULL OR TRIM(doc_nome) = ''
+  `);
+
+  await connection.query(`
+    UPDATE documentos
+    SET doc_data_criacao = doc_dataCriacao
+    WHERE doc_data_criacao IS NULL AND doc_dataCriacao IS NOT NULL
+  `);
+
+  await connection.query(`
+    UPDATE documentos
+    SET doc_link = doc_caminho
+    WHERE (doc_link IS NULL OR TRIM(doc_link) = '') AND doc_caminho IS NOT NULL AND TRIM(doc_caminho) <> ''
+  `);
+}
+
 async function garantirEstruturaEncontros(connection) {
   await adicionarColunaSeNaoExistir(
     connection,
     "encontros",
     "enc_hora",
     "TIME NULL AFTER enc_data"
+  );
+
+  await adicionarColunaSeNaoExistir(
+    connection,
+    "encontros",
+    "enc_hora_fim",
+    "TIME NULL AFTER enc_hora"
   );
 
   await adicionarColunaSeNaoExistir(
@@ -247,6 +351,7 @@ class SingletonDB {
 
         await garantirEstruturaBeneficiarios(this.connection);
         await garantirEstruturaFuncionarios(this.connection);
+        await garantirEstruturaDocumentos(this.connection);
         await garantirEstruturaDoacoes(this.connection);
         await garantirEstruturaEncontros(this.connection);
         console.log("Conectado ao MySQL com sucesso!");

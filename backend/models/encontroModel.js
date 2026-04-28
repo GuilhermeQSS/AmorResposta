@@ -4,11 +4,36 @@ function normalizarData(data) {
     return data ? new Date(data) : null;
 }
 
+function normalizarTexto(texto) {
+    return String(texto || "").trim();
+}
+
+function normalizarDataHora(data, hora) {
+    if (!data || !hora) {
+        return null;
+    }
+
+    const dataTexto = normalizarTexto(data).slice(0, 10);
+    const horaTexto = normalizarTexto(hora);
+    const dataHora = new Date(`${dataTexto}T${horaTexto}`);
+    return Number.isNaN(dataHora.getTime()) ? null : dataHora;
+}
+
+function normalizarMinutos(hora) {
+    const [horas, minutos] = String(hora || "").split(":").map(Number);
+    if (!Number.isInteger(horas) || !Number.isInteger(minutos)) {
+        return null;
+    }
+
+    return horas * 60 + minutos;
+}
+
 class Encontro {
     constructor(
         id,
         data,
         hora,
+        horaFim,
         disponibilidade,
         qtdeMax,
         qtde,
@@ -26,6 +51,7 @@ class Encontro {
         this.id = id;
         this.data = data;
         this.hora = hora;
+        this.horaFim = horaFim;
         this.disponibilidade = disponibilidade;
         this.qtdeMax = qtdeMax;
         this.qtde = qtde;
@@ -46,6 +72,7 @@ class Encontro {
             row.enc_id,
             row.enc_data,
             row.enc_hora,
+            row.enc_hora_fim,
             row.enc_disponibilidade,
             row.enc_qtdeMax,
             row.enc_qtde,
@@ -92,6 +119,7 @@ class Encontro {
                 update encontros set
                     enc_data = ?,
                     enc_hora = ?,
+                    enc_hora_fim = ?,
                     enc_disponibilidade = ?,
                     enc_qtdeMax = ?,
                     enc_qtde = ?,
@@ -101,6 +129,7 @@ class Encontro {
             [
                 this.data,
                 this.hora,
+                this.horaFim,
                 this.disponibilidade,
                 this.qtdeMax,
                 this.qtde,
@@ -130,15 +159,17 @@ class Encontro {
                 insert into encontros(
                     enc_data,
                     enc_hora,
+                    enc_hora_fim,
                     enc_disponibilidade,
                     enc_qtdeMax,
                     enc_qtde,
                     enc_local
-                ) values (?, ?, ?, ?, ?, ?)
+                ) values (?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 this.data,
                 this.hora,
+                this.horaFim,
                 this.disponibilidade,
                 this.qtdeMax,
                 this.qtde,
@@ -292,6 +323,7 @@ class Encontro {
                 insert into encontros(
                     enc_data,
                     enc_hora,
+                    enc_hora_fim,
                     enc_disponibilidade,
                     enc_qtdeMax,
                     enc_qtde,
@@ -301,6 +333,7 @@ class Encontro {
             [
                 novaData,
                 encontroAnterior.hora,
+                encontroAnterior.horaFim,
                 "A",
                 encontroAnterior.qtdeMax,
                 0,
@@ -601,7 +634,7 @@ class Encontro {
         };
     }
 
-    static async listarFuncionariosDisponiveis(data, hora, filtroNome = "", filtroUsuario = "") {
+    static async listarFuncionariosDisponiveis(data, hora, horaFim = hora, filtroNome = "", filtroUsuario = "") {
         let queryString = `
             select f.*
             from funcionarios f
@@ -612,10 +645,11 @@ class Encontro {
                 where r.fun_id = f.fun_id
                   and e.enc_cancelado = 'N'
                   and e.enc_data = ?
-                  and coalesce(e.enc_hora, '') = coalesce(?, '')
+                  and e.enc_hora < ?
+                  and coalesce(e.enc_hora_fim, e.enc_hora) > ?
             )
         `;
-        const valores = [data, hora];
+        const valores = [data, horaFim, hora];
 
         if (filtroNome) {
             queryString += ` and f.fun_nome like ?`;
@@ -633,6 +667,144 @@ class Encontro {
         return funcionarios.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
     }
 
+    static validarHorario(hora, horaFim) {
+        const inicioMinutos = normalizarMinutos(hora);
+        const fimMinutos = normalizarMinutos(horaFim);
+
+        if (inicioMinutos === null || fimMinutos === null) {
+            const erro = new Error("Horario de inicio e termino sao obrigatorios");
+            erro.status = 400;
+            erro.campos = {
+                enc_hora: inicioMinutos === null,
+                enc_hora_fim: fimMinutos === null,
+            };
+            throw erro;
+        }
+
+        if (fimMinutos <= inicioMinutos) {
+            const erro = new Error("Horario de termino precisa ser depois do inicio");
+            erro.status = 400;
+            erro.campos = { enc_hora_fim: "Informe um horario posterior ao inicio" };
+            throw erro;
+        }
+    }
+
+    static validarAgendamento({ data, hora, horaFim, local, qtdeMax, qtde, responsaveisIds = [] }) {
+        const dataHora = normalizarDataHora(data, hora);
+        const localLimpo = normalizarTexto(local);
+        const erros = {};
+
+        if (!data) erros.enc_data = "Data obrigatoria";
+        if (!hora) erros.enc_hora = "Hora obrigatoria";
+        if (!horaFim) erros.enc_hora_fim = "Horario de termino obrigatorio";
+        if (!dataHora) erros.enc_data = "Data ou hora invalida";
+        if (dataHora && dataHora < new Date()) erros.enc_data = "Agende para uma data e hora futuras";
+        if (localLimpo.length < 3) erros.enc_local = "Informe um local mais detalhado";
+        if (Number(qtdeMax) <= 0) erros.enc_qtdeMax = "Quantidade maxima deve ser maior que 0";
+        if (Number(qtde) < 0) erros.enc_qtde = "Quantidade atual nao pode ser negativa";
+        if (Number(qtde) > Number(qtdeMax)) erros.enc_qtde = "Quantidade atual nao pode ser maior que a maxima";
+        if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
+            erros.responsaveis = "Selecione pelo menos um funcionario responsavel";
+        }
+
+        if (Object.keys(erros).length > 0) {
+            const erro = new Error("Revise os dados do agendamento");
+            erro.status = 400;
+            erro.campos = erros;
+            throw erro;
+        }
+
+        Encontro.validarHorario(hora, horaFim);
+    }
+
+    static async buscarConflitoLocal(data, hora, horaFim, local) {
+        const [[conflito]] = await connection.query(
+            `
+                select enc_id, enc_local
+                from encontros
+                where enc_cancelado = 'N'
+                  and enc_data = ?
+                  and enc_hora < ?
+                  and coalesce(enc_hora_fim, enc_hora) > ?
+                  and lower(trim(enc_local)) = lower(trim(?))
+                limit 1
+            `,
+            [data, horaFim, hora, local]
+        );
+
+        return conflito || null;
+    }
+
+    static async listarResponsaveisComConflito(data, hora, horaFim, responsaveisIds = []) {
+        const idsUnicos = [...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean))];
+        if (idsUnicos.length === 0) {
+            return [];
+        }
+
+        const [conflitos] = await connection.query(
+            `
+                select f.fun_id, f.fun_nome, e.enc_id
+                from responsaveis r
+                inner join funcionarios f on f.fun_id = r.fun_id
+                inner join encontros e on e.enc_id = r.enc_id
+                where r.fun_id in (?)
+                  and e.enc_cancelado = 'N'
+                  and e.enc_data = ?
+                  and e.enc_hora < ?
+                  and coalesce(e.enc_hora_fim, e.enc_hora) > ?
+            `,
+            [idsUnicos, data, horaFim, hora]
+        );
+
+        return conflitos;
+    }
+
+    static normalizarMateriais(materiais = []) {
+        if (!Array.isArray(materiais)) {
+            return [];
+        }
+
+        const agrupados = new Map();
+        for (const material of materiais) {
+            const itemId = Number(material.itemId || material.item_id);
+            const qtde = Number(material.qtde);
+
+            if (!itemId || !Number.isInteger(qtde) || qtde <= 0) {
+                continue;
+            }
+
+            agrupados.set(itemId, (agrupados.get(itemId) || 0) + qtde);
+        }
+
+        return [...agrupados.entries()].map(([itemId, qtde]) => ({ itemId, qtde }));
+    }
+
+    static async listarMateriaisComConflito(data, hora, horaFim, materiais = []) {
+        const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+        const itemIds = materiaisNormalizados.map((material) => material.itemId);
+
+        if (itemIds.length === 0) {
+            return [];
+        }
+
+        const [conflitos] = await connection.query(
+            `
+                select i.item_id, i.item_nome, e.enc_id
+                from materiais m
+                inner join itens i on i.item_id = m.item_id
+                inner join encontros e on e.enc_id = m.enc_id
+                where m.item_id in (?)
+                  and e.enc_cancelado = 'N'
+                  and e.enc_data = ?
+                  and e.enc_hora < ?
+                  and coalesce(e.enc_hora_fim, e.enc_hora) > ?
+            `,
+            [itemIds, data, horaFim, hora]
+        );
+
+        return conflitos;
+    }
+
     static async vincularResponsaveis(idEncontro, responsaveisIds = []) {
         if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
             return;
@@ -644,6 +816,42 @@ class Encontro {
                 `insert ignore into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
                 [funId, idEncontro]
             );
+        }
+    }
+
+    static async vincularMateriais(idEncontro, materiais = []) {
+        const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+        if (materiaisNormalizados.length === 0) {
+            return;
+        }
+
+        for (const material of materiaisNormalizados) {
+            const [[item]] = await connection.query(`select item_id from itens where item_id = ?`, [material.itemId]);
+            if (!item) {
+                const erro = new Error(`Item ${material.itemId} nao encontrado`);
+                erro.status = 400;
+                throw erro;
+            }
+
+            await connection.query(
+                `insert ignore into materiais (enc_id, item_id, qtde, utilizado) values (?, ?, ?, 'N')`,
+                [idEncontro, material.itemId, material.qtde]
+            );
+        }
+    }
+
+    static async gravarComRelacionamentos(encontro, responsaveis = [], materiais = []) {
+        await connection.beginTransaction();
+
+        try {
+            const resultado = await encontro.gravar();
+            await Encontro.vincularResponsaveis(resultado.insertId, responsaveis);
+            await Encontro.vincularMateriais(resultado.insertId, materiais);
+            await connection.commit();
+            return resultado;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
         }
     }
 }
