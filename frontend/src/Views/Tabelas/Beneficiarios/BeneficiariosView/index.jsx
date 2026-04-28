@@ -1,11 +1,8 @@
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
 import Styled from "./styles";
-<<<<<<< HEAD
-=======
 import iconEditar from "../../../../assets/iconeEditar.png";
 import iconExcluir from "../../../../assets/iconeExcluir.png";
->>>>>>> devMain
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
@@ -94,17 +91,10 @@ function BeneficiariosView() {
                         <tr>
                             <th>#</th>
                             <th>nome</th>
-<<<<<<< HEAD
-                            <th>endereco</th>
-                            <th>telefone</th>
-                            <th>usuario</th>
-                            <th>acoes</th>
-=======
                             <th>endereço</th>
                             <th>telefone</th>
                             <th>usuario</th>
                             <th>ações</th>
->>>>>>> devMain
                         </tr>
                     </thead>
                     <tbody>
@@ -120,14 +110,6 @@ function BeneficiariosView() {
                                     <td>{formatarTelefone(b.telefone)}</td>
                                     <td>{b.usuario}</td>
                                     <td>
-<<<<<<< HEAD
-                                        <Styled.DeleteButton
-                                            type="button"
-                                            onClick={(event) => excluirBeneficiario(b.id, event)}
-                                        >
-                                            Excluir
-                                        </Styled.DeleteButton>
-=======
                                         <Styled.ActionGroup>
                                             <button
                                                 type="button"
@@ -145,7 +127,6 @@ function BeneficiariosView() {
                                                 <img src={iconExcluir} alt="Excluir" />
                                             </button>
                                         </Styled.ActionGroup>
->>>>>>> devMain
                                     </td>
                                 </tr>
                             ))

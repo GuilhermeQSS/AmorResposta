@@ -78,12 +78,7 @@ function validarCamposEnderecoSeparados(dados) {
 class BeneficiarioController{
     static async listar(req,res){
         try{
-<<<<<<< HEAD
-            const connection = await SingletonDB.getConnection();
-            const resp = await Beneficiario.listar(connection, req.query.filtro, req.query.telefone);
-=======
             const resp = await Beneficiario.listar(req.query.filtro, req.query.telefone);
->>>>>>> devMain
             return res.status(200).json(resp);
         }catch(err){
             return res.status(500).json({Erro:"Aconteceu um erro na hora de listar"});
@@ -92,12 +87,7 @@ class BeneficiarioController{
 
     static async buscarPorId(req,res){
         try{
-<<<<<<< HEAD
-            const connection = await SingletonDB.getConnection();
-            const resp = await Beneficiario.buscarPorId(connection, req.query.id);
-=======
             const resp = await Beneficiario.buscarPorId(req.query.id);
->>>>>>> devMain
             if(!resp){
                 return res.status(500).json({Erro:`Nao existe beneficiario com id ${req.query.id}`});
             }
@@ -109,10 +99,6 @@ class BeneficiarioController{
 
     static async alterar(req, res){
         try {
-<<<<<<< HEAD
-            const connection = await SingletonDB.getConnection();
-=======
->>>>>>> devMain
             const { id, nome, telefone, usuario, senha } = req.body;
             const endereco = normalizarEndereco(req.body);
             const camposEnderecoSeparado = usaEnderecoSeparado(req.body);
@@ -173,11 +159,7 @@ class BeneficiarioController{
                     senha
                 );
 
-<<<<<<< HEAD
-            const resultado = await beneficiario.alterar(connection);
-=======
             const resultado = await beneficiario.alterar();
->>>>>>> devMain
             return res.status(200).json(resultado);
         } catch (error) {
             return res.status(500).json({ erro: "Erro ao alterar beneficiario" });
@@ -186,16 +168,9 @@ class BeneficiarioController{
 
     static async excluir(req, res){
         try {
-<<<<<<< HEAD
-            const connection = await SingletonDB.getConnection();
-            const id = req.body?.id ?? req.query?.id;
-            const beneficiario = new Beneficiario(id);
-            const resultado = await beneficiario.excluir(connection);
-=======
             const id = req.body?.id ?? req.query?.id;
             const beneficiario = new Beneficiario(id);
             const resultado = await beneficiario.excluir();
->>>>>>> devMain
             return res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
@@ -205,10 +180,6 @@ class BeneficiarioController{
 
     static async cadastrar(req,res){
         try{
-<<<<<<< HEAD
-            const connection = await SingletonDB.getConnection();
-=======
->>>>>>> devMain
             const { nome, telefone, usuario, senha } = req.body;
             const endereco = normalizarEndereco(req.body);
             const camposEnderecoSeparado = usaEnderecoSeparado(req.body);
@@ -247,11 +218,7 @@ class BeneficiarioController{
                 });
             }
 
-<<<<<<< HEAD
-            if (await Beneficiario.buscarPorUsuario(connection, usuario)) {
-=======
             if (await Beneficiario.buscarPorUsuario(usuario)) {
->>>>>>> devMain
                 return res.status(500).json({
                     err: "Usuario ja existe"
                 });
@@ -279,11 +246,7 @@ class BeneficiarioController{
                     senha
                 );
 
-<<<<<<< HEAD
-            const resp = await beneficiario.gravar(connection);
-=======
             const resp = await beneficiario.gravar();
->>>>>>> devMain
             return res.status(200).json(resp);
         }catch(err){
             console.error("Erro ao gravar beneficiario:", err);

@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 import connection from "../db/connection.js";
 
->>>>>>> devMain
 function limparTelefone(telefone = "") {
     return String(telefone).replace(/\D/g, "");
 }
@@ -73,11 +70,7 @@ class Beneficiario {
         return beneficiario;
     }
 
-<<<<<<< HEAD
-    static async listar(connection, filtro, telefone) {
-=======
     static async listar(filtro, telefone) {
->>>>>>> devMain
         let queryString = `select * from beneficiarios where 1=1`;
         const valores = [];
 
@@ -98,11 +91,7 @@ class Beneficiario {
         return beneficiarios.map((b) => Beneficiario.fromRow(b));
     }
 
-<<<<<<< HEAD
-    async alterar(connection) {
-=======
     async alterar() {
->>>>>>> devMain
         const queryString = `
             update beneficiarios set
                 ben_nome = ?,
@@ -136,21 +125,13 @@ class Beneficiario {
         return resultado;
     }
 
-<<<<<<< HEAD
-    async excluir(connection) {
-=======
     async excluir() {
->>>>>>> devMain
         const queryString = `delete from beneficiarios where ben_id = ?;`;
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;
     }
 
-<<<<<<< HEAD
-    static async buscarPorUsuario(connection, usuario) {
-=======
     static async buscarPorUsuario(usuario) {
->>>>>>> devMain
         const queryString = `select * from beneficiarios where ben_usuario = ?`;
         const [[beneficiario]] = await connection.query(queryString, [usuario]);
         if (!beneficiario) {
@@ -159,11 +140,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-<<<<<<< HEAD
-    static async buscarPorId(connection, id) {
-=======
     static async buscarPorId(id) {
->>>>>>> devMain
         const queryString = `select * from beneficiarios where ben_id = ?`;
         const [[beneficiario]] = await connection.query(queryString, [id]);
         if (!beneficiario) {
@@ -172,11 +149,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-<<<<<<< HEAD
-    async gravar(connection) {
-=======
     async gravar() {
->>>>>>> devMain
         const queryString = `
             insert into beneficiarios(
                 ben_nome,

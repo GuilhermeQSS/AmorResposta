@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import connection from "../db/connection.js";
->>>>>>> devMain
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,16 +6,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes");
-<<<<<<< HEAD
-
-class Doacao {
-    constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, documento = null) {
-=======
 let colunasDocumentosCache = null;
 
 class Doacao {
     constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes = null, documento = null) {
->>>>>>> devMain
         this.id = id;
         this.doadorNome = Doacao.normalizarDoadorNome(doadorNome);
         this.dataEntrega = dataEntrega;
@@ -27,10 +18,7 @@ class Doacao {
         this.tipo = tipo;
         this.quantidadeItens = Doacao.normalizarQuantidadeItens(quantidadeItens);
         this.observacao = Doacao.normalizarTextoLivre(observacao);
-<<<<<<< HEAD
-=======
         this.detalhes = Doacao.normalizarDetalhes(detalhes);
->>>>>>> devMain
         this.documento = Doacao.normalizarDocumento(documento);
     }
 
@@ -49,8 +37,6 @@ class Doacao {
         return Number.isInteger(quantidade) && quantidade > 0 ? quantidade : null;
     }
 
-<<<<<<< HEAD
-=======
     static normalizarDetalhes(detalhes) {
         if (!detalhes) {
             return null;
@@ -71,7 +57,6 @@ class Doacao {
         return null;
     }
 
->>>>>>> devMain
     static normalizarDocumento(documento) {
         if (!documento) {
             return null;
@@ -97,9 +82,6 @@ class Doacao {
         return extensaoOriginal || ".bin";
     }
 
-<<<<<<< HEAD
-    static async salvarDocumento(connection, documento) {
-=======
     static obterTipoDocumento(documento) {
         if (documento.tipoMime) {
             return documento.tipoMime;
@@ -172,7 +154,6 @@ class Doacao {
     }
 
     static async salvarDocumento(documento) {
->>>>>>> devMain
         await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
 
         const extensao = Doacao.obterExtensaoDocumento(documento.nomeArquivo);
@@ -184,14 +165,7 @@ class Doacao {
         await fs.writeFile(caminhoCompleto, conteudo);
 
         try {
-<<<<<<< HEAD
-            const [resultadoDocumento] = await connection.query(
-                "insert into documentos(doc_caminho) values (?);",
-                [caminhoRelativo]
-            );
-=======
             const resultadoDocumento = await Doacao.inserirRegistroDocumento(documento, caminhoRelativo);
->>>>>>> devMain
 
             return {
                 documentoId: resultadoDocumento.insertId,
@@ -203,13 +177,6 @@ class Doacao {
         }
     }
 
-<<<<<<< HEAD
-    static async listar(connection, filtro, tipoFiltro = "doador") {
-        let queryString = "select * from doacoes";
-        const params = [];
-
-        if (filtro) {
-=======
     static async listar(filtro, tipoFiltro = "doador", dataInicial = null, dataFinal = null) {
         let queryString = "select * from doacoes";
         const params = [];
@@ -218,7 +185,6 @@ class Doacao {
             queryString += " where doa_dataEntrega between ? and ?";
             params.push(dataInicial, dataFinal);
         } else if (filtro) {
->>>>>>> devMain
             if (tipoFiltro === "data") {
                 queryString += " where doa_dataEntrega = ?";
                 params.push(filtro);
@@ -239,12 +205,8 @@ class Doacao {
             d.doa_formaEntrega,
             d.doa_tipo,
             d.doa_quantidadeItens,
-<<<<<<< HEAD
-            d.doa_observacao
-=======
             d.doa_observacao,
             d.doa_detalhes
->>>>>>> devMain
         ));
     }
 
@@ -264,31 +226,19 @@ class Doacao {
             doacao.doa_formaEntrega,
             doacao.doa_tipo,
             doacao.doa_quantidadeItens,
-<<<<<<< HEAD
-            doacao.doa_observacao
-        );
-    }
-
-    async gravar(connection) {
-=======
             doacao.doa_observacao,
             doacao.doa_detalhes
         );
     }
 
     async gravar() {
->>>>>>> devMain
         let documentoPersistido = null;
 
         await connection.beginTransaction();
 
         try {
             if (this.documento) {
-<<<<<<< HEAD
-                documentoPersistido = await Doacao.salvarDocumento(connection, this.documento);
-=======
                 documentoPersistido = await Doacao.salvarDocumento(this.documento);
->>>>>>> devMain
             }
 
             const queryString = `
@@ -300,14 +250,9 @@ class Doacao {
                     doa_tipo,
                     doa_quantidadeItens,
                     doa_observacao,
-<<<<<<< HEAD
-                    doc_id
-                ) values (?, ?, ?, ?, ?, ?, ?, ?);
-=======
                     doa_detalhes,
                     doc_id
                 ) values (?, ?, ?, ?, ?, ?, ?, ?, ?);
->>>>>>> devMain
             `;
 
             const [resultado] = await connection.query(queryString, [
@@ -318,10 +263,7 @@ class Doacao {
                 this.tipo,
                 this.quantidadeItens,
                 this.observacao,
-<<<<<<< HEAD
-=======
                 this.detalhes ? JSON.stringify(this.detalhes) : null,
->>>>>>> devMain
                 documentoPersistido?.documentoId || null
             ]);
 
@@ -347,12 +289,8 @@ class Doacao {
                 doa_formaEntrega = ?,
                 doa_tipo = ?,
                 doa_quantidadeItens = ?,
-<<<<<<< HEAD
-                doa_observacao = ?
-=======
                 doa_observacao = ?,
                 doa_detalhes = ?
->>>>>>> devMain
             where doa_id = ?;
         `;
 
@@ -364,10 +302,7 @@ class Doacao {
             this.tipo,
             this.quantidadeItens,
             this.observacao,
-<<<<<<< HEAD
-=======
             this.detalhes ? JSON.stringify(this.detalhes) : null,
->>>>>>> devMain
             this.id
         ]);
 

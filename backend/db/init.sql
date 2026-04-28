@@ -2,42 +2,6 @@ CREATE SCHEMA IF NOT EXISTS `amorresposta` DEFAULT CHARACTER SET utf8;
 USE `amorresposta` ;
 
 CREATE TABLE IF NOT EXISTS `beneficiarios` (
-<<<<<<< HEAD
-	`ben_id` INT NOT NULL auto_increment,
-	`ben_nome` VARCHAR(45) NULL,
-	`ben_estado` VARCHAR(2) NULL,
-	`ben_cidade` VARCHAR(100) NULL,
-	`ben_bairro` VARCHAR(100) NULL,
-	`ben_rua` VARCHAR(100) NULL,
-	`ben_numero` INT NULL,
-	`ben_endereco` VARCHAR(255) NULL,
-	`ben_telefone` VARCHAR(20) NULL,
-	`ben_usuario` VARCHAR(45) NULL,
-	`ben_senha` VARCHAR(45) NULL,
-	PRIMARY KEY (`ben_id`)
-);
-
-CREATE TABLE IF NOT EXISTS `documentos` (
-  `doc_id` INT AUTO_INCREMENT PRIMARY KEY,
-  `doc_titulo` VARCHAR(255) NOT NULL,
-  `doc_tipo` VARCHAR(100) NOT NULL,
-  `doc_data_criacao` DATE,
-  `doc_descricao` TEXT,
-  `doc_link` VARCHAR(500)
-);
-
-CREATE TABLE IF NOT EXISTS `doacoes` (
-  	`doa_id` INT NOT NULL AUTO_INCREMENT,
-  	`doa_doadorNome` VARCHAR(100) NULL,
-  	`doa_dataEntrega` DATE NULL,
-  	`doa_origem` VARCHAR(100) NULL,
-  	`doa_formaEntrega` VARCHAR(45) NULL,
-  	`doa_tipo` VARCHAR(45) NULL,
-  	`doa_quantidadeItens` INT NOT NULL,
-  	`doa_observacao` VARCHAR(255) NULL,
-  	`doc_id` INT NULL,
-  	PRIMARY KEY (`doa_id`)
-=======
   `ben_id` INT NOT NULL AUTO_INCREMENT,
   `ben_nome` VARCHAR(45) NULL,
   `ben_estado` VARCHAR(2) NULL,
@@ -59,7 +23,6 @@ CREATE TABLE IF NOT EXISTS `documentos` (
   `doc_dataCriacao` DATE NULL,
   `doc_caminho` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`doc_id`)
->>>>>>> devMain
 );
 
 CREATE TABLE IF NOT EXISTS `despesas` (
@@ -469,14 +432,6 @@ CALL `add_foreign_key_if_missing`(
   'ALTER TABLE `lotesDoadosLotes` ADD CONSTRAINT `fk_lotesDoadosLotes_lotes` FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`)'
 );
 
-<<<<<<< HEAD
-ALTER TABLE `itensDoados`
-	ADD CONSTRAINT `fk_ItensDoados_Itens`
-    	FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`),
-	ADD CONSTRAINT `fk_ItensDoados_Beneficiarios`
-    	FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
-
-=======
 CALL `add_foreign_key_if_missing`(
   'fk_entradaDoacoes_doacoes',
   'ALTER TABLE `entradaDoacoes` ADD CONSTRAINT `fk_entradaDoacoes_doacoes` FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`)'
@@ -557,4 +512,3 @@ SELECT 'PerfilTeste', 'adm', 'adm', 'Administrador', '99131079032', '1899999999'
 WHERE NOT EXISTS (
   SELECT 1 FROM funcionarios WHERE fun_usuario = 'adm'
 );
->>>>>>> devMain

@@ -2,11 +2,7 @@ import styled from "styled-components";
 
 const Styled = {
     Form: styled.form`
-<<<<<<< HEAD
-        width: 400px;
-=======
         width: min(900px, 92%);
->>>>>>> devMain
         margin: 0 auto;
         padding: 20px;
         border-radius: 16px;
@@ -53,11 +49,7 @@ const Styled = {
             }
         }
 
-<<<<<<< HEAD
-        button{
-=======
         > button{
->>>>>>> devMain
             margin-top: 10px;
             padding: 10px;
             border: black 1px solid;
@@ -66,16 +58,7 @@ const Styled = {
             font-weight: bold;
         }
 
-<<<<<<< HEAD
-        button:nth-of-type(2){
-            background-color: #ff0000;
-            color: white;
-        }
-
-        button:disabled{
-=======
         > button:disabled{
->>>>>>> devMain
             background-color: #ccc;
             color: #666;
             cursor: not-allowed;
@@ -94,14 +77,6 @@ const Styled = {
                 color: black;
             }
         }
-<<<<<<< HEAD
-        
-        
-    `
-};
-
-export default Styled;
-=======
     `,
     FunctionariosPanel: styled.section`
         width: 100%;
@@ -185,4 +160,3 @@ export default Styled;
 };
 
 export default Styled;
->>>>>>> devMain

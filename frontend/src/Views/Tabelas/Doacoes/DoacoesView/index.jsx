@@ -41,10 +41,7 @@ function DoacoesView() {
     const [tipoFiltro, setTipoFiltro] = useState("doador");
     const [dataInicial, setDataInicial] = useState("");
     const [dataFinal, setDataFinal] = useState("");
-<<<<<<< HEAD
-=======
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
->>>>>>> devMain
     const navigate = useNavigate();
 
     async function excluirDoacao(id) {

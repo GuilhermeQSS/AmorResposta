@@ -18,19 +18,6 @@ const Styled = {
         border-radius: 10px;
         border: 1px solid #ccc;
     `,
-<<<<<<< HEAD
-    DeleteButton: styled.button`
-        padding: 10px 16px;
-        border: 1px solid black;
-        border-radius: 10px;
-        background-color: #ff0000;
-        color: white;
-        cursor: pointer;
-        transition: 0.2s;
-
-        &:hover {
-            opacity: 0.8;
-=======
     ActionGroup: styled.div`
         display: flex;
         gap: 8px;
@@ -70,7 +57,6 @@ const Styled = {
                 background-color: #e53935;
                 transform: scale(1.1);
             }
->>>>>>> devMain
         }
     `,
     Actions: styled.div`

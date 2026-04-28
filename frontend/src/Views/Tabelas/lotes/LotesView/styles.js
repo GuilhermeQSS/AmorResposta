@@ -30,37 +30,6 @@ const Styled = {
     }
   `,
 
-<<<<<<< HEAD
-    Finals: styled.div`
-        width: 10%;
-        height: 10%;
-        display: flex;
-        margin-top: 5px;
-
-        button{
-            padding: 4px 6px;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-
-            &:hover{
-                opacity: 0.8;
-                transform: scale(1.15);
-            }
-        }
-    `,
-
-    Table: styled.table`
-        width: 90%;
-        margin: 40px auto;
-        border-collapse: collapse;
-        background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
-=======
   ModeMessage: styled.p`
     width: 90%;
     margin: 20px auto 0;
@@ -70,7 +39,6 @@ const Styled = {
     color: #5d4037;
     border: 1px solid #ffe0a3;
   `,
->>>>>>> devMain
 
   InlineError: styled.p`
     width: 90%;
@@ -88,14 +56,6 @@ const Styled = {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid #f3d1d1;
 
-<<<<<<< HEAD
-        th {
-        padding: 16px;
-        text-align: left;
-        font-size: 14px;
-        letter-spacing: 1px;
-        }
-=======
     h2 {
       margin-top: 0;
       color: #c62828;
@@ -105,7 +65,6 @@ const Styled = {
       margin: 8px 0;
       color: #333;
     }
->>>>>>> devMain
 
     label {
       display: block;
@@ -409,8 +368,4 @@ const Styled = {
   `,
 };
 
-<<<<<<< HEAD
 export default Styled;
-=======
-export default Styled;
->>>>>>> devMain

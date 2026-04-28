@@ -15,24 +15,6 @@ import {
 } from "../detalhesDoacao";
 
 function CadastrarDoacaoView() {
-<<<<<<< HEAD
-    function arquivoParaBase64(arquivo) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                const conteudo = String(reader.result || "");
-                const [, base64 = ""] = conteudo.split(",");
-                resolve(base64);
-            };
-
-            reader.onerror = () => reject(new Error("Nao foi possivel ler o documento selecionado."));
-            reader.readAsDataURL(arquivo);
-        });
-    }
-
-=======
->>>>>>> devMain
     function validarFormulario(dados, detalhes) {
         const novosErros = {};
 
@@ -101,25 +83,6 @@ function CadastrarDoacaoView() {
     }
 
     async function prepararPayload(dados, detalhes) {
-<<<<<<< HEAD
-        let documentoPayload = null;
-
-        if (documento) {
-            documentoPayload = {
-                nomeArquivo: documento.name,
-                tipoMime: documento.type || null,
-                conteudoBase64: await arquivoParaBase64(documento)
-            };
-        }
-
-        return {
-            ...dados,
-            doadorNome: dados.doadorNome.trim() || "anonimo",
-            quantidadeItens: Number(dados.quantidadeItens),
-            detalhes: montarDetalhesPayload(dados.tipo, detalhes),
-            documento: documentoPayload
-        };
-=======
         const payload = {
             ...dados,
             doadorNome: dados.doadorNome.trim() || "anonimo",
@@ -154,7 +117,6 @@ function CadastrarDoacaoView() {
             leitor.onerror = () => reject(new Error("Nao foi possivel ler o documento anexado"));
             leitor.readAsDataURL(arquivo);
         });
->>>>>>> devMain
     }
 
     async function fetchCadastrarDoacao() {
@@ -215,14 +177,8 @@ function CadastrarDoacaoView() {
     }
 
     function atualizarDocumento(e) {
-<<<<<<< HEAD
-        const arquivoSelecionado = e.target.files?.[0] || null;
-        setDocumento(arquivoSelecionado);
-        setNomeDocumento(arquivoSelecionado?.name || "");
-=======
         const arquivo = e.target.files?.[0] || null;
         setDocumentoArquivo(arquivo);
->>>>>>> devMain
     }
 
     function atualizarDetalhes(e) {
@@ -425,12 +381,7 @@ function CadastrarDoacaoView() {
     const [alimentoParaAdicionar, setAlimentoParaAdicionar] = useState("");
     const [roupaParaAdicionar, setRoupaParaAdicionar] = useState("");
     const [higieneParaAdicionar, setHigieneParaAdicionar] = useState("");
-<<<<<<< HEAD
-    const [documento, setDocumento] = useState(null);
-    const [nomeDocumento, setNomeDocumento] = useState("");
-=======
     const [documentoArquivo, setDocumentoArquivo] = useState(null);
->>>>>>> devMain
     const [erros, setErros] = useState({});
     const fieldRefs = useRef({});
     const navigate = useNavigate();
@@ -886,22 +837,6 @@ function CadastrarDoacaoView() {
                         />
                     </div>
 
-<<<<<<< HEAD
-                    <div data-error={Boolean(erros.documento)}>
-                        <label htmlFor="documento">Documento (opcional):</label>
-                        <input
-                            ref={(elemento) => {
-                                fieldRefs.current.documento = elemento;
-                            }}
-                            type="file"
-                            name="documento"
-                            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                            onChange={atualizarDocumento}
-                        />
-                        <small>
-                            {nomeDocumento || "Voce pode anexar comprovante, recibo ou outro documento."}
-                        </small>
-=======
                     <div>
                         <label htmlFor="documento">Documento/anexo (opcional):</label>
                         <input
@@ -915,7 +850,6 @@ function CadastrarDoacaoView() {
                                 Arquivo selecionado: {documentoArquivo.name}
                             </Styled.HelperText>
                         )}
->>>>>>> devMain
                     </div>
 
                     <button

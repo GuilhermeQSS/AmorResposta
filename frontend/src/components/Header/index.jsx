@@ -42,47 +42,6 @@ function Header(){
         <Styled.Container>
             <Link to={"/"}><img src={logo}/></Link>
             <Styled.Atalhos>
-<<<<<<< HEAD
-                <li><Link to={'/'}>Página inicial</Link></li>
-                <li><Link to={'/institucional'}>Institucional</Link></li>
-                <li><Link to={'/projetos'}>Projetos</Link></li>
-                <li><Link to={'/doacao'}>Doação</Link></li>
-                <li><Link to={'/portal'}>Portal da Transparência</Link></li>
-                <li><Link to={'/sobre'}>Sobre</Link></li>
-                <li
-                    onClick={() => {
-                        setDropdownTabela(!dropdownTabela)
-                        setDropdownCadastro(false)
-                    }}
-                >
-                    <p>Tabelas</p>
-                    {dropdownTabela && (
-                        <div>
-                            <Link to="/tabelas/funcionarios">Funcionários</Link>
-                            <Link to="/tabelas/encontros">Encontros</Link>
-                            <Link to="/tabelas/itens">Itens</Link>
-                            <Link to="/tabelas/lotes">Lotes</Link>
-                        </div>    
-                    )}
-                    
-                </li>
-                <li
-                    onClick={() => {
-                        setDropdownCadastro(!dropdownCadastro)
-                        setDropdownTabela(false);
-                    }}
-                >
-                    <p>Cadastrar</p>
-                    {dropdownCadastro && (
-                        <div>
-                            <Link to="/funcionarios/cadastro">Funcionários</Link>
-                            <Link to="/encontros/cadastro">Encontros</Link>
-                            <Link to="/itens/cadastro">itens</Link>
-                            <Link to="/lotes/cadastro">lotes</Link>
-                        </div>
-                    )}
-                </li>
-=======
                 <li><Link to={"/"}>Pagina inicial</Link></li>
                 <li><Link to={"/institucional"}>Institucional</Link></li>
                 <li><Link to={"/projetos"}>Projetos</Link></li>
@@ -140,7 +99,6 @@ function Header(){
                         <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sair</button>
                     </li>
                 )}
->>>>>>> devMain
             </Styled.Atalhos>
             <Sociais />
         </Styled.Container>
