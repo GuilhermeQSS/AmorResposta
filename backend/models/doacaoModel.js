@@ -103,54 +103,50 @@ class Doacao {
 
     static async inserirRegistroDocumento(documento, caminhoRelativo) {
         const colunasDocumentos = await Doacao.obterColunasDocumentos();
+        const dataCriacao = new Date().toISOString().slice(0, 10);
+        const descricao = `Arquivo anexado automaticamente a uma doacao: ${documento.nomeArquivo}`;
+        const campos = [];
+        const valores = [];
 
-        if (
-            colunasDocumentos.has("doc_titulo") ||
-            colunasDocumentos.has("doc_tipo") ||
-            colunasDocumentos.has("doc_link")
-        ) {
-            const dataCriacao = new Date().toISOString().slice(0, 10);
-            const descricao = `Arquivo anexado automaticamente a uma doacao: ${documento.nomeArquivo}`;
-            const campos = [];
-            const valores = [];
+        if (colunasDocumentos.has("doc_titulo")) {
+            campos.push("doc_titulo");
+            valores.push(documento.nomeArquivo);
+        }
 
-            if (colunasDocumentos.has("doc_titulo")) {
-                campos.push("doc_titulo");
-                valores.push(documento.nomeArquivo);
-            }
+        if (colunasDocumentos.has("doc_tipo")) {
+            campos.push("doc_tipo");
+            valores.push(Doacao.obterTipoDocumento(documento));
+        }
 
-            if (colunasDocumentos.has("doc_tipo")) {
-                campos.push("doc_tipo");
-                valores.push(Doacao.obterTipoDocumento(documento));
-            }
+        if (colunasDocumentos.has("doc_data_criacao")) {
+            campos.push("doc_data_criacao");
+            valores.push(dataCriacao);
+        }
 
-            if (colunasDocumentos.has("doc_data_criacao")) {
-                campos.push("doc_data_criacao");
-                valores.push(dataCriacao);
-            }
+        if (colunasDocumentos.has("doc_dataCriacao")) {
+            campos.push("doc_dataCriacao");
+            valores.push(dataCriacao);
+        }
 
-            if (colunasDocumentos.has("doc_descricao")) {
-                campos.push("doc_descricao");
-                valores.push(descricao);
-            }
+        if (colunasDocumentos.has("doc_descricao")) {
+            campos.push("doc_descricao");
+            valores.push(descricao);
+        }
 
-            if (colunasDocumentos.has("doc_link")) {
-                campos.push("doc_link");
-                valores.push(caminhoRelativo);
-            }
-
-            const placeholders = campos.map(() => "?").join(", ");
-            const queryString = `insert into documentos(${campos.join(", ")}) values (${placeholders});`;
-            const [resultadoDocumento] = await connection.query(queryString, valores);
-            return resultadoDocumento;
+        if (colunasDocumentos.has("doc_link")) {
+            campos.push("doc_link");
+            valores.push(caminhoRelativo);
         }
 
         if (colunasDocumentos.has("doc_caminho")) {
-            const [resultadoDocumento] = await connection.query(
-                "insert into documentos(doc_caminho) values (?);",
-                [caminhoRelativo]
-            );
+            campos.push("doc_caminho");
+            valores.push(caminhoRelativo);
+        }
 
+        if (campos.length > 0) {
+            const placeholders = campos.map(() => "?").join(", ");
+            const queryString = `insert into documentos(${campos.join(", ")}) values (${placeholders});`;
+            const [resultadoDocumento] = await connection.query(queryString, valores);
             return resultadoDocumento;
         }
 
