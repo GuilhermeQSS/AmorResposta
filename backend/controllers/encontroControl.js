@@ -13,11 +13,29 @@ class EncontroControl {
         }
     }
 
+    static async listarComoBeneficiario(req, res) {
+        try {
+            const connection = await SingletonDB.getConnection();
+            const idBeneficiario = req.usuarioLogado.id;
+            
+            let resp = await Encontro.listarComoBeneficiario(
+                connection,
+                req.query.titulo,
+                req.query.dataInicio,
+                req.query.dataFim,
+                idBeneficiario
+            );
+            
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ err: err.message });
+        }
+    }
+
     static async buscarPorId(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
             let resp = await Encontro.buscarPorId(connection, req.query.id);
-            resp.participantes = await resp.listarBeneficiarios(connection);
             if (!resp) {
                 return res.status(404).json({ err: `Não existe encontro com id = ${req.query.id}` });
             } else {
@@ -28,44 +46,50 @@ class EncontroControl {
         }
     }
 
-    static async cadastrarBeneficiario(req, res){
+    static async cadastrarBeneficiario(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let beneficiario = await Beneficiario.buscarPorId(connection, req.query.idBeneficiario);
-
-            if (!beneficiario) {
-                return res.status(404).json({ err: `Não existe beneficiario com id = ${req.query.id}` });
-            }
-
-            let encontro = await Encontro.buscarPorId(connection, req.query.idEncontro);
-
-            if (!encontro) {
-                return res.status(404).json({ err: `Não existe encontro com id = ${req.query.id}` });
-            }
             
-            const resultado = await encontro.cadastrarBeneficiario(connection,beneficiario);
+            const idBeneficiario = req.usuarioLogado.id;
+            const idEncontro = req.query.idEncontro;
+
+            let beneficiario = await Beneficiario.buscarPorId(connection, idBeneficiario);
+            if (!beneficiario) {
+                return res.status(404).json({ err: `Beneficiário não encontrado.` });
+            }
+
+            let encontro = await Encontro.buscarPorId(connection, idEncontro);
+            if (!encontro) {
+                return res.status(404).json({ err: `Encontro não encontrado.` });
+            }
+
+            const resultado = await encontro.cadastrarBeneficiario(connection, beneficiario);
+            await encontro.incrementarParticipantes(connection);
             return res.status(200).json(resultado);
         } catch (err) {
             return res.status(500).json({ err: err.message });
         }
     }
 
-    static async retirarBeneficiario(req, res){
+    static async retirarBeneficiario(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let beneficiario = await Beneficiario.buscarPorId(connection, req.query.idBeneficiario);
+            
+            const idBeneficiario = req.usuarioLogado.id;
+            const idEncontro = req.query.idEncontro;
 
+            let beneficiario = await Beneficiario.buscarPorId(connection, idBeneficiario);
             if (!beneficiario) {
-                return res.status(404).json({ err: `Não existe beneficiario com id = ${req.query.id}` });
+                return res.status(404).json({ err: `Beneficiário não encontrado.` });
             }
 
-            let encontro = await Encontro.buscarPorId(connection, req.query.idEncontro);
-
+            let encontro = await Encontro.buscarPorId(connection, idEncontro);
             if (!encontro) {
-                return res.status(404).json({ err: `Não existe encontro com id = ${req.query.id}` });
+                return res.status(404).json({ err: `Encontro não encontrado.` });
             }
             
-            const resultado = await encontro.retirarBeneficiario(connection,beneficiario);
+            const resultado = await encontro.retirarBeneficiario(connection, beneficiario);
+            await encontro.decrementarParticipantes(connection);
             return res.status(200).json(resultado);
         } catch (err) {
             return res.status(500).json({ err: err.message });

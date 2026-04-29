@@ -4,6 +4,7 @@ import e from "express";
 const router = e.Router();
 
 router.get("/listar",autenticarAdmin,EncontroControl.listar);
+router.get("/listar-como-beneficiario",autenticarBeneficiario,EncontroControl.listarComoBeneficiario);
 //router.post("/gravar",autenticarAdmin,EncontroControl.cadastrar);
 router.get("/buscar",autenticarAdmin,EncontroControl.buscarPorId);
 //router.put("/alterar",autenticarAdmin, EncontroControl.alterar);

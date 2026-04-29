@@ -187,15 +187,48 @@ alter table `funcionariosEncontros`
 INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, fun_telefone) 
 VALUES ("PerfilTeste", "adm", "adm", "Administrador", "99131079032", "1899999999");
 
-INSERT INTO beneficiarios (ben_nome, ben_endereco, ben_telefone, ben_usuario, ben_senha, ben_cpf) 
+-- Ajuste nos INSERTS de beneficiários para bater com as colunas da tabela
+INSERT INTO beneficiarios (
+    ben_nome, 
+    ben_estado, 
+    ben_cidade, 
+    ben_bairro, 
+    ben_rua, 
+    ben_numero, 
+    ben_telefone, 
+    ben_usuario, 
+    ben_senha, 
+    ben_cpf
+) 
 VALUES 
-('João Silva', 'Rua das Flores, 123', '18991112222', 'joao.silva', 'senha123', '11122233344'),
-('Maria Oliveira', 'Av. Brasil, 500', '18998887777', 'maria.oliveira', 'senha456', '55566677788');
-
+(
+    'João Silva', 
+    'SP', 
+    'Presidente Prudente', 
+    'Jardim Flores', 
+    'Rua das Flores', 
+    123, 
+    '18991112222', 
+    'joao.silva', 
+    'senha123', 
+    '10194714098'
+),
+(
+    'Maria Oliveira', 
+    'SP', 
+    'Presidente Prudente', 
+    'Centro', 
+    'Av. Brasil', 
+    500, 
+    '18998887777', 
+    'maria.oliveira', 
+    'senha456', 
+    '42950694004'
+);
 INSERT INTO encontros (enc_data, enc_disponibilidade, enc_qtdeMax, enc_qtde, enc_local, enc_titulo, enc_descricao) 
 VALUES 
-('2026-05-15', 1, 50, 0, 'Centro Comunitário', 'Workshop de Artesanato', 'Aprenda técnicas de pintura em tela.'),
-('2026-06-10', 1, 20, 15, 'Auditório Municipal', 'Palestra: Higiene e Saúde', 'Dicas práticas para o dia a dia.');
+('2026-05-15', 1, 1, 1, 'Centro Comunitário', 'Workshop de Artesanato', 'Aprenda técnicas de pintura em tela.'),
+('2026-06-10', 1, 20, 0, 'Auditório Municipal', 'Palestra: Higiene e Saúde', 'Dicas práticas para o dia a dia.');
 
 INSERT INTO beneficiariosEncontros (enc_id, ben_id, participou) 
 VALUES (1, 1, 0);

@@ -1,3 +1,5 @@
+import Encontro from "./encontroModel.js";
+
 function validarCPF(cpf) {
     if (cpf.length !== 11) return false;
     if (/^(\d)\1+$/.test(cpf)) return false;
@@ -24,8 +26,8 @@ function validarCPF(cpf) {
 }
 
 class Beneficiario{
-    constructor(id,nome,endereco,telefone,usuario,senha,cpf) {
-        if (!id || !nome || !usuario || !senha || !endereco || !cpf || !telefone) {
+    constructor(id,nome,estado,cidade,bairro,rua,numero,telefone,usuario,senha,cpf) {
+        if (!id || !nome || !usuario || !senha || !estado || !cidade || !bairro || !rua || !numero || !cpf || !telefone) {
             throw new Error("Todos os campos são obrigatórios");
         }
 
@@ -41,7 +43,11 @@ class Beneficiario{
         
         this.id = id;
         this.nome = nome;
-        this.endereco = endereco
+        this.estado = estado;
+        this.cidade = cidade;
+        this.bairro = bairro;
+        this.rua = rua;
+        this.numero = numero;
         this.usuario = usuario;
         this.senha = senha;
         this.cpf = cpfLimpo;
@@ -60,7 +66,11 @@ class Beneficiario{
             return new Beneficiario(
                 beneficiario.ben_id,
                 beneficiario.ben_nome,
-                beneficiario.ben_endereco,
+                beneficiario.ben_estado,
+                beneficiario.ben_cidade,
+                beneficiario.ben_bairro,
+                beneficiario.ben_rua,
+                beneficiario.ben_numero,
                 beneficiario.ben_telefone,
                 beneficiario.ben_usuario,
                 beneficiario.ben_senha,
@@ -81,11 +91,15 @@ class Beneficiario{
             return new Beneficiario(
                 beneficiario.ben_id,
                 beneficiario.ben_nome,
-                beneficiario.ben_endereco,
+                beneficiario.ben_estado,
+                beneficiario.ben_cidade,
+                beneficiario.ben_bairro,
+                beneficiario.ben_rua,
+                beneficiario.ben_numero,
                 beneficiario.ben_telefone,
                 beneficiario.ben_usuario,
                 beneficiario.ben_senha,
-                beneficiario.ben_cpf
+                beneficiario.ben_cpf,
             );
         }
     }
@@ -100,7 +114,7 @@ class Beneficiario{
         const [beneficiarios] = await connection.query(queryString,valores);
         let encontrosList = [];
         beneficiarios.forEach(e => {
-            encontrosList.push(new Beneficiario(
+            encontrosList.push(new Encontro(
                 e.enc_id,
                 e.enc_data,
                 e.enc_disponibilidade,

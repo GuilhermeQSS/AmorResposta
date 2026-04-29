@@ -2,7 +2,8 @@ import Beneficiario from "./beneficiarioModel.js";
 
 class Encontro{
     constructor(id,data,disponibilidade,qtdeMax,qtde,local,titulo,descricao) {
-        if (!id || !data || !disponibilidade || !qtdeMax || !qtde || !local || !titulo || !descricao) {
+        if (id == null || data == null || disponibilidade == null || qtdeMax == null || 
+            qtde == null || local == null || titulo == null || descricao == null) {
             throw new Error("Todos os campos são obrigatórios");
         }
         
@@ -29,25 +30,27 @@ class Encontro{
     }
 
     static async listar(connection, titulo, dataInicio, dataFim) {
-        let queryString = `select * from encontros`
+        let queryString = `SELECT * FROM encontros WHERE 1=1`;
         let valores = [];
+        
         if (titulo) {
-            queryString += ` and enc_titulo like ?`;
+            queryString += ` AND enc_titulo LIKE ?`;
             valores.push(`%${titulo}%`);
         }
-
+        
         if (dataInicio && dataFim) {
-            queryString += ` and enc_data between ? and ?`;
+            queryString += ` AND DATE(enc_data) BETWEEN DATE(?) AND DATE(?)`;
             valores.push(dataInicio, dataFim);
         } else if (dataInicio) {
-            queryString += ` and enc_data >= ?`;
+            queryString += ` AND DATE(enc_data) >= DATE(?)`;
             valores.push(dataInicio);
         } else if (dataFim) {
-            queryString += ` and enc_data <= ?`;
+            queryString += ` AND DATE(enc_data) <= DATE(?)`;
             valores.push(dataFim);
         }
 
         const [encontro] = await connection.query(queryString,valores);
+        
         let encontroList = [];
         encontro.forEach(e => {
             encontroList.push(new Encontro(
@@ -60,8 +63,58 @@ class Encontro{
                 e.enc_titulo,
                 e.enc_descricao
             ));
+
         });
         return encontroList;
+    }
+
+    static async listarComoBeneficiario(connection, titulo, dataInicio, dataFim, idBeneficiario) {
+        let queryString = `
+            SELECT 
+                e.*, 
+                be.ben_id, 
+                be.participou 
+            FROM encontros e 
+            LEFT JOIN beneficiariosEncontros be 
+                ON be.enc_id = e.enc_id 
+                AND be.ben_id = ?
+            WHERE 1=1`;
+
+        let valores = [idBeneficiario];
+
+        if (titulo) {
+            queryString += ` AND e.enc_titulo LIKE ?`;
+            valores.push(`%${titulo}%`);
+        }
+
+        if (dataInicio && dataFim) {
+            queryString += ` AND DATE(e.enc_data) BETWEEN DATE(?) AND DATE(?)`;
+            valores.push(dataInicio, dataFim);
+        } else if (dataInicio) {
+            queryString += ` AND DATE(e.enc_data) >= DATE(?)`;
+            valores.push(dataInicio);
+        } else if (dataFim) {
+            queryString += ` AND DATE(e.enc_data) <= DATE(?)`;
+            valores.push(dataFim);
+        }
+
+
+        const [rows] = await connection.query(queryString, valores);
+
+        return rows.map(e => ({
+            encontro: new Encontro(
+                e.enc_id,
+                e.enc_data,
+                e.enc_disponibilidade,
+                e.enc_qtdeMax,
+                e.enc_qtde,
+                e.enc_local,
+                e.enc_titulo,
+                e.enc_descricao
+            ),
+            beneficiario: e.ben_id,
+            participou: e.participou
+        }));
     }
 
     static async buscarPorId(connection, id){
@@ -129,12 +182,38 @@ class Encontro{
     async retirarBeneficiario(connection, beneficiario){
         let queryString = `
             delete from beneficiariosEncontros
-            where enc_id = ? and
-            where ben_id = ?;
+            where enc_id = ? and ben_id = ?;
         `;
         let valores = [
             this.id,
             beneficiario.id
+        ];
+        
+        const [resultado] = await connection.query(queryString,valores);
+        return resultado;
+    }
+
+    async incrementarParticipantes(connection){
+        let queryString = `
+            UPDATE encontros 
+            SET enc_qtde = enc_qtde + 1 
+            WHERE enc_id = ?;
+        `;
+        let valores = [
+            this.id,
+        ];
+        const [resultado] = await connection.query(queryString,valores);
+        return resultado;
+    }
+
+    async decrementarParticipantes(connection){
+        let queryString = `
+            UPDATE encontros 
+            SET enc_qtde = enc_qtde - 1
+            WHERE enc_id = ?;
+        `;
+        let valores = [
+            this.id,
         ];
         const [resultado] = await connection.query(queryString,valores);
         return resultado;

@@ -1,7 +1,6 @@
 import styled from "styled-components";
 
 const Styled = {
-    // ... (Busca continua igual)
     Busca: styled.input`
         display: block;
         margin: 0 auto 10px;
