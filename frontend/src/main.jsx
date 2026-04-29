@@ -48,13 +48,16 @@ createRoot(document.getElementById('root')).render(
         <Route path='/sobre' element={<SobreView />} />
         <Route path='/login' element={<LoginView />} />
 
+        <Route element={<RotasProtegidas perfisPermitidos={["Administrador", "Voluntario"]} />}>
+          <Route path='/tabelas/encontros' element={<EncontrosView />} />
+          <Route path="/encontros/:id" element={<EditarEncontroView />} />
+          <Route path="/encontros/cadastro" element={<CadastrarEncontroView />} />
+        </Route>
+
         <Route element={<RotasProtegidas />}>
           <Route path='/tabelas/funcionarios' element={<FuncionariosView />} />
           <Route path="/funcionarios/:id" element={<EditarFuncionarioView />} />
           <Route path="/funcionarios/cadastro" element={<CadastrarFuncionarioView />} />
-          <Route path='/tabelas/encontros' element={<EncontrosView />} />
-          <Route path="/encontros/:id" element={<EditarEncontroView />} />
-          <Route path="/encontros/cadastro" element={<CadastrarEncontroView />} />
           <Route path='/tabelas/beneficiarios' element={<BeneficiariosView />} />
           <Route path="/beneficiarios/:id" element={<EditarBeneficiarioView />} />
           <Route path="/beneficiarios/cadastro" element={<CadastrarBeneficiarioView />} />

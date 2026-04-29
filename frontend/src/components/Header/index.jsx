@@ -32,6 +32,7 @@ function Header(){
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const isAdmin = user?.perfil === "Administrador";
+    const podeGerenciarEncontros = ["Administrador", "Voluntario"].includes(user?.perfil);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -48,7 +49,7 @@ function Header(){
                 <li><Link to={"/doacao"}>Doacao</Link></li>
                 <li><Link to={"/portal"}>Portal da Transparencia</Link></li>
                 <li><Link to={"/sobre"}>Sobre</Link></li>
-                {isAdmin && (
+                {podeGerenciarEncontros && (
                     <li><Link to="/tabelas/encontros">Encontros</Link></li>
                 )}
                 {isAdmin && (
