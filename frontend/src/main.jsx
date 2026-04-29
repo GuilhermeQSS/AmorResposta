@@ -17,6 +17,7 @@ import LotesView from './Views/Tabelas/Lotes/LotesView'
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
+import SaidaDoacao from './Views/Tabelas/SaidaDoacao'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -37,6 +38,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/tabelas/doacoes' element={<DoacoesView />} />
         <Route path="/doacoes/cadastro" element={<CadastrarDoacaoView />} />
         <Route path="/doacoes/:id" element={<EditarDoacaoView />} />
+        <Route path="/lotes/saida-doacao" element={<SaidaDoacao />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

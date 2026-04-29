@@ -80,7 +80,7 @@ class lotesControl {
     }
 
     static async sairDoacao(req, res) {
-        const connection = null;
+        let connection = null;
         try {
             const { benId, listaLotes, data } = req.body;
 

@@ -1,4 +1,5 @@
 import Itens from "./itensModel.js";
+import Ben from "./beneficiarioModel.js";
 
 function ehAnteriorHoje(dataStr) {
     const data = new Date(dataStr);
@@ -173,29 +174,28 @@ class Lotes{
         return resultado;
     }
 
-    async saidaDoacao(connection, benId, listaLotes, data){
+    static async saidaDoacao(connection, benId, listaLotes, data){
         const beneficiario = await Ben.buscarPorId(benId);
         if(beneficiario == null)
             throw new Error("Beneficiario não encontrado");
-        
+
         await connection.beginTransaction();
 
-        const resultado = await connection.query(`
+        const [resultado] = await connection.query(`
             INSERT INTO lotesDoados(ben_id,data)
             VALUES (?, ?);` ,[benId,data]);
-
+        let i = 0;
         for(let lItem of listaLotes){
             if(lItem.qtd <= 0)
                 throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.qtd+": quantidade invalida");
             else{
-                const lote = await Lotes.buscarPorId(lItem.id);
+                const lote = await this.buscarPorId(connection, lItem.id);
                 if(lote == null)
                     throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.id+": id não encontrado");
-                else{
+                else
                     await connection.query(`
                         INSERT INTO lotesDoadosLotes(lotd_id,lot_id,qtde)
                         VALUES (?, ?, ?);`,[resultado.insertId,lote.id,lItem.qtd]);
-                }
             }
         }
         await connection.commit();

@@ -17,6 +17,7 @@ function Header(){
                 <li><Link to={'/doacao'}>Doação</Link></li>
                 <li><Link to={'/portal'}>Portal da Transparência</Link></li>
                 <li><Link to={'/sobre'}>Sobre</Link></li>
+                <li><Link to="/lotes/saida-doacao">Saida de Doações</Link></li>
                 <li
                     onClick={() => {
                         setDropdownTabela(!dropdownTabela)
