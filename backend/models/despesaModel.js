@@ -1,4 +1,11 @@
-import connection from "../db/connection.js";
+import SingletonDB from "../db/SingletonDB.js";
+
+const connection = {
+    async query(...args) {
+        const db = await SingletonDB.getConnection();
+        return db.query(...args);
+    }
+};
 
 function normalizarValor(valor) {
     if (valor === "" || valor === null || valor === undefined) {

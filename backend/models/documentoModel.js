@@ -1,4 +1,4 @@
-import connection from "../db/connection.js"
+import SingletonDB from "../db/SingletonDB.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,6 +10,13 @@ const TEXTO_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,;:!?ºª°'"()/_-]{3,255}$/;
 const NOME_ARQUIVO_REGEX = /^[A-Za-zÀ-ÿ0-9\s._()-]+\.[A-Za-z0-9]{1,10}$/;
 const TAMANHO_MAXIMO_ARQUIVO = 10 * 1024 * 1024;
 const TIPOS_DOCUMENTO = new Set(["PDF", "DOCX", "XLSX", "IMAGEM", "CONTRATO", "TERMO", "COMPROVANTE", "OUTRO", "TXT"]);
+
+const connection = {
+    async query(...args) {
+        const db = await SingletonDB.getConnection();
+        return db.query(...args);
+    }
+};
 
 function mapDocumento(row) {
     return new Documento(

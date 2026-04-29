@@ -62,69 +62,6 @@ CREATE TABLE IF NOT EXISTS `doacoes` (
   PRIMARY KEY (`doa_id`)
 );
 
-SET @add_doa_doadorNome = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'doacoes'
-      AND COLUMN_NAME = 'doa_doadorNome') = 0,
-  'ALTER TABLE doacoes ADD COLUMN doa_doadorNome VARCHAR(100) NULL AFTER doa_id',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_doa_doadorNome;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_doa_tipo = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'doacoes'
-      AND COLUMN_NAME = 'doa_tipo') = 0,
-  'ALTER TABLE doacoes ADD COLUMN doa_tipo VARCHAR(45) NULL AFTER doa_formaEntrega',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_doa_tipo;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_doa_quantidadeItens = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'doacoes'
-      AND COLUMN_NAME = 'doa_quantidadeItens') = 0,
-  'ALTER TABLE doacoes ADD COLUMN doa_quantidadeItens INT NOT NULL DEFAULT 1 AFTER doa_tipo',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_doa_quantidadeItens;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_doa_detalhes = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'doacoes'
-      AND COLUMN_NAME = 'doa_detalhes') = 0,
-  'ALTER TABLE doacoes ADD COLUMN doa_detalhes TEXT NULL AFTER doa_observacao',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_doa_detalhes;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_doacoes_doc_id = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'doacoes'
-      AND COLUMN_NAME = 'doc_id') = 0,
-  'ALTER TABLE doacoes ADD COLUMN doc_id INT NULL AFTER doa_detalhes',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_doacoes_doc_id;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-ALTER TABLE `doacoes`
-  MODIFY COLUMN `doad_id` INT NULL;
-
 CREATE TABLE IF NOT EXISTS `itens` (
   `item_id` INT NOT NULL AUTO_INCREMENT,
   `item_descricao` VARCHAR(45) NULL,
@@ -173,120 +110,6 @@ CREATE TABLE IF NOT EXISTS `encontros` (
   PRIMARY KEY (`enc_id`)
 );
 
-ALTER TABLE `encontros`
-  MODIFY COLUMN `enc_disponibilidade` CHAR(1) NULL;
-
-SET @add_enc_cancelado = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_cancelado') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_cancelado CHAR(1) NOT NULL DEFAULT ''N''',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_cancelado;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_motivo_cancelamento = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_motivo_cancelamento') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_motivo_cancelamento VARCHAR(255) NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_motivo_cancelamento;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_detalhes_cancelamento = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_detalhes_cancelamento') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_detalhes_cancelamento TEXT NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_detalhes_cancelamento;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_data_cancelamento = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_data_cancelamento') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_data_cancelamento DATETIME NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_data_cancelamento;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-ALTER TABLE `encontros`
-  MODIFY COLUMN `enc_data_cancelamento` DATETIME NULL;
-
-SET @add_enc_acao_cancelamento = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_acao_cancelamento') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_acao_cancelamento VARCHAR(40) NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_acao_cancelamento;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_reagendado_para = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_reagendado_para') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_reagendado_para INT NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_reagendado_para;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_beneficiarios_afetados = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_beneficiarios_afetados') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_beneficiarios_afetados INT NOT NULL DEFAULT 0',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_beneficiarios_afetados;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_responsaveis_afetados = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_responsaveis_afetados') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_responsaveis_afetados INT NOT NULL DEFAULT 0',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_responsaveis_afetados;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_enc_materiais_afetados = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'encontros'
-      AND COLUMN_NAME = 'enc_materiais_afetados') = 0,
-  'ALTER TABLE encontros ADD COLUMN enc_materiais_afetados INT NOT NULL DEFAULT 0',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_enc_materiais_afetados;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
 CREATE TABLE IF NOT EXISTS `funcionarios` (
   `fun_id` INT NOT NULL AUTO_INCREMENT,
   `fun_nome` VARCHAR(45) NULL,
@@ -297,30 +120,6 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
   `fun_telefone` VARCHAR(45) NULL,
   PRIMARY KEY (`fun_id`)
 );
-
-SET @add_fun_cpf = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'funcionarios'
-      AND COLUMN_NAME = 'fun_cpf') = 0,
-  'ALTER TABLE funcionarios ADD COLUMN fun_cpf VARCHAR(45) NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_fun_cpf;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @add_fun_telefone = IF(
-  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'funcionarios'
-      AND COLUMN_NAME = 'fun_telefone') = 0,
-  'ALTER TABLE funcionarios ADD COLUMN fun_telefone VARCHAR(45) NULL',
-  'SELECT 1'
-);
-PREPARE stmt FROM @add_fun_telefone;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
 
 CREATE TABLE IF NOT EXISTS `lotesDoados` (
   `lotd_id` INT NOT NULL,
@@ -379,139 +178,73 @@ CREATE TABLE IF NOT EXISTS `materiais` (
   PRIMARY KEY (`enc_id`, `item_id`)
 );
 
-DELIMITER $$
+alter table `despesas`
+  add CONSTRAINT `fk_despesas_documentos`
+    FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
 
-DROP PROCEDURE IF EXISTS `add_foreign_key_if_missing`$$
-CREATE PROCEDURE `add_foreign_key_if_missing`(
-  IN p_constraint_name VARCHAR(64),
-  IN p_alter_sql TEXT
-)
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM information_schema.TABLE_CONSTRAINTS
-    WHERE CONSTRAINT_SCHEMA = DATABASE()
-      AND CONSTRAINT_NAME = p_constraint_name
-      AND CONSTRAINT_TYPE = 'FOREIGN KEY'
-  ) THEN
-    SET @alter_sql = p_alter_sql;
-    PREPARE stmt FROM @alter_sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
-  END IF;
-END$$
+alter table `doacoes`
+  add CONSTRAINT `fk_doacoes_doador`
+    FOREIGN KEY (`doad_id`) REFERENCES `doadores` (`doad_id`),
+  add CONSTRAINT `fk_doacoes_documentos`
+    FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
 
-DELIMITER ;
+alter table `lotes`
+  add CONSTRAINT `fk_lotes_itens`
+    FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_despesas_documentos',
-  'ALTER TABLE `despesas` ADD CONSTRAINT `fk_despesas_documentos` FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`)'
-);
+alter table `lotesDoados`
+  add CONSTRAINT `fk_lotesDoados_beneficiarios`
+    FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_doacoes_doador',
-  'ALTER TABLE `doacoes` ADD CONSTRAINT `fk_doacoes_doador` FOREIGN KEY (`doad_id`) REFERENCES `doadores` (`doad_id`)'
-);
+alter table `lotesDoadosLotes`
+  add CONSTRAINT `fk_lotesDoadosLotes_lotesDoados`
+    FOREIGN KEY (`lotd_id`) REFERENCES `lotesDoados` (`lotd_id`),
+  add CONSTRAINT `fk_lotesDoadosLotes_lotes`
+    FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_doacoes_documentos',
-  'ALTER TABLE `doacoes` ADD CONSTRAINT `fk_doacoes_documentos` FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`)'
-);
+alter table `entradaDoacoes`
+  add CONSTRAINT `fk_entradaDoacoes_doacoes`
+    FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`),
+  add CONSTRAINT `fk_entradaDoacoes_lotes`
+    FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`),
+  add CONSTRAINT `fk_entradaDoacoes_documentos`
+    FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_lotes_itens',
-  'ALTER TABLE `lotes` ADD CONSTRAINT `fk_lotes_itens` FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`)'
-);
+alter table `encontrosItens`
+  add CONSTRAINT `fk_encontrosItens_encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
+  add CONSTRAINT `fk_encontrosItens_lotes`
+    FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_lotesDoados_beneficiarios',
-  'ALTER TABLE `lotesDoados` ADD CONSTRAINT `fk_lotesDoados_beneficiarios` FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`)'
-);
+alter table `beneficiariosEncontros`
+  add CONSTRAINT `fk_EParticipantes_Beneficiarios`
+    FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`),
+  add CONSTRAINT `fk_Participantes_Encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_lotesDoadosLotes_lotesDoados',
-  'ALTER TABLE `lotesDoadosLotes` ADD CONSTRAINT `fk_lotesDoadosLotes_lotesDoados` FOREIGN KEY (`lotd_id`) REFERENCES `lotesDoados` (`lotd_id`)'
-);
+alter table `funcionariosEncontros`
+  add CONSTRAINT `fk_funcionariosEncontros_encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
+  add CONSTRAINT `fk_funcionariosEncontros_funcionarios`
+    FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_lotesDoadosLotes_lotes',
-  'ALTER TABLE `lotesDoadosLotes` ADD CONSTRAINT `fk_lotesDoadosLotes_lotes` FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`)'
-);
+alter table `participantes`
+  add CONSTRAINT `fk_participantes_encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
+  add CONSTRAINT `fk_participantes_beneficiarios`
+    FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_entradaDoacoes_doacoes',
-  'ALTER TABLE `entradaDoacoes` ADD CONSTRAINT `fk_entradaDoacoes_doacoes` FOREIGN KEY (`doa_id`) REFERENCES `doacoes` (`doa_id`)'
-);
+alter table `responsaveis`
+  add CONSTRAINT `fk_Responsaveis_Funcionarios`
+    FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`),
+  add CONSTRAINT `fk_Responsaveis_Encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`);
 
-CALL `add_foreign_key_if_missing`(
-  'fk_entradaDoacoes_lotes',
-  'ALTER TABLE `entradaDoacoes` ADD CONSTRAINT `fk_entradaDoacoes_lotes` FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_entradaDoacoes_documentos',
-  'ALTER TABLE `entradaDoacoes` ADD CONSTRAINT `fk_entradaDoacoes_documentos` FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_encontrosItens_encontros',
-  'ALTER TABLE `encontrosItens` ADD CONSTRAINT `fk_encontrosItens_encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_encontrosItens_lotes',
-  'ALTER TABLE `encontrosItens` ADD CONSTRAINT `fk_encontrosItens_lotes` FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_EParticipantes_Beneficiarios',
-  'ALTER TABLE `beneficiariosEncontros` ADD CONSTRAINT `fk_EParticipantes_Beneficiarios` FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Participantes_Encontros',
-  'ALTER TABLE `beneficiariosEncontros` ADD CONSTRAINT `fk_Participantes_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_funcionariosEncontros_encontros',
-  'ALTER TABLE `funcionariosEncontros` ADD CONSTRAINT `fk_funcionariosEncontros_encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_funcionariosEncontros_funcionarios',
-  'ALTER TABLE `funcionariosEncontros` ADD CONSTRAINT `fk_funcionariosEncontros_funcionarios` FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Participantes_Encontros',
-  'ALTER TABLE `participantes` ADD CONSTRAINT `fk_Participantes_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_EParticipantes_Beneficiarios_participantes',
-  'ALTER TABLE `participantes` ADD CONSTRAINT `fk_EParticipantes_Beneficiarios_participantes` FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Responsaveis_Funcionarios',
-  'ALTER TABLE `responsaveis` ADD CONSTRAINT `fk_Responsaveis_Funcionarios` FOREIGN KEY (`fun_id`) REFERENCES `funcionarios` (`fun_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Responsaveis_Encontros',
-  'ALTER TABLE `responsaveis` ADD CONSTRAINT `fk_Responsaveis_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Materiais_Encontros',
-  'ALTER TABLE `materiais` ADD CONSTRAINT `fk_Materiais_Encontros` FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`)'
-);
-
-CALL `add_foreign_key_if_missing`(
-  'fk_Materiais_Itens',
-  'ALTER TABLE `materiais` ADD CONSTRAINT `fk_Materiais_Itens` FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`)'
-);
+alter table `materiais`
+  add CONSTRAINT `fk_Materiais_Encontros`
+    FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`),
+  add CONSTRAINT `fk_Materiais_Itens`
+    FOREIGN KEY (`item_id`) REFERENCES `itens` (`item_id`);
 
 INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, fun_telefone)
 SELECT 'PerfilTeste', 'adm', 'adm', 'Administrador', '99131079032', '1899999999'

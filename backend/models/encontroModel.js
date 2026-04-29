@@ -1,4 +1,26 @@
-import connection from "../db/connection.js";
+import SingletonDB from "../db/SingletonDB.js";
+
+const connection = {
+    async query(...args) {
+        const db = await SingletonDB.getConnection();
+        return db.query(...args);
+    },
+
+    async beginTransaction() {
+        const db = await SingletonDB.getConnection();
+        return db.beginTransaction();
+    },
+
+    async commit() {
+        const db = await SingletonDB.getConnection();
+        return db.commit();
+    },
+
+    async rollback() {
+        const db = await SingletonDB.getConnection();
+        return db.rollback();
+    }
+};
 
 function normalizarData(data) {
     return data ? new Date(data) : null;
