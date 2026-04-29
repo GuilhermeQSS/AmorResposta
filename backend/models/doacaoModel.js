@@ -232,7 +232,7 @@ class Doacao {
         ));
     }
 
-    static async buscarPorId(id) {
+    static async buscarPorId(connection, id) {
         const queryString = "select * from doacoes where doa_id = ?";
         const [[doacao]] = await connection.query(queryString, [id]);
 
@@ -302,7 +302,7 @@ class Doacao {
         }
     }
 
-    async alterar() {
+    async alterar(connection) {
         const queryString = `
             update doacoes set
                 doa_doadorNome = ?,
@@ -331,7 +331,7 @@ class Doacao {
         return resultado;
     }
 
-    async excluir() {
+    async excluir(connection) {
         const queryString = "delete from doacoes where doa_id = ?";
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;

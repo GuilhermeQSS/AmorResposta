@@ -1,4 +1,5 @@
 import Documento from "../models/documentoModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class DocumentoController {
     static async listar(req, res) {
@@ -116,6 +117,7 @@ class DocumentoController {
 
     static async excluir(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { id } = req.body;
             if (!id) {
                 return res.status(400).json({ Erro: "ID obrigatorio para exclusao" });

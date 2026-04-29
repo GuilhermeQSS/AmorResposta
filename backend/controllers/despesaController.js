@@ -1,4 +1,5 @@
 import Despesa from "../models/despesaModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 function campoVazio(valor) {
     return !valor || !String(valor).trim();
@@ -16,7 +17,8 @@ function valorInvalido(valor) {
 class DespesaController {
     static async listar(req, res) {
         try {
-            const resp = await Despesa.listar(req.query.filtro, req.query.valor);
+            const connection = await SingletonDB.getConnection();
+            const resp = await Despesa.listar(connection, req.query.filtro, req.query.valor);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de listar despesas" });
@@ -25,7 +27,8 @@ class DespesaController {
 
     static async buscarPorId(req, res) {
         try {
-            const resp = await Despesa.buscarPorId(req.query.id);
+            const connection = await SingletonDB.getConnection();
+            const resp = await Despesa.buscarPorId(connection, req.query.id);
 
             if (!resp) {
                 return res.status(404).json({ erro: `Nao existe despesa com id ${req.query.id}` });
@@ -39,6 +42,7 @@ class DespesaController {
 
     static async cadastrar(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { valor, descricao } = req.body;
 
             if (valorInvalido(valor) || campoVazio(descricao)) {
@@ -52,7 +56,7 @@ class DespesaController {
             }
 
             const despesa = new Despesa(0, valor, descricao);
-            const resp = await despesa.gravar();
+            const resp = await despesa.gravar(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de gravar a despesa" });
@@ -61,6 +65,7 @@ class DespesaController {
 
     static async alterar(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { id, valor, descricao } = req.body;
 
             if (valorInvalido(valor) || campoVazio(descricao)) {
@@ -74,7 +79,7 @@ class DespesaController {
             }
 
             const despesa = new Despesa(id, valor, descricao);
-            const resp = await despesa.alterar();
+            const resp = await despesa.alterar(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de alterar a despesa" });
@@ -83,9 +88,10 @@ class DespesaController {
 
     static async excluir(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { id } = req.body;
             const despesa = new Despesa(id);
-            const resp = await despesa.excluir();
+            const resp = await despesa.excluir(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de excluir a despesa" });

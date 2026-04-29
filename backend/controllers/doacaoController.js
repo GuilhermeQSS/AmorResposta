@@ -1,4 +1,5 @@
 import Doacao from "../models/doacaoModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 class DoacaoController {
     static quantidadeItensValida(quantidadeItens) {
@@ -42,7 +43,8 @@ class DoacaoController {
 
     static async buscarPorId(req, res) {
         try {
-            const resp = await Doacao.buscarPorId(req.query.id);
+            const connection = await SingletonDB.getConnection();
+            const resp = await Doacao.buscarPorId(connection, req.query.id);
 
             if (!resp) {
                 return res.status(404).json({ erro: `Nao existe doacao com id ${req.query.id}` });
@@ -89,7 +91,7 @@ class DoacaoController {
                 documento
             );
 
-            const resp = await doacao.gravar();
+            const resp = await doacao.gravar(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de gravar a doacao" });
@@ -124,7 +126,7 @@ class DoacaoController {
                 detalhes
             );
 
-            const resp = await doacao.alterar();
+            const resp = await doacao.alterar(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de alterar a doacao" });
@@ -133,9 +135,10 @@ class DoacaoController {
 
     static async excluir(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { id } = req.body;
             const doacao = new Doacao(id);
-            const resp = await doacao.excluir();
+            const resp = await doacao.excluir(connection);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de excluir a doacao" });
