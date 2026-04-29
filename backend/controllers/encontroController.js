@@ -470,22 +470,21 @@ class EncontroController {
       }
 
       const encontro = await Encontro.buscarPorId(id);
-
       if (!encontro) {
         return res.status(404).json({
           err: "Encontro não encontrado",
         });
       }
 
-      if (encontro.enc_disponibilidade === "F") {
+      if (encontro.disponibilidade === "F") {
         return res.status(400).json({
           err: "Encontro já finalizado",
         });
       }
 
       if (
-        encontro.enc_disponibilidade !== "A" &&
-        encontro.enc_disponibilidade !== "E"
+        encontro.disponibilidade !== "A" &&
+        encontro.disponibilidade !== "E"
       ) {
         return res.status(400).json({
           err: "Encontro não está em andamento",
