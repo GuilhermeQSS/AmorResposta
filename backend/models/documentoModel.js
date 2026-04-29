@@ -6,6 +6,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "documentos");
+const TEXTO_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,;:!?ºª°'"()/_-]{3,255}$/;
+const NOME_ARQUIVO_REGEX = /^[A-Za-zÀ-ÿ0-9\s._()-]+\.[A-Za-z0-9]{1,10}$/;
+const TAMANHO_MAXIMO_ARQUIVO = 10 * 1024 * 1024;
+const TIPOS_DOCUMENTO = new Set(["PDF", "DOCX", "XLSX", "IMAGEM", "CONTRATO", "TERMO", "COMPROVANTE", "OUTRO", "TXT"]);
 
 function mapDocumento(row) {
     return new Documento(
@@ -68,12 +72,13 @@ class Documento {
         const nomeArquivo = String(arquivo.nomeArquivo || "").trim();
         const conteudoBase64 = String(arquivo.conteudoBase64 || "").trim();
         const tipoMime = String(arquivo.tipoMime || "").trim() || null;
+        const tamanho = Number(arquivo.tamanho || arquivo.size || 0);
 
         if (!nomeArquivo || !conteudoBase64) {
             return null;
         }
 
-        return { nomeArquivo, conteudoBase64, tipoMime };
+        return { nomeArquivo, conteudoBase64, tipoMime, tamanho };
     }
 
     static normalizarDados({ titulo, tipo, dataCriacao, descricao, link, arquivo }) {
@@ -91,9 +96,26 @@ class Documento {
         const erros = {};
 
         if (!dados.titulo) erros.titulo = "Titulo obrigatorio";
+        if (dados.titulo && !TEXTO_REGEX.test(dados.titulo)) {
+            erros.titulo = "Titulo invalido";
+        }
         if (!dados.tipo) erros.tipo = "Tipo obrigatorio";
+        if (dados.tipo && !TIPOS_DOCUMENTO.has(dados.tipo)) {
+            erros.tipo = "Tipo invalido";
+        }
         if (!dados.dataCriacao) erros.dataCriacao = "Data obrigatoria";
+        if (dados.dataCriacao) {
+            const dataCriacao = new Date(`${dados.dataCriacao}T00:00:00`);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            if (Number.isNaN(dataCriacao.getTime()) || dataCriacao > hoje) {
+                erros.dataCriacao = "Data invalida";
+            }
+        }
         if (!dados.descricao) erros.descricao = "Descricao obrigatoria";
+        if (dados.descricao && !TEXTO_REGEX.test(dados.descricao)) {
+            erros.descricao = "Descricao invalida";
+        }
         if (exigirFonte && !dados.link && !dados.arquivo) {
             erros.link = "Informe um link ou envie um arquivo";
         }
@@ -106,6 +128,17 @@ class Documento {
                 }
             } catch {
                 erros.link = "Informe uma URL valida";
+            }
+        }
+
+        if (dados.arquivo) {
+            if (!NOME_ARQUIVO_REGEX.test(dados.arquivo.nomeArquivo)) {
+                erros.link = "Nome de arquivo invalido";
+            }
+
+            const tamanhoBuffer = Buffer.from(dados.arquivo.conteudoBase64, "base64").length;
+            if (tamanhoBuffer <= 0 || tamanhoBuffer > TAMANHO_MAXIMO_ARQUIVO) {
+                erros.link = "Arquivo deve ter ate 10MB";
             }
         }
 

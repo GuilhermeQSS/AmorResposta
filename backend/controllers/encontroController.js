@@ -275,7 +275,8 @@ class EncontroController {
 
     static async cadastrar(req, res) {
         try {
-            const { data, hora, horaFim, disponibilidade, qtdeMax, qtde, local, responsaveis = [], materiais = [] } = req.body;
+            const { data, hora, horaFim, disponibilidade, qtdeMax, local, responsaveis = [], materiais = [] } = req.body;
+            const qtdeInicial = 0;
             const localLimpo = String(local || "").trim();
 
             if (
@@ -284,8 +285,6 @@ class EncontroController {
                 horaFim == "" ||
                 (disponibilidade != "A" && disponibilidade != "E" && disponibilidade != "F") ||
                 qtdeMax <= 0 ||
-                qtde == null ||
-                qtde < 0 ||
                 localLimpo == ""
             ) {
                 if (qtdeMax == 0) {
@@ -296,20 +295,6 @@ class EncontroController {
                             enc_hora: !hora,
                             enc_disponibilidade: !disponibilidade,
                             enc_qtdeMax: !qtdeMax,
-                            enc_qtde: !qtde,
-                            enc_local: !local,
-                        },
-                    });
-                }
-                if (qtde < 0) {
-                    return res.status(500).json({
-                        err: "Quantidade nao pode ser menor que 0",
-                        campos: {
-                            enc_data: !data,
-                            enc_hora: !hora,
-                            enc_disponibilidade: !disponibilidade,
-                            enc_qtdeMax: !qtdeMax,
-                            enc_qtde: !qtde,
                             enc_local: !local,
                         },
                     });
@@ -320,17 +305,11 @@ class EncontroController {
                         enc_data: !data,
                         enc_hora: !hora,
                         enc_hora_fim: !horaFim,
-                        enc_hora_fim: !horaFim,
                         enc_disponibilidade: !disponibilidade,
                         enc_qtdeMax: !qtdeMax,
-                        enc_qtde: !qtde,
                         enc_local: !localLimpo,
                     },
                 });
-            }
-
-            if (qtde > qtdeMax) {
-                return res.status(500).json({ err: "Quantidade atual nao pode ser maior que a maxima" });
             }
 
             Encontro.validarAgendamento({
@@ -339,7 +318,7 @@ class EncontroController {
                 horaFim,
                 local: localLimpo,
                 qtdeMax,
-                qtde,
+                qtde: qtdeInicial,
                 responsaveisIds: responsaveis,
             });
 
@@ -390,7 +369,7 @@ class EncontroController {
                 horaFim,
                 disponibilidade,
                 qtdeMax,
-                qtde,
+                qtdeInicial,
                 localLimpo
             );
 

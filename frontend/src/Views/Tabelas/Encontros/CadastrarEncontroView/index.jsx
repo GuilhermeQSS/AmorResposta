@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:3000/api/encontros";
 const ITENS_API_URL = "http://localhost:3000/itens";
+const LOCAL_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,ºª°\-()]{3,80}$/;
 
 function criarDataHora(data, hora) {
   if (!data || !hora) return null;
@@ -47,7 +48,6 @@ function CadastrarEncontroView() {
     horaFim: "",
     disponibilidade: "",
     qtdeMax: 0,
-    qtde: 0,
     local: "",
   });
   const navigate = useNavigate();
@@ -57,8 +57,7 @@ function CadastrarEncontroView() {
   const horaFimMinutos = form.horaFim ? Number(form.horaFim.split(":")[0]) * 60 + Number(form.horaFim.split(":")[1]) : null;
   const encontroNoPassado = dataHoraSelecionada ? dataHoraSelecionada < new Date() : false;
   const terminoInvalido = horaInicioMinutos !== null && horaFimMinutos !== null && horaFimMinutos <= horaInicioMinutos;
-  const ocupacao = form.qtdeMax > 0 ? Math.round((form.qtde / form.qtdeMax) * 100) : 0;
-  const vagasRestantes = Math.max(Number(form.qtdeMax || 0) - Number(form.qtde || 0), 0);
+  const vagasRestantes = Math.max(Number(form.qtdeMax || 0), 0);
   const responsaveisSelecionados = funcionariosDisponiveis.filter((funcionario) =>
     funcionariosSelecionados.includes(funcionario.id)
   );
@@ -73,7 +72,7 @@ function CadastrarEncontroView() {
   const criteriosPlanejamento = [
     { texto: "Data e hora futuras", pronto: Boolean(form.data && form.hora && form.horaFim && !encontroNoPassado && !terminoInvalido) },
     { texto: "Local definido", pronto: form.local.trim().length >= 3 },
-    { texto: "Capacidade valida", pronto: form.qtdeMax > 0 && form.qtde >= 0 && form.qtde <= form.qtdeMax },
+    { texto: "Capacidade valida", pronto: form.qtdeMax > 0 },
     { texto: "Pelo menos um responsavel", pronto: funcionariosSelecionados.length > 0 },
   ];
   const prontidao = Math.round(
@@ -89,13 +88,16 @@ function CadastrarEncontroView() {
     if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opcao";
     if (!form.local.trim()) novosErros.local = "Local obrigatorio";
     if (form.local.trim() && form.local.trim().length < 3) novosErros.local = "Informe um local mais detalhado";
+    if (form.local.trim() && !LOCAL_REGEX.test(form.local.trim())) {
+      novosErros.local = "Use apenas letras, numeros e pontuacao simples";
+    }
     if (encontroNoPassado) novosErros.data = "Agende para uma data e hora futuras";
-    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
+    if (!Number.isInteger(form.qtdeMax) || form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
     if (form.qtdeMax <= 0) {
       novosErros.qtdeMax = "Deve ser maior que 0";
     }
-    if (form.qtde > form.qtdeMax) {
-      novosErros.qtde = "Nao pode ser maior que a maxima";
+    if (form.qtdeMax > 500) {
+      novosErros.qtdeMax = "Informe no maximo 500 vagas";
     }
     if (funcionariosSelecionados.length === 0) {
       novosErros.responsaveis = "Selecione pelo menos um funcionario responsavel";
@@ -140,7 +142,7 @@ function CadastrarEncontroView() {
           horaFim: form.horaFim,
           disponibilidade: form.disponibilidade,
           qtdeMax: form.qtdeMax,
-          qtde: form.qtde,
+          qtde: 0,
           local: form.local.trim(),
           responsaveis: funcionariosSelecionados,
           materiais: materiaisSelecionados,
@@ -163,7 +165,7 @@ function CadastrarEncontroView() {
 
     setForm((prev) => ({
       ...prev,
-      [name]: name.includes("qtde") ? Number(value) : value,
+      [name]: name === "qtdeMax" ? Number(value) : value,
     }));
   }
 
@@ -193,8 +195,8 @@ function CadastrarEncontroView() {
     const itemId = Number(materialDraft.itemId);
     const qtde = Number(materialDraft.qtde);
 
-    if (!itemId || !Number.isInteger(qtde) || qtde <= 0) {
-      setErros((prev) => ({ ...prev, materiais: "Selecione um item e uma quantidade maior que 0" }));
+    if (!itemId || !Number.isInteger(qtde) || qtde <= 0 || qtde > 999) {
+      setErros((prev) => ({ ...prev, materiais: "Selecione um item e uma quantidade entre 1 e 999" }));
       return;
     }
 
@@ -217,7 +219,7 @@ function CadastrarEncontroView() {
   }
 
   function atualizarQuantidadeMaterial(itemId, qtde) {
-    const quantidade = Math.max(Number(qtde), 1);
+    const quantidade = Math.max(Math.min(Number(qtde), 999), 1);
     setMateriaisSelecionados((prev) =>
       prev.map((material) => (material.itemId === itemId ? { ...material, qtde: quantidade } : material))
     );
@@ -265,6 +267,7 @@ function CadastrarEncontroView() {
               name="data"
               value={form.data}
               type="date"
+              min={new Date().toISOString().slice(0, 10)}
               onChange={atualizarForm}
               style={{ border: erros.data || erros.enc_data ? "2px solid red" : "" }}
             />
@@ -277,6 +280,7 @@ function CadastrarEncontroView() {
               name="hora"
               value={form.hora}
               type="time"
+              step="300"
               onChange={atualizarForm}
               style={{ border: erros.hora || erros.enc_hora ? "2px solid red" : "" }}
             />
@@ -289,6 +293,7 @@ function CadastrarEncontroView() {
               name="horaFim"
               value={form.horaFim}
               type="time"
+              step="300"
               onChange={atualizarForm}
               style={{ border: erros.horaFim || erros.enc_hora_fim ? "2px solid red" : "" }}
             />
@@ -319,6 +324,9 @@ function CadastrarEncontroView() {
             <input
               type="number"
               name="qtdeMax"
+              min="1"
+              max="500"
+              step="1"
               value={form.qtdeMax}
               onChange={atualizarForm}
               style={{ border: erros.qtdeMax || erros.enc_qtdeMax ? "2px solid red" : "" }}
@@ -329,21 +337,11 @@ function CadastrarEncontroView() {
           </div>
 
           <div>
-            <label>Quantidade Atual:</label>
-            <input
-              type="number"
-              name="qtde"
-              value={form.qtde}
-              onChange={atualizarForm}
-              style={{ border: erros.qtde || erros.enc_qtde ? "2px solid red" : "" }}
-            />
-            {(erros.qtde || erros.enc_qtde) && <span style={{ color: "red" }}>{erros.qtde || erros.enc_qtde}</span>}
-          </div>
-
-          <div>
             <label>Local:</label>
             <input
               name="local"
+              maxLength="80"
+              pattern={LOCAL_REGEX.source}
               value={form.local}
               onChange={atualizarForm}
               style={{ border: erros.local || erros.enc_local ? "2px solid red" : "" }}
@@ -380,10 +378,6 @@ function CadastrarEncontroView() {
               <div>
                 <small>Vagas restantes</small>
                 <strong>{vagasRestantes}</strong>
-              </div>
-              <div>
-                <small>Ocupacao inicial</small>
-                <strong>{Number.isFinite(ocupacao) ? ocupacao : 0}%</strong>
               </div>
               <div>
                 <small>Responsaveis</small>
@@ -481,6 +475,8 @@ function CadastrarEncontroView() {
                 <input
                   type="number"
                   min="1"
+                  max="999"
+                  step="1"
                   value={materialDraft.qtde}
                   onChange={(event) => setMaterialDraft((prev) => ({ ...prev, qtde: event.target.value }))}
                 />
@@ -506,6 +502,8 @@ function CadastrarEncontroView() {
                     <input
                       type="number"
                       min="1"
+                      max="999"
+                      step="1"
                       value={material.qtde}
                       onChange={(event) => atualizarQuantidadeMaterial(material.itemId, event.target.value)}
                     />

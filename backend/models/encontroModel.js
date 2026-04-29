@@ -28,6 +28,8 @@ function normalizarMinutos(hora) {
     return horas * 60 + minutos;
 }
 
+const LOCAL_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,ºª°\-()]{3,80}$/;
+
 class Encontro {
     constructor(
         id,
@@ -700,7 +702,13 @@ class Encontro {
         if (!dataHora) erros.enc_data = "Data ou hora invalida";
         if (dataHora && dataHora < new Date()) erros.enc_data = "Agende para uma data e hora futuras";
         if (localLimpo.length < 3) erros.enc_local = "Informe um local mais detalhado";
-        if (Number(qtdeMax) <= 0) erros.enc_qtdeMax = "Quantidade maxima deve ser maior que 0";
+        if (localLimpo && !LOCAL_REGEX.test(localLimpo)) {
+            erros.enc_local = "Use apenas letras, numeros e pontuacao simples no local";
+        }
+        if (!Number.isInteger(Number(qtdeMax)) || Number(qtdeMax) <= 0) {
+            erros.enc_qtdeMax = "Quantidade maxima deve ser um inteiro maior que 0";
+        }
+        if (Number(qtdeMax) > 500) erros.enc_qtdeMax = "Quantidade maxima deve ser no maximo 500";
         if (Number(qtde) < 0) erros.enc_qtde = "Quantidade atual nao pode ser negativa";
         if (Number(qtde) > Number(qtdeMax)) erros.enc_qtde = "Quantidade atual nao pode ser maior que a maxima";
         if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
@@ -769,7 +777,7 @@ class Encontro {
             const itemId = Number(material.itemId || material.item_id);
             const qtde = Number(material.qtde);
 
-            if (!itemId || !Number.isInteger(qtde) || qtde <= 0) {
+            if (!itemId || !Number.isInteger(qtde) || qtde <= 0 || qtde > 999) {
                 continue;
             }
 

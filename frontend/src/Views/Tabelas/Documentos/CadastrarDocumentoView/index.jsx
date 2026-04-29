@@ -5,7 +5,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:3000/documentos";
-const TIPOS_DOCUMENTO = ["PDF", "DOCX", "XLSX", "Imagem", "Contrato", "Termo", "Comprovante", "Outro"];
+const TIPOS_DOCUMENTO = ["PDF", "DOCX", "XLSX", "IMAGEM", "CONTRATO", "TERMO", "COMPROVANTE", "OUTRO"];
+const TEXTO_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,;:!?ºª°'"()/_-]{3,255}$/;
+const NOME_ARQUIVO_REGEX = /^[A-Za-zÀ-ÿ0-9\s._()-]+\.[A-Za-z0-9]{1,10}$/;
+const TAMANHO_MAXIMO_ARQUIVO = 10 * 1024 * 1024;
 
 function arquivoParaDocumento(arquivo) {
     return new Promise((resolve, reject) => {
@@ -15,6 +18,7 @@ function arquivoParaDocumento(arquivo) {
             resolve({
                 nomeArquivo: arquivo.name,
                 tipoMime: arquivo.type,
+                tamanho: arquivo.size,
                 conteudoBase64: resultado.includes(",") ? resultado.split(",")[1] : resultado,
             });
         };
@@ -29,6 +33,13 @@ function obterDominio(link) {
     } catch {
         return "";
     }
+}
+
+function dataNoFuturo(data) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const informada = new Date(`${data}T00:00:00`);
+    return informada > hoje;
 }
 
 function CadastrarDocumentoView() {
@@ -61,11 +72,28 @@ function CadastrarDocumentoView() {
     function validarLocalmente() {
         const novosErros = {};
         if (!form.titulo.trim()) novosErros.titulo = "Titulo obrigatorio";
+        if (form.titulo.trim() && !TEXTO_REGEX.test(form.titulo.trim())) {
+            novosErros.titulo = "Use pelo menos 3 caracteres e apenas texto valido";
+        }
         if (!form.tipo.trim()) novosErros.tipo = "Tipo obrigatorio";
+        if (form.tipo && !TIPOS_DOCUMENTO.includes(form.tipo)) {
+            novosErros.tipo = "Tipo invalido";
+        }
         if (!form.dataCriacao) novosErros.dataCriacao = "Data obrigatoria";
+        if (form.dataCriacao && dataNoFuturo(form.dataCriacao)) {
+            novosErros.dataCriacao = "Data nao pode estar no futuro";
+        }
         if (!form.descricao.trim()) novosErros.descricao = "Descricao obrigatoria";
+        if (form.descricao.trim() && !TEXTO_REGEX.test(form.descricao.trim())) {
+            novosErros.descricao = "Use pelo menos 3 caracteres e apenas texto valido";
+        }
         if (modoFonte === "arquivo" && !arquivo) {
             novosErros.link = "Selecione um arquivo";
+        } else if (modoFonte === "arquivo" && arquivo) {
+            if (!NOME_ARQUIVO_REGEX.test(arquivo.name)) novosErros.link = "Nome de arquivo invalido";
+            if (arquivo.size <= 0 || arquivo.size > TAMANHO_MAXIMO_ARQUIVO) {
+                novosErros.link = "Arquivo deve ter ate 10MB";
+            }
         }
         if (modoFonte === "link" && !form.link.trim()) {
             novosErros.link = "Informe o link de acesso";
@@ -126,7 +154,14 @@ function CadastrarDocumentoView() {
                     <Styled.Grid>
                         <label>
                             Titulo
-                            <input type="text" name="titulo" value={form.titulo} onChange={atualizarForm} />
+                            <input
+                                type="text"
+                                name="titulo"
+                                maxLength="120"
+                                pattern={TEXTO_REGEX.source}
+                                value={form.titulo}
+                                onChange={atualizarForm}
+                            />
                             {erros.titulo && <span>{erros.titulo}</span>}
                         </label>
 
@@ -145,7 +180,13 @@ function CadastrarDocumentoView() {
 
                         <label>
                             Data de criacao
-                            <input type="date" name="dataCriacao" value={form.dataCriacao} onChange={atualizarForm} />
+                            <input
+                                type="date"
+                                name="dataCriacao"
+                                max={new Date().toISOString().slice(0, 10)}
+                                value={form.dataCriacao}
+                                onChange={atualizarForm}
+                            />
                             {erros.dataCriacao && <span>{erros.dataCriacao}</span>}
                         </label>
 
@@ -194,7 +235,13 @@ function CadastrarDocumentoView() {
 
                     <label>
                         Descricao
-                        <textarea name="descricao" rows="4" value={form.descricao} onChange={atualizarForm} />
+                        <textarea
+                            name="descricao"
+                            rows="4"
+                            maxLength="255"
+                            value={form.descricao}
+                            onChange={atualizarForm}
+                        />
                         {erros.descricao && <span>{erros.descricao}</span>}
                     </label>
 
