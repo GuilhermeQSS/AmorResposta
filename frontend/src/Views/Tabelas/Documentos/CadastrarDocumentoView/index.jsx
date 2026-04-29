@@ -9,6 +9,16 @@ const TIPOS_DOCUMENTO = ["PDF", "DOCX", "XLSX", "IMAGEM", "CONTRATO", "TERMO", "
 const TEXTO_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,;:!?ºª°'"()/_-]{3,255}$/;
 const NOME_ARQUIVO_REGEX = /^[A-Za-zÀ-ÿ0-9\s._()-]+\.[A-Za-z0-9]{1,10}$/;
 const TAMANHO_MAXIMO_ARQUIVO = 10 * 1024 * 1024;
+const ACCEPT_POR_TIPO = {
+    PDF: ".pdf,application/pdf",
+    DOCX: ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    XLSX: ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    IMAGEM: "image/*",
+    CONTRATO: ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    TERMO: ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    COMPROVANTE: ".pdf,image/*",
+    OUTRO: "",
+};
 
 function arquivoParaDocumento(arquivo) {
     return new Promise((resolve, reject) => {
@@ -56,11 +66,17 @@ function CadastrarDocumentoView() {
     });
 
     const dominio = useMemo(() => obterDominio(form.link), [form.link]);
+    const acceptArquivo = ACCEPT_POR_TIPO[form.tipo] || "";
 
     function atualizarForm(e) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
         setErros((prev) => ({ ...prev, [name]: "" }));
+
+        if (name === "tipo") {
+            setArquivo(null);
+            setErros((prev) => ({ ...prev, link: "" }));
+        }
     }
 
     function atualizarArquivo(e) {
@@ -214,7 +230,7 @@ function CadastrarDocumentoView() {
                         {modoFonte === "arquivo" ? (
                             <label>
                                 Arquivo do documento
-                                <input type="file" onChange={atualizarArquivo} />
+                                <input type="file" accept={acceptArquivo} onChange={atualizarArquivo} />
                                 {arquivo && <small>{arquivo.name}</small>}
                                 {erros.link && <span>{erros.link}</span>}
                             </label>
