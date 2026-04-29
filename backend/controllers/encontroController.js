@@ -216,6 +216,12 @@ class EncontroController {
     try {
       const { id, data, hora, horaFim, disponibilidade, qtdeMax, qtde, local } =
         req.body;
+      const localLimpo = String(local || "").trim();
+
+      if (!id) {
+        return res.status(400).json({ err: "ID do encontro e obrigatorio" });
+      }
+
       if (
         data == "" ||
         hora == "" ||
@@ -226,7 +232,7 @@ class EncontroController {
         qtdeMax <= 0 ||
         qtde == null ||
         qtde < 0 ||
-        local == ""
+        localLimpo == ""
       ) {
         if (qtdeMax == 0) {
           return res.status(500).json({
@@ -279,6 +285,59 @@ class EncontroController {
 
       Encontro.validarHorario(hora, horaFim);
 
+      const conflitoLocal = await Encontro.buscarConflitoLocal(
+        data,
+        hora,
+        horaFim,
+        localLimpo,
+        id,
+      );
+      if (conflitoLocal) {
+        return res.status(400).json({
+          err: `Ja existe encontro agendado neste local e horario: #${conflitoLocal.enc_id}`,
+          campos: {
+            enc_local: "Local indisponivel neste horario",
+          },
+        });
+      }
+
+      const responsaveisAtuais = await Encontro.listarResponsaveisIds(id);
+      const conflitosResponsaveis =
+        await Encontro.listarResponsaveisComConflito(
+          data,
+          hora,
+          horaFim,
+          responsaveisAtuais,
+          id,
+        );
+      if (conflitosResponsaveis.length > 0) {
+        return res.status(400).json({
+          err: `Responsavel indisponivel neste horario: ${conflitosResponsaveis[0].fun_nome}`,
+          campos: {
+            responsaveis:
+              "Um ou mais responsaveis ja possuem encontro neste horario",
+          },
+        });
+      }
+
+      const materiaisAtuais = await Encontro.listarMateriaisPorEncontro(id);
+      const conflitosMateriais = await Encontro.listarMateriaisComConflito(
+        data,
+        hora,
+        horaFim,
+        materiaisAtuais,
+        id,
+      );
+      if (conflitosMateriais.length > 0) {
+        return res.status(400).json({
+          err: `Material indisponivel neste horario: ${conflitosMateriais[0].item_nome}`,
+          campos: {
+            materiais:
+              "Um ou mais materiais ja estao reservados para outro encontro neste horario",
+          },
+        });
+      }
+
       const encontro = new Encontro(
         id,
         data,
@@ -287,7 +346,7 @@ class EncontroController {
         disponibilidade,
         qtdeMax,
         qtde,
-        local,
+        localLimpo,
       );
 
       const resultado = await encontro.alterar();

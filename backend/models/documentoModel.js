@@ -1,6 +1,7 @@
 import SingletonDB from "../db/SingletonDB.js";
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,7 +40,7 @@ class Documento {
         this.link = link;
     }
 
-    static async listar(connection, filtroTitulo, filtroTipo) {
+    static async listar(filtroTitulo, filtroTipo) {
         let queryString = `select * from documentos`;
         const conditions = [];
         const params = [];
@@ -61,7 +62,7 @@ class Documento {
         return documentos.map(mapDocumento);
     }
 
-    static async buscarPorId(connection, id) {
+    static async buscarPorId(id) {
         let queryString = `select * from documentos where doc_id = ?`
         const [[documento]] = await connection.query(queryString, [id]);
         if (!documento) {
@@ -88,13 +89,33 @@ class Documento {
         return { nomeArquivo, conteudoBase64, tipoMime, tamanho };
     }
 
+    static normalizarFonte(link) {
+        const fonte = String(link || "").trim();
+        if (!fonte) {
+            return "";
+        }
+
+        if (fonte.startsWith("uploads/")) {
+            return fonte.replace(/\\/g, "/");
+        }
+
+        try {
+            const url = new URL(fonte);
+            url.hash = "";
+            url.hostname = url.hostname.toLowerCase();
+            return url.href.replace(/\/$/, "");
+        } catch {
+            return fonte;
+        }
+    }
+
     static normalizarDados({ titulo, tipo, dataCriacao, descricao, link, arquivo }) {
         return {
             titulo: String(titulo || "").trim(),
             tipo: String(tipo || "").trim().toUpperCase(),
             dataCriacao: dataCriacao || null,
             descricao: String(descricao || "").trim(),
-            link: String(link || "").trim(),
+            link: Documento.normalizarFonte(link),
             arquivo: Documento.normalizarArquivo(arquivo),
         };
     }
@@ -181,6 +202,96 @@ class Documento {
         return { caminhoRelativo, caminhoCompleto };
     }
 
+    static obterHashBuffer(buffer) {
+        return crypto.createHash("sha256").update(buffer).digest("hex");
+    }
+
+    static async buscarDuplicadoPorFonte(link, ignorarId = null) {
+        const fonteNormalizada = Documento.normalizarFonte(link);
+        if (!fonteNormalizada) {
+            return null;
+        }
+
+        let queryString = `
+            select *
+            from documentos
+            where coalesce(doc_link, doc_caminho, '') <> ''
+        `;
+        const params = [];
+
+        if (ignorarId) {
+            queryString += ` and doc_id <> ?`;
+            params.push(ignorarId);
+        }
+
+        const [documentos] = await connection.query(queryString, params);
+        const duplicado = documentos.find((documento) => {
+            const fonteAtual = documento.doc_link || documento.doc_caminho;
+            return Documento.normalizarFonte(fonteAtual).toLowerCase() === fonteNormalizada.toLowerCase();
+        });
+
+        return duplicado ? mapDocumento(duplicado) : null;
+    }
+
+    static async buscarDuplicadoPorArquivo(arquivo, ignorarId = null) {
+        if (!arquivo) {
+            return null;
+        }
+
+        const conteudo = Buffer.from(arquivo.conteudoBase64, "base64");
+        const hashNovo = Documento.obterHashBuffer(conteudo);
+        let queryString = `
+            select *
+            from documentos
+            where coalesce(doc_link, doc_caminho, '') like 'uploads/documentos/%'
+        `;
+        const params = [];
+
+        if (ignorarId) {
+            queryString += ` and doc_id <> ?`;
+            params.push(ignorarId);
+        }
+
+        const [documentos] = await connection.query(queryString, params);
+        for (const documento of documentos) {
+            const link = documento.doc_link || documento.doc_caminho;
+            const nomeArquivo = path.basename(link || "");
+            if (!nomeArquivo) {
+                continue;
+            }
+
+            const caminho = path.join(DOCUMENTOS_DIR, nomeArquivo);
+            try {
+                const conteudoExistente = await fs.readFile(caminho);
+                if (Documento.obterHashBuffer(conteudoExistente) === hashNovo) {
+                    return mapDocumento(documento);
+                }
+            } catch {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    static async garantirSemDuplicidade(dados, ignorarId = null) {
+        const duplicadoFonte = await Documento.buscarDuplicadoPorFonte(dados.link, ignorarId);
+        if (duplicadoFonte) {
+            const erro = new Error(`Documento ja cadastrado com este link ou arquivo: #${duplicadoFonte.id}`);
+            erro.status = 400;
+            erro.campos = { link: "Ja existe um documento com esta fonte" };
+            throw erro;
+        }
+
+        const duplicadoArquivo = await Documento.buscarDuplicadoPorArquivo(dados.arquivo, ignorarId);
+        if (duplicadoArquivo) {
+            const erro = new Error(`Documento ja cadastrado com este arquivo: #${duplicadoArquivo.id}`);
+            erro.status = 400;
+            erro.campos = { link: "Ja existe um documento com este arquivo" };
+            throw erro;
+        }
+    }
+
     static async removerArquivoLocal(link) {
         if (!link || !String(link).startsWith("uploads/documentos/")) {
             return;
@@ -214,7 +325,7 @@ class Documento {
         return resultado;
     }
 
-    async alterar(connection) {
+    async alterar() {
         let queryString = `
             update documentos set
                 doc_titulo = ?,
@@ -241,7 +352,7 @@ class Documento {
         return resultado;
     }
 
-    async excluir(connection) {
+    async excluir() {
         let queryString = `delete from documentos where doc_id = ?`;
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;

@@ -612,7 +612,8 @@ class Encontro {
                     and conflito.enc_id <> atual.enc_id
                     and outro.enc_cancelado = 'N'
                     and outro.enc_data = atual.enc_data
-                    and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
+                    and outro.enc_hora < coalesce(atual.enc_hora_fim, atual.enc_hora)
+                    and coalesce(outro.enc_hora_fim, outro.enc_hora) > atual.enc_hora
               )
         `;
     const valores = [idEncontro, idFuncionarioAtual];
@@ -699,7 +700,8 @@ class Encontro {
                   and conflito.enc_id <> atual.enc_id
                   and outro.enc_cancelado = 'N'
                   and outro.enc_data = atual.enc_data
-                  and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
+                  and outro.enc_hora < coalesce(atual.enc_hora_fim, atual.enc_hora)
+                  and coalesce(outro.enc_hora_fim, outro.enc_hora) > atual.enc_hora
                 limit 1
             `,
       [idEncontro, idFuncionarioNovo],
@@ -847,7 +849,15 @@ class Encontro {
     Encontro.validarHorario(hora, horaFim);
   }
 
-  static async buscarConflitoLocal(data, hora, horaFim, local) {
+  static async buscarConflitoLocal(data, hora, horaFim, local, ignorarId = null) {
+    const filtros = [];
+    const valoresExtras = [];
+
+    if (ignorarId) {
+      filtros.push(`and enc_id <> ?`);
+      valoresExtras.push(ignorarId);
+    }
+
     const [[conflito]] = await connection.query(
       `
                 select enc_id, enc_local
@@ -857,9 +867,10 @@ class Encontro {
                   and enc_hora < ?
                   and coalesce(enc_hora_fim, enc_hora) > ?
                   and lower(trim(enc_local)) = lower(trim(?))
+                  ${filtros.join("\n")}
                 limit 1
             `,
-      [data, horaFim, hora, local],
+      [data, horaFim, hora, local, ...valoresExtras],
     );
 
     return conflito || null;
@@ -870,12 +881,21 @@ class Encontro {
     hora,
     horaFim,
     responsaveisIds = [],
+    ignorarId = null,
   ) {
     const idsUnicos = [
       ...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean)),
     ];
     if (idsUnicos.length === 0) {
       return [];
+    }
+
+    const filtros = [];
+    const valoresExtras = [];
+
+    if (ignorarId) {
+      filtros.push(`and e.enc_id <> ?`);
+      valoresExtras.push(ignorarId);
     }
 
     const [conflitos] = await connection.query(
@@ -889,11 +909,21 @@ class Encontro {
                   and e.enc_data = ?
                   and e.enc_hora < ?
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
+                  ${filtros.join("\n")}
             `,
-      [idsUnicos, data, horaFim, hora],
+      [idsUnicos, data, horaFim, hora, ...valoresExtras],
     );
 
     return conflitos;
+  }
+
+  static async listarResponsaveisIds(idEncontro) {
+    const [responsaveis] = await connection.query(
+      `select fun_id from responsaveis where enc_id = ?`,
+      [idEncontro],
+    );
+
+    return responsaveis.map((responsavel) => responsavel.fun_id);
   }
 
   static normalizarMateriais(materiais = []) {
@@ -916,12 +946,20 @@ class Encontro {
     return [...agrupados.entries()].map(([itemId, qtde]) => ({ itemId, qtde }));
   }
 
-  static async listarMateriaisComConflito(data, hora, horaFim, materiais = []) {
+  static async listarMateriaisComConflito(data, hora, horaFim, materiais = [], ignorarId = null) {
     const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
     const itemIds = materiaisNormalizados.map((material) => material.itemId);
 
     if (itemIds.length === 0) {
       return [];
+    }
+
+    const filtros = [];
+    const valoresExtras = [];
+
+    if (ignorarId) {
+      filtros.push(`and e.enc_id <> ?`);
+      valoresExtras.push(ignorarId);
     }
 
     const [conflitos] = await connection.query(
@@ -935,11 +973,21 @@ class Encontro {
                   and e.enc_data = ?
                   and e.enc_hora < ?
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
+                  ${filtros.join("\n")}
             `,
-      [itemIds, data, horaFim, hora],
+      [itemIds, data, horaFim, hora, ...valoresExtras],
     );
 
     return conflitos;
+  }
+
+  static async listarMateriaisPorEncontro(idEncontro) {
+    const [materiais] = await connection.query(
+      `select item_id as itemId, qtde from materiais where enc_id = ?`,
+      [idEncontro],
+    );
+
+    return materiais;
   }
 
   static async vincularResponsaveis(idEncontro, responsaveisIds = []) {

@@ -32,6 +32,7 @@ class DocumentoController {
         try {
             const dados = Documento.normalizarDados(req.body);
             Documento.validarDados(dados);
+            await Documento.garantirSemDuplicidade(dados);
 
             if (dados.arquivo) {
                 arquivoSalvo = await Documento.salvarArquivo(dados.arquivo);
@@ -81,9 +82,12 @@ class DocumentoController {
             Documento.validarDados(dados, !documentoAtual.link);
 
             if (dados.arquivo) {
+                await Documento.garantirSemDuplicidade(dados, id);
                 arquivoSalvo = await Documento.salvarArquivo(dados.arquivo);
                 dados.link = arquivoSalvo.caminhoRelativo;
-            } else if (!dados.link) {
+            } else if (dados.link) {
+                await Documento.garantirSemDuplicidade(dados, id);
+            } else {
                 dados.link = documentoAtual.link;
             }
 
