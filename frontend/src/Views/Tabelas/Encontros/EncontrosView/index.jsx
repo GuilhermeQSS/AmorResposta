@@ -106,7 +106,7 @@ function buildAlertas(impacto) {
 async function parseResponse(response, fallbackMessage) {
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(json.err || json.Erro || fallbackMessage);
+    throw new Error(json.err || json.Erro || json.erro || fallbackMessage);
   }
   return json;
 }
@@ -275,6 +275,36 @@ function EncontrosView() {
       setSubstituicaoError(null);
     } catch (error) {
       setSubstituicaoError(error.message || "Erro de rede ao substituir tutor.");
+    }
+  }
+
+  function handleEditarEncontro(event, encontro) {
+    event.stopPropagation();
+    navigate(`/encontros/${encontro.id}`);
+  }
+
+  async function handleExcluirEncontro(event, encontro) {
+    event.stopPropagation();
+
+    const confirmar = window.confirm(`Deseja excluir o encontro #${encontro.id} em ${encontro.local}?`);
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      setListError(null);
+      const response = await fetch(`${API_URL}/excluir`, {
+        method: "DELETE",
+        headers: getAuthHeaders({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({ id: encontro.id }),
+      });
+
+      await parseResponse(response, "Erro ao excluir encontro.");
+      await carregarLista(filtro, activeView);
+    } catch (error) {
+      setListError(error.message || "Erro de rede ao excluir encontro.");
     }
   }
 
@@ -751,9 +781,7 @@ function EncontrosView() {
                     <th>QtdeMax</th>
                     <th>Qtde</th>
                     <th>Disponibilidade</th>
-                    {(activeView === views.cancelar || activeView === views.substituir) && (
-                      <th>Acoes</th>
-                    )}
+                    <th>Acoes</th>
                   </>
                 )}
               </tr>
@@ -789,6 +817,22 @@ function EncontrosView() {
                       <td>{encontro.qtdeMax}</td>
                       <td>{encontro.qtde}</td>
                       <td>{getDisponibilidadeLabel(encontro.disponibilidade)}</td>
+                      {activeView === views.encontros && (
+                        <td>
+                          <Styled.TableActionGroup>
+                            <Styled.TableSelectButton
+                              type="button"
+                              onClick={(event) => handleEditarEncontro(event, encontro)}>
+                              Editar
+                            </Styled.TableSelectButton>
+                            <Styled.TableCancelButton
+                              type="button"
+                              onClick={(event) => handleExcluirEncontro(event, encontro)}>
+                              Excluir
+                            </Styled.TableCancelButton>
+                          </Styled.TableActionGroup>
+                        </td>
+                      )}
                       {activeView === views.cancelar && (
                         <td>
                           <Styled.TableCancelButton

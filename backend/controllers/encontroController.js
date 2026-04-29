@@ -264,12 +264,20 @@ class EncontroController {
     static async excluir(req, res) {
         try {
             const { id } = req.body;
+            if (!id) {
+                return res.status(400).json({ erro: "ID do encontro e obrigatorio" });
+            }
+
             const encontro = new Encontro(id);
             const resultado = await encontro.excluir();
-            res.status(200).json(resultado);
+            if (!resultado.affectedRows) {
+                return res.status(404).json({ erro: `Nao existe encontro com id ${id}` });
+            }
+
+            return res.status(200).json(resultado);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ erro: "Erro ao excluir encontro" });
+            return res.status(500).json({ erro: "Erro ao excluir encontro" });
         }
     }
 

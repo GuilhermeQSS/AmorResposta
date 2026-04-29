@@ -317,6 +317,13 @@ const Styled = {
     }
   `,
 
+  TableActionGroup: styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  `,
+
   Table: styled.table`
     width: 90%;
     margin: 40px auto;

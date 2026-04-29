@@ -166,15 +166,30 @@ class Encontro {
     }
 
     async excluir() {
-        const [resultado] = await connection.query(
-            `
-                delete from encontros
-                where enc_id = ?
-            `,
-            [this.id]
-        );
+        await connection.beginTransaction();
 
-        return resultado;
+        try {
+            await connection.query(`delete from participantes where enc_id = ?`, [this.id]);
+            await connection.query(`delete from responsaveis where enc_id = ?`, [this.id]);
+            await connection.query(`delete from materiais where enc_id = ?`, [this.id]);
+            await connection.query(`delete from beneficiariosEncontros where enc_id = ?`, [this.id]);
+            await connection.query(`delete from funcionariosEncontros where enc_id = ?`, [this.id]);
+            await connection.query(`delete from encontrosItens where enc_id = ?`, [this.id]);
+
+            const [resultado] = await connection.query(
+                `
+                    delete from encontros
+                    where enc_id = ?
+                `,
+                [this.id]
+            );
+
+            await connection.commit();
+            return resultado;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
     }
 
     async gravar() {
