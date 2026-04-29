@@ -14,23 +14,29 @@ import ItensView from './Views/Tabelas/Itens/ItensView'
 import CadastrarLotesView from './Views/Tabelas/Lotes/CadastrarLotesView'
 import EditarLotesView from './Views/Tabelas/Lotes/EditarLotesView'
 import LotesView from './Views/Tabelas/Lotes/LotesView'
+import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
+import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
+import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route Component={HomeView} path='/'/>
-        <Route Component={InstitucionalView} path='/institucional'/>
-        <Route Component={ProjetosView} path='/projetos'/>
-        <Route Component={DoacaoView} path='/doacao'/>
-        <Route Component={PortalView} path='/portal'/>
-        <Route Component={SobreView} path='/sobre'/>
-        <Route Component={ItensView} path='/tabelas/itens'/>
-        <Route Component={CadastrarItensView} path="/itens/cadastro" />
-        <Route Component={EditarItensView} path="/itens/:id" />
-        <Route Component={LotesView} path='/tabelas/lotes'/>
-        <Route Component={CadastrarLotesView} path="/lotes/cadastro" />
-        <Route Component={EditarLotesView} path="/lotes/:id" />
+        <Route path='/' element={<HomeView />} />
+        <Route path='/institucional' element={<InstitucionalView />} />
+        <Route path='/projetos' element={<ProjetosView />} />
+        <Route path='/doacao' element={<DoacaoView />} />
+        <Route path='/portal' element={<PortalView />} />
+        <Route path='/sobre' element={<SobreView />} />
+        <Route path='/tabelas/itens' element={<ItensView />} />
+        <Route path="/itens/cadastro" element={<CadastrarItensView />} />
+        <Route path="/itens/:id" element={<EditarItensView />} />
+        <Route path='/tabelas/lotes' element={<LotesView />} />
+        <Route path="/lotes/cadastro" element={<CadastrarLotesView />}/>
+        <Route path="/lotes/:id" element={<EditarLotesView />}/>
+        <Route path='/tabelas/doacoes' element={<DoacoesView />} />
+        <Route path="/doacoes/cadastro" element={<CadastrarDoacaoView />} />
+        <Route path="/doacoes/:id" element={<EditarDoacaoView />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

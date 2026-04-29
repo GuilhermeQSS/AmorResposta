@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import Styled from './styles'
-import logo from '../../assets/logo perfil oaear.png'
+import Styled from './styles';
+import logo from '../../assets/logo perfil oaear.png';
 import Sociais from "../Sociais";
 
 function Header(){
@@ -28,6 +28,7 @@ function Header(){
                         <div>
                             <Link to="/tabelas/itens">Itens</Link>
                             <Link to="/tabelas/lotes">Lotes</Link>
+                            <Link to="/tabelas/doacoes">Doações</Link>
                         </div>
                     )}
                 </li>
@@ -42,6 +43,7 @@ function Header(){
                         <div>
                             <Link to="/itens/cadastro">itens</Link>
                             <Link to="/lotes/cadastro">lotes</Link>
+                            <Link to="/doacoes/cadastro">Doações</Link>
                         </div>
                     )}
                 </li>
