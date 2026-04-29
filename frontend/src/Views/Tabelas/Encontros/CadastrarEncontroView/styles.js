@@ -5,7 +5,7 @@ const Styled = {
         width: min(900px, 92%);
         margin: 0 auto;
         padding: 20px;
-        border-radius: 8px;
+        border-radius: 16px;
         display: flex;
         flex-direction: column;
         background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
@@ -35,7 +35,7 @@ const Styled = {
             input, select {
                 width: 100%;
                 padding: 10px;
-                border-radius: 8px;
+                border-radius: 10px;
                 border: none;
                 outline: none;
                 background: white;
@@ -53,7 +53,7 @@ const Styled = {
             margin-top: 10px;
             padding: 10px;
             border: black 1px solid;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
         }
@@ -70,7 +70,7 @@ const Styled = {
             text-decoration: none;
             div{
                 border: 1px solid black;
-                border-radius: 8px;
+                border-radius: 16px;
                 padding: 10px;
                 background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
                 box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
@@ -85,7 +85,7 @@ const Styled = {
 
         h2 {
             margin: 0 0 6px;
-            color: #25303f;
+            color: #ff6f91;
         }
 
         p {
@@ -107,9 +107,9 @@ const Styled = {
         width: 100%;
         margin: 4px 0 18px;
         padding: 18px;
-        border-radius: 8px;
-        background: #ffffff;
-        border: 1px solid #d8edf0;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
         text-align: left;
     `,
     PlanningHeader: styled.div`
@@ -147,7 +147,7 @@ const Styled = {
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, #2f8f83, #82c77b);
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
             transition: width 0.2s ease;
         }
     `,
@@ -165,7 +165,7 @@ const Styled = {
             gap: 8px;
             min-height: 36px;
             padding: 8px 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             background: #fff8f5;
             color: #5c453f;
             border: 1px solid #f0d4c9;
@@ -173,9 +173,9 @@ const Styled = {
         }
 
         li.ready {
-            background: #f1fbf4;
-            color: #214f34;
-            border-color: #c7e7d0;
+            background: #ffe4ec;
+            color: #5c2537;
+            border-color: #f2bfd2;
         }
 
         span {
@@ -203,9 +203,9 @@ const Styled = {
         div {
             margin: 0;
             padding: 12px;
-            border-radius: 8px;
-            background: #f7fbfc;
-            border: 1px solid #dbeff2;
+            border-radius: 10px;
+            background: #fff7fb;
+            border: 1px solid #f2bfd2;
         }
 
         small {
@@ -228,9 +228,9 @@ const Styled = {
         text-align: left;
         margin-top: 10px;
         padding: 18px;
-        border-radius: 8px;
-        background: #ffffff;
-        border: 1px solid #d8edf0;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
 
         h3 {
             margin: 0 0 8px;
@@ -261,16 +261,16 @@ const Styled = {
         input,
         select {
             min-height: 40px;
-            border: 1px solid #cbd8dd !important;
-            box-shadow: none !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
         }
 
         button {
             min-height: 40px;
             padding: 0 14px;
             border: 0;
-            border-radius: 8px;
-            background: #2f7d6d;
+            border-radius: 10px;
+            background: #4caf50;
             color: white;
             font-weight: 700;
             cursor: pointer;
@@ -294,9 +294,9 @@ const Styled = {
             gap: 10px;
             align-items: center;
             padding: 10px;
-            border-radius: 8px;
-            background: #f7fbfc;
-            border: 1px solid #dbeff2;
+            border-radius: 10px;
+            background: #fff7fb;
+            border: 1px solid #f2bfd2;
         }
 
         div {
@@ -315,14 +315,14 @@ const Styled = {
 
         input {
             min-height: 38px;
-            border: 1px solid #cbd8dd !important;
-            box-shadow: none !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
         }
 
         button {
             min-height: 38px;
             padding: 0 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #f1b8b8;
             background: #fff1f1;
             color: #a52d2d;
@@ -341,7 +341,7 @@ const Styled = {
         text-align: left;
         margin-top: 10px;
         padding: 18px;
-        border-radius: 8px;
+        border-radius: 16px;
         background: rgba(255,255,255,0.55);
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
 
@@ -357,7 +357,7 @@ const Styled = {
     EmptyState: styled.div`
         width: 100%;
         padding: 14px 16px;
-        border-radius: 8px;
+        border-radius: 16px;
         background: #fff;
         color: #555;
         border: 1px dashed #d0d0d0;
@@ -365,7 +365,7 @@ const Styled = {
     SelectionInfo: styled.div`
         margin-top: 12px;
         padding: 10px 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         background: #fff7fb;
         border: 1px solid #f2bfd2;
         color: #444;
@@ -380,7 +380,7 @@ const Styled = {
         width: 100%;
         margin: 0 0 12px;
         padding: 10px 12px;
-        border-radius: 8px;
+        border-radius: 10px;
         background: #fff1f1;
         border: 1px solid #f1b8b8;
         color: #a52d2d;
@@ -389,7 +389,7 @@ const Styled = {
         width: 100%;
         border-collapse: collapse;
         background: white;
-        border-radius: 8px;
+        border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
 

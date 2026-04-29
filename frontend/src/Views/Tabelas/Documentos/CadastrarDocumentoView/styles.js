@@ -5,34 +5,36 @@ const Styled = {
         width: min(860px, 92%);
         margin: 28px auto 48px;
         padding: 24px;
-        background: #ffffff;
-        border: 1px solid #dbe7eb;
-        border-radius: 8px;
-        box-shadow: 0 10px 30px rgba(37, 48, 63, 0.08);
+        border-radius: 16px;
         display: flex;
         flex-direction: column;
         gap: 18px;
+        background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
+        box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
+        text-align: left;
 
         label {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            color: #40505c;
-            font-size: 13px;
-            font-weight: 700;
+            color: #444;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         input,
         select,
         textarea {
             width: 100%;
-            padding: 11px 12px;
-            border: 1px solid #cbd8dd;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
             background: white;
-            color: #25303f;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             font-size: 14px;
             font-family: inherit;
+            transition: 0.2s;
         }
 
         textarea {
@@ -43,26 +45,26 @@ const Styled = {
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: #2f7d6d;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(47, 125, 109, 0.12);
+            box-shadow: 0 0 0 2px #ff6f91;
         }
 
         label span {
             color: #a52d2d;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: bold;
         }
     `,
     FormHeader: styled.header`
         h2 {
             margin: 0 0 6px;
-            color: #25303f;
+            color: #ff6f91;
+            text-align: center;
         }
 
         p {
             margin: 0;
-            color: #607078;
+            color: #444;
+            text-align: center;
         }
     `,
     Grid: styled.div`
@@ -75,32 +77,33 @@ const Styled = {
         }
     `,
     SourcePanel: styled.section`
-        padding: 14px;
-        border-radius: 8px;
-        border: 1px solid #dbe7eb;
-        background: #f8fbfc;
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
 
         > div {
             display: flex;
             gap: 8px;
             margin-bottom: 14px;
+            flex-wrap: wrap;
         }
 
         button {
             min-height: 36px;
             padding: 0 12px;
-            border: 1px solid #cbd8dd;
-            border-radius: 8px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
             background: white;
-            color: #40505c;
-            font-weight: 700;
+            color: #444;
+            font-weight: bold;
             cursor: pointer;
         }
 
         button.active {
-            border-color: #2f7d6d;
-            background: #e9f5f0;
-            color: #21644f;
+            border-color: #ff6f91;
+            background: #ffe4ec;
+            color: #444;
         }
 
         input[type="file"] {
@@ -109,36 +112,31 @@ const Styled = {
         }
 
         small {
-            color: #21644f;
-            font-weight: 700;
+            color: #444;
+            font-weight: bold;
         }
     `,
     LinkPreview: styled.div`
         padding: 14px 16px;
-        border-radius: 8px;
-        border: 1px dashed #b8c9d0;
-        background: #f8fbfc;
+        border-radius: 16px;
+        border: 1px dashed #f2bfd2;
+        background: rgba(255,255,255,0.6);
 
         small {
             display: block;
-            color: #64737d;
+            color: #555;
             font-size: 12px;
         }
 
         strong {
             display: block;
             margin-top: 4px;
-            color: #607078;
+            color: #444;
         }
 
         &.valid {
             border-style: solid;
-            border-color: #b7d9d0;
-            background: #f4fbf8;
-
-            strong {
-                color: #21644f;
-            }
+            background: #fff7fb;
         }
     `,
     Actions: styled.div`
@@ -147,19 +145,24 @@ const Styled = {
         gap: 10px;
 
         button {
-            min-height: 42px;
-            padding: 0 16px;
-            border: 0;
-            border-radius: 8px;
-            background: #2f7d6d;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #4caf50;
             color: white;
-            font-weight: 700;
+            font-weight: bold;
             cursor: pointer;
+            transition: 0.2s;
+
+            &:hover {
+                opacity: 0.8;
+            }
         }
 
         button.secondary {
-            background: #eef3f5;
-            color: #40505c;
+            border: 1px solid black;
+            background: white;
+            color: black;
         }
 
         @media (max-width: 560px) {
@@ -167,14 +170,14 @@ const Styled = {
         }
     `,
     BackBtn: styled.button`
-        margin: 20px 0 0 4%;
-        min-height: 38px;
-        padding: 0 14px;
-        border: 1px solid #b8c9d0;
-        border-radius: 8px;
-        background: white;
-        color: #40505c;
-        font-weight: 700;
+        margin: 20px;
+        padding: 10px 20px;
+        border: 1px solid black;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
+        box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
+        color: black;
+        font-weight: bold;
         cursor: pointer;
     `,
 };
