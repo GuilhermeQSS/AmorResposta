@@ -125,7 +125,7 @@ const Styled = {
     `,
     Table: styled.table`
         width: 100%;
-        min-width: 840px;
+        min-width: 980px;
         margin: 30px auto;
         border-collapse: collapse;
         background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
@@ -199,6 +199,30 @@ const Styled = {
 
         &:hover {
             opacity: 0.8;
+        }
+    `,
+    ActionGroup: styled.div`
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    `,
+    ActionButton: styled.button`
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: none;
+        background-color: #4caf50;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        white-space: nowrap;
+
+        &:hover {
+            opacity: 0.8;
+        }
+
+        &.danger {
+            background-color: #ff4d4d;
         }
     `,
     Muted: styled.span`

@@ -70,6 +70,35 @@ function DocumentosView() {
         window.open(resolverLink(link), "_blank", "noopener,noreferrer");
     }
 
+    function editarDocumento(event, id) {
+        event.stopPropagation();
+        navigate(`/documentos/${id}`);
+    }
+
+    async function excluirDocumento(event, documento) {
+        event.stopPropagation();
+
+        const confirmar = window.confirm(`Deseja excluir o documento "${documento.titulo}"?`);
+        if (!confirmar) return;
+
+        try {
+            const response = await fetch(`${API_URL}/excluir`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: documento.id }),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.Erro || "Erro ao excluir documento");
+            }
+
+            await fetchDocumentoLista();
+        } catch (error) {
+            setErro(error.message || "Erro ao conectar com o servidor");
+        }
+    }
+
     useEffect(() => {
         fetchDocumentoLista();
     }, [filtroTitulo, filtroTipo]);
@@ -139,6 +168,7 @@ function DocumentosView() {
                                         <th>Data</th>
                                         <th>Descricao</th>
                                         <th>Acesso</th>
+                                        <th>Acoes</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -164,6 +194,23 @@ function DocumentosView() {
                                                 ) : (
                                                     <Styled.Muted>Sem link</Styled.Muted>
                                                 )}
+                                            </td>
+                                            <td>
+                                                <Styled.ActionGroup>
+                                                    <Styled.ActionButton
+                                                        type="button"
+                                                        onClick={(event) => editarDocumento(event, documento.id)}
+                                                    >
+                                                        Editar
+                                                    </Styled.ActionButton>
+                                                    <Styled.ActionButton
+                                                        type="button"
+                                                        className="danger"
+                                                        onClick={(event) => excluirDocumento(event, documento)}
+                                                    >
+                                                        Excluir
+                                                    </Styled.ActionButton>
+                                                </Styled.ActionGroup>
                                             </td>
                                         </tr>
                                     ))}
