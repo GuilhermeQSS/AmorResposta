@@ -1,87 +1,221 @@
 import styled from "styled-components";
 
 const Styled = {
-    Form: styled.div`
-        width: 400px;
-        margin: 40px auto;
-        padding: 30px;
-        background: linear-gradient(135deg, #ffffff, #f9f9f9);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    Form: styled.form`
+        width: min(860px, 92%);
+        margin: 28px auto 48px;
+        padding: 24px;
+        border-radius: 16px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
-
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        div {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        gap: 18px;
+        background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
+        box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
+        text-align: left;
 
         label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: #444;
             font-size: 14px;
             font-weight: bold;
-            color: #666;
         }
 
-        input {
-            padding: 12px;
-            border: 1px solid #ddd;
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
             border-radius: 10px;
+            border: none;
+            outline: none;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             font-size: 14px;
-            transition: 0.3s;
-
-            &:focus {
-                border-color: #ff9a9e;
-                outline: none;
-                box-shadow: 0 0 8px rgba(255, 154, 158, 0.3);
-            }
+            font-family: inherit;
+            transition: 0.2s;
         }
 
-        button {
-            padding: 12px;
+        textarea {
+            resize: vertical;
+            min-height: 104px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            box-shadow: 0 0 0 2px #ff6f91;
+        }
+
+        label span {
+            color: #a52d2d;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    `,
+    FormHeader: styled.header`
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+
+        h2 {
+            margin: 0 0 6px;
+            color: #ff6f91;
+        }
+
+        p {
+            margin: 0;
+            color: #444;
+        }
+
+        .linkAction {
+            padding: 10px 16px;
             border: none;
             border-radius: 10px;
-            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            background-color: #4caf50;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+        }
+
+        @media (max-width: 640px) {
+            flex-direction: column;
+
+            .linkAction {
+                width: 100%;
+            }
+        }
+    `,
+    Grid: styled.div`
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+
+        @media (max-width: 720px) {
+            grid-template-columns: 1fr;
+        }
+    `,
+    SourcePanel: styled.section`
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
+
+        > div {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            min-height: 36px;
+            padding: 0 12px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: white;
+            color: #444;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button.active {
+            border-color: #ff6f91;
+            background: #ffe4ec;
+            color: #444;
+        }
+
+        input[type="file"] {
+            padding: 9px;
+            background: white;
+        }
+
+        small {
+            color: #444;
+            font-weight: bold;
+        }
+    `,
+    LinkPreview: styled.div`
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px dashed #f2bfd2;
+        background: rgba(255,255,255,0.6);
+
+        small {
+            display: block;
+            color: #555;
+            font-size: 12px;
+        }
+
+        strong {
+            display: block;
+            margin-top: 4px;
+            color: #444;
+        }
+
+        &.valid {
+            border-style: solid;
+            background: #fff7fb;
+        }
+    `,
+    Actions: styled.div`
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #4caf50;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
 
             &:hover {
-                opacity: 0.9;
-                transform: translateY(-2px);
+                opacity: 0.8;
             }
+        }
 
-            &:disabled {
-                background: #ccc;
-                cursor: not-allowed;
-                transform: none;
+        button.secondary {
+            border: 1px solid black;
+            background: white;
+            color: black;
+        }
+
+        button.danger {
+            margin-right: auto;
+            background: #ff4d4d;
+        }
+
+        button:disabled {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 560px) {
+            flex-direction: column;
+
+            button.danger {
+                margin-right: 0;
             }
         }
     `,
     BackBtn: styled.button`
         margin: 20px;
         padding: 10px 20px;
-        border: 1px solid #ff9a9e;
-        border-radius: 10px;
-        background: white;
-        color: #ff9a9e;
+        border: 1px solid black;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #ffe4ec, #e0f7fa);
+        box-shadow: 0 8px 25px rgba(255, 105, 135, 0.2);
+        color: black;
         font-weight: bold;
         cursor: pointer;
-        transition: 0.3s;
-
-        &:hover {
-            background: #ff9a9e;
-            color: white;
-        }
-    `
+    `,
 };
 
 export default Styled;

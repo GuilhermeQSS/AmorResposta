@@ -32,9 +32,9 @@ import CadastrarDocumentoView from './Views/Tabelas/Documentos/CadastrarDocument
 import DespesasView from './Views/Tabelas/Despesas/DespesasView'
 import EditarDespesaView from './Views/Tabelas/Despesas/EditarDespesaView'
 import CadastrarDespesaView from './Views/Tabelas/Despesas/CadastrarDespesaView'
-import CadastrarLotesView from './Views/Tabelas/Lotes/CadastrarLotesView'
-import EditarLotesView from './Views/Tabelas/Lotes/EditarLotesView'
-import LotesView from './Views/Tabelas/Lotes/LotesView'
+import CadastrarLotesView from './Views/Tabelas/lotes/CadastrarLotesView'
+import EditarLotesView from './Views/Tabelas/lotes/EditarLotesView'
+import LotesView from './Views/Tabelas/lotes/LotesView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

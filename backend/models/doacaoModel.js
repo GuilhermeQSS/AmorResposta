@@ -1,4 +1,4 @@
-import connection from "../db/connection.js";
+import SingletonDB from "../db/SingletonDB.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,6 +7,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes");
 let colunasDocumentosCache = null;
+
+const connection = {
+    async query(...args) {
+        const db = await SingletonDB.getConnection();
+        return db.query(...args);
+    },
+
+    async beginTransaction() {
+        const db = await SingletonDB.getConnection();
+        return db.beginTransaction();
+    },
+
+    async commit() {
+        const db = await SingletonDB.getConnection();
+        return db.commit();
+    },
+
+    async rollback() {
+        const db = await SingletonDB.getConnection();
+        return db.rollback();
+    }
+};
 
 class Doacao {
     constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes = null, documento = null) {

@@ -16,8 +16,8 @@ const app = e();
 const port = 3000
 
 app.use(cors());
-app.use(e.json());
-app.use(e.urlencoded({extended:true}));
+app.use(e.json({ limit: "15mb" }));
+app.use(e.urlencoded({ extended: true, limit: "15mb" }));
 app.use(e.static("public"));
 app.use("/api",apiRoutes);
 app.use("/encontros", encontroRoutes);

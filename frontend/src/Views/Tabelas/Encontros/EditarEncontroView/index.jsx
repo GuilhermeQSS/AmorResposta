@@ -17,8 +17,15 @@ function getAuthHeaders(extraHeaders = {}) {
 function EditarEncontroView() {
   function validar() {
     const novosErros = {};
+    const inicioMinutos = form.hora ? Number(form.hora.split(":")[0]) * 60 + Number(form.hora.split(":")[1]) : null;
+    const fimMinutos = form.horaFim ? Number(form.horaFim.split(":")[0]) * 60 + Number(form.horaFim.split(":")[1]) : null;
+
     if (!form.data) novosErros.data = "Data obrigatoria";
     if (!form.hora) novosErros.hora = "Hora obrigatoria";
+    if (!form.horaFim) novosErros.horaFim = "Horario de termino obrigatorio";
+    if (inicioMinutos !== null && fimMinutos !== null && fimMinutos <= inicioMinutos) {
+      novosErros.horaFim = "Termino precisa ser depois do inicio";
+    }
     if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opcao";
     if (!form.local) novosErros.local = "Local obrigatorio";
     if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
@@ -62,6 +69,7 @@ function EditarEncontroView() {
           id: form.id,
           data: form.data,
           hora: form.hora,
+          horaFim: form.horaFim,
           disponibilidade: form.disponibilidade,
           qtdeMax: form.qtdeMax,
           qtde: form.qtde,
@@ -69,6 +77,7 @@ function EditarEncontroView() {
           camposAlterados: {
             data: form.data !== formOriginal.data,
             hora: form.hora !== formOriginal.hora,
+            horaFim: form.horaFim !== formOriginal.horaFim,
             disponibilidade: form.disponibilidade !== formOriginal.disponibilidade,
             qtdeMax: form.qtdeMax !== formOriginal.qtdeMax,
             qtde: form.qtde !== formOriginal.qtde,
@@ -124,6 +133,7 @@ function EditarEncontroView() {
     id: 0,
     data: "",
     hora: "",
+    horaFim: "",
     disponibilidade: "",
     qtdeMax: 0,
     qtde: 0,
@@ -133,6 +143,7 @@ function EditarEncontroView() {
     id: 0,
     data: "",
     hora: "",
+    horaFim: "",
     disponibilidade: "",
     qtdeMax: 0,
     qtde: 0,
@@ -146,6 +157,7 @@ function EditarEncontroView() {
       if (!data) return;
       data.data = data.data?.split("T")[0];
       data.hora = String(data.hora || "").slice(0, 5);
+      data.horaFim = String(data.horaFim || "").slice(0, 5);
       setForm(data);
       setFormOriginal(data);
     }
@@ -175,7 +187,7 @@ function EditarEncontroView() {
           </div>
 
           <div>
-            <label htmlFor="hora">Hora: </label>
+            <label htmlFor="hora">Hora de inicio: </label>
             <input
               name="hora"
               value={form.hora}
@@ -184,6 +196,20 @@ function EditarEncontroView() {
               style={{ border: erros.hora || erros.enc_hora ? "2px solid red" : "" }}
             />
             {(erros.hora || erros.enc_hora) && <span style={{ color: "red" }}>{erros.hora || erros.enc_hora}</span>}
+          </div>
+
+          <div>
+            <label htmlFor="horaFim">Hora de termino: </label>
+            <input
+              name="horaFim"
+              value={form.horaFim}
+              type="time"
+              onChange={atualizarForm}
+              style={{ border: erros.horaFim || erros.enc_hora_fim ? "2px solid red" : "" }}
+            />
+            {(erros.horaFim || erros.enc_hora_fim) && (
+              <span style={{ color: "red" }}>{erros.horaFim || erros.enc_hora_fim}</span>
+            )}
           </div>
 
           <div>
