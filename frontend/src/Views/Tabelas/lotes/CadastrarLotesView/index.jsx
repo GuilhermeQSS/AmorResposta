@@ -20,10 +20,10 @@ function CadastrarLotesView() {
     async function fetchCadastrarLote() {
         const camposVazios = {
             idItem: !form.idItem,
-            unidadeMed: !form.unidadeMed,
             quantidade: !form.quantidade,
         };
         setCamposVazios(camposVazios);
+        console.log(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
             alert("Preencha todos os campos!");
             return;
@@ -36,7 +36,6 @@ function CadastrarLotesView() {
                 },
                 body: JSON.stringify({
                     idItem: form.idItem,
-                    unidadeMed: form.unidadeMed,
                     data: form.data || null,
                     quantidade: form.quantidade
                 })
@@ -45,7 +44,6 @@ function CadastrarLotesView() {
                 alert("Lote cadastrado com sucesso!");
                 setForm({
                     idItem: "",
-                    unidadeMed: "",
                     data: "",
                     quantidade: ""
                 });
@@ -64,13 +62,17 @@ function CadastrarLotesView() {
             ...prev,
             [name]: value
         }));
+        if (name === "idItem") {
+            const item = itens.find((i) => i.id == value);
+            setUnidadeMed(item ? item.unidadeMedida : "");
+        }
     }
 
     const [itens, setItens] = useState([]);
+    const [unidadeMed, setUnidadeMed] = useState("");
     const [camposVazios, setCamposVazios] = useState({});
     const [form, setForm] = useState({
         idItem: "",
-        unidadeMed: "",
         data: "",
         quantidade: ""
     });
@@ -84,9 +86,11 @@ function CadastrarLotesView() {
                 const data = await response.json();
                 if (response.ok) {
                     console.log(data);
+                    console.log(data.unidadeMedida);
                     if (data.length === 0)
                         alert("Nenhum item cadastrado!");
-                    setItens(data);
+                    else
+                        setItens(data);
                 }
             } catch (error) {
                 alert("Erro ao carregar itens");
@@ -126,13 +130,11 @@ function CadastrarLotesView() {
                     </div>
 
                     <div>
-                        <label htmlFor="unidadeMed">Unidade de Medida: </label>
+                        <label htmlFor="unidadeMed">unidadeMed: </label>
                         <input
-                            type="text"
-                            name="unidadeMed"
-                            value={form.unidadeMed}
-                            onChange={atualizarForm}
-                            style={{ border: camposVazios.unidadeMed ? "2px solid red" : "" }}
+                            id="unidadeMed"
+                            value={unidadeMed}
+                            disabled
                         />
                     </div>
 

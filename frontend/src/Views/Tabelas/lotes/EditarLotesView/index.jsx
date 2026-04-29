@@ -28,7 +28,6 @@ function EditarLotesView() {
     async function fetchAlterarLote() {
         const camposVazios = {
             idItem: !form.idItem,
-            unidadeMed: !form.unidadeMed,
             quantidade: !form.quantidade,
         };
         setCamposVazios(camposVazios);
@@ -45,7 +44,6 @@ function EditarLotesView() {
                 body: JSON.stringify({
                     id: form.id,
                     idItem: form.idItem,
-                    unidadeMed: form.unidadeMed,
                     data: form.data || null,
                     quantidade: form.quantidade
                 })
@@ -77,14 +75,12 @@ function EditarLotesView() {
     const [form, setForm] = useState({
         id: 0,
         idItem: "",
-        unidadeMed: "",
         data: "",
         quantidade: ""
     });
     const [formOriginal, setFormOriginal] = useState({
         id: 0,
         idItem: "",
-        unidadeMed: "",
         data: "",
         quantidade: ""
     });
@@ -102,7 +98,6 @@ function EditarLotesView() {
             const loteForm = {
                 id: data.id ?? "",
                 idItem: data.idItem ?? "",
-                unidadeMed: data.unidadeMed ?? "",
                 data: dataFormatada,
                 quantidade: data.quantidade ?? ""
             };
@@ -145,17 +140,6 @@ function EditarLotesView() {
                                 </option>
                             ))}
                         </select>
-                    </div>
-
-                    <div>
-                        <label htmlFor="unidadeMed">Unidade de Medida: </label>
-                        <input
-                            type="text"
-                            name="unidadeMed"
-                            value={form.unidadeMed}
-                            onChange={atualizarForm}
-                            style={{ border: camposVazios.unidadeMed ? "2px solid red" : "" }}
-                        />
                     </div>
 
                     <div>

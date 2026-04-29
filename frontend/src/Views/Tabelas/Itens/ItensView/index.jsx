@@ -73,6 +73,7 @@ function ItensView() {
                             <th>Nome</th>
                             <th>Descrição</th>
                             <th>Tipo</th>
+                            <th>Unidade de Medida</th>
                             <th>Tem Validade</th>
                         </tr>
                     </thead>
@@ -84,6 +85,7 @@ function ItensView() {
                                     <td>{e.nome}</td>
                                     <td>{e.descricao}</td>
                                     <td>{e.tipo}</td>
+                                    <td>{e.unidadeMedida}</td>
                                     
                                     <td>{Number(e.possuiValidade) === 1 ? "sim" : "não"}</td>
                                     <td>

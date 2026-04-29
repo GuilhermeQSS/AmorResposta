@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `funcionarios` (
 );
 
 CREATE TABLE IF NOT EXISTS `lotesDoados` (
-  `lotd_id` INT NOT NULL,
+  `lotd_id` INT NOT NULL AUTO_INCREMENT,
   `ben_id` INT NOT NULL,
   `data` DATE NULL,
   PRIMARY KEY (`lotd_id`)
@@ -219,7 +219,7 @@ alter table `encontrosItens`
 alter table `beneficiariosEncontros`
   add CONSTRAINT `fk_EParticipantes_Beneficiarios`
     FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`),
-  add CONSTRAINT `fk_Participantes_Encontros`
+  add CONSTRAINT `fk_Beneficiarios_Encontros`
     FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`);
 
 alter table `funcionariosEncontros`
