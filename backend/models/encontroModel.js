@@ -1,145 +1,148 @@
 import SingletonDB from "../db/SingletonDB.js";
 
 const connection = {
-    async query(...args) {
-        const db = await SingletonDB.getConnection();
-        return db.query(...args);
-    },
+  async query(...args) {
+    const db = await SingletonDB.getConnection();
+    return db.query(...args);
+  },
 
-    async beginTransaction() {
-        const db = await SingletonDB.getConnection();
-        return db.beginTransaction();
-    },
+  async beginTransaction() {
+    const db = await SingletonDB.getConnection();
+    return db.beginTransaction();
+  },
 
-    async commit() {
-        const db = await SingletonDB.getConnection();
-        return db.commit();
-    },
+  async commit() {
+    const db = await SingletonDB.getConnection();
+    return db.commit();
+  },
 
-    async rollback() {
-        const db = await SingletonDB.getConnection();
-        return db.rollback();
-    }
+  async rollback() {
+    const db = await SingletonDB.getConnection();
+    return db.rollback();
+  },
 };
 
 function normalizarData(data) {
-    return data ? new Date(data) : null;
+  return data ? new Date(data) : null;
 }
 
 function normalizarTexto(texto) {
-    return String(texto || "").trim();
+  return String(texto || "").trim();
 }
 
 function normalizarDataHora(data, hora) {
-    if (!data || !hora) {
-        return null;
-    }
+  if (!data || !hora) {
+    return null;
+  }
 
-    const dataTexto = normalizarTexto(data).slice(0, 10);
-    const horaTexto = normalizarTexto(hora);
-    const dataHora = new Date(`${dataTexto}T${horaTexto}`);
-    return Number.isNaN(dataHora.getTime()) ? null : dataHora;
+  const dataTexto = normalizarTexto(data).slice(0, 10);
+  const horaTexto = normalizarTexto(hora);
+  const dataHora = new Date(`${dataTexto}T${horaTexto}`);
+  return Number.isNaN(dataHora.getTime()) ? null : dataHora;
 }
 
 function normalizarMinutos(hora) {
-    const [horas, minutos] = String(hora || "").split(":").map(Number);
-    if (!Number.isInteger(horas) || !Number.isInteger(minutos)) {
-        return null;
-    }
+  const [horas, minutos] = String(hora || "")
+    .split(":")
+    .map(Number);
+  if (!Number.isInteger(horas) || !Number.isInteger(minutos)) {
+    return null;
+  }
 
-    return horas * 60 + minutos;
+  return horas * 60 + minutos;
 }
 
 const LOCAL_REGEX = /^[A-Za-zÀ-ÿ0-9\s.,ºª°\-()]{3,80}$/;
 
 class Encontro {
-    constructor(
-        id,
-        data,
-        hora,
-        horaFim,
-        disponibilidade,
-        qtdeMax,
-        qtde,
-        local,
-        cancelado = "N",
-        motivoCancelamento = null,
-        detalhesCancelamento = null,
-        dataCancelamento = null,
-        acaoCancelamento = null,
-        reagendadoPara = null,
-        beneficiariosAfetados = 0,
-        responsaveisAfetados = 0,
-        materiaisAfetados = 0
-    ) {
-        this.id = id;
-        this.data = data;
-        this.hora = hora;
-        this.horaFim = horaFim;
-        this.disponibilidade = disponibilidade;
-        this.qtdeMax = qtdeMax;
-        this.qtde = qtde;
-        this.local = local;
-        this.cancelado = cancelado;
-        this.motivoCancelamento = motivoCancelamento;
-        this.detalhesCancelamento = detalhesCancelamento;
-        this.dataCancelamento = dataCancelamento;
-        this.acaoCancelamento = acaoCancelamento;
-        this.reagendadoPara = reagendadoPara;
-        this.beneficiariosAfetados = beneficiariosAfetados;
-        this.responsaveisAfetados = responsaveisAfetados;
-        this.materiaisAfetados = materiaisAfetados;
-    }
+  constructor(
+    id,
+    data,
+    hora,
+    horaFim,
+    disponibilidade,
+    qtdeMax,
+    qtde,
+    local,
+    cancelado = "N",
+    motivoCancelamento = null,
+    detalhesCancelamento = null,
+    dataCancelamento = null,
+    acaoCancelamento = null,
+    reagendadoPara = null,
+    beneficiariosAfetados = 0,
+    responsaveisAfetados = 0,
+    materiaisAfetados = 0,
+  ) {
+    this.id = id;
+    this.data = data;
+    this.hora = hora;
+    this.horaFim = horaFim;
+    this.disponibilidade = disponibilidade;
+    this.qtdeMax = qtdeMax;
+    this.qtde = qtde;
+    this.local = local;
+    this.cancelado = cancelado;
+    this.motivoCancelamento = motivoCancelamento;
+    this.detalhesCancelamento = detalhesCancelamento;
+    this.dataCancelamento = dataCancelamento;
+    this.acaoCancelamento = acaoCancelamento;
+    this.reagendadoPara = reagendadoPara;
+    this.beneficiariosAfetados = beneficiariosAfetados;
+    this.responsaveisAfetados = responsaveisAfetados;
+    this.materiaisAfetados = materiaisAfetados;
+  }
 
-    static fromRow(row) {
-        return new Encontro(
-            row.enc_id,
-            row.enc_data,
-            row.enc_hora,
-            row.enc_hora_fim,
-            row.enc_disponibilidade,
-            row.enc_qtdeMax,
-            row.enc_qtde,
-            row.enc_local,
-            row.enc_cancelado,
-            row.enc_motivo_cancelamento,
-            row.enc_detalhes_cancelamento,
-            row.enc_data_cancelamento,
-            row.enc_acao_cancelamento,
-            row.enc_reagendado_para,
-            row.enc_beneficiarios_afetados,
-            row.enc_responsaveis_afetados,
-            row.enc_materiais_afetados
-        );
-    }
+  static fromRow(row) {
+    return new Encontro(
+      row.enc_id,
+      row.enc_data,
+      row.enc_hora,
+      row.enc_hora_fim,
+      row.enc_disponibilidade,
+      row.enc_qtdeMax,
+      row.enc_qtde,
+      row.enc_local,
+      row.enc_cancelado,
+      row.enc_motivo_cancelamento,
+      row.enc_detalhes_cancelamento,
+      row.enc_data_cancelamento,
+      row.enc_acao_cancelamento,
+      row.enc_reagendado_para,
+      row.enc_beneficiarios_afetados,
+      row.enc_responsaveis_afetados,
+      row.enc_materiais_afetados,
+    );
+  }
 
-    static async listar(filtro, status = "ativos") {
-        let queryString = `select * from encontros where enc_cancelado = ?`;
-        const params = [status === "cancelados" ? "S" : "N"];
+  static async listar(filtro, status = "ativos") {
+    let queryString = `select * from encontros where enc_cancelado = ?`;
+    const params = [status === "cancelados" ? "S" : "N"];
 
-        if (filtro) {
-            const termo = `%${filtro}%`;
-            queryString += `
+    if (filtro) {
+      const termo = `%${filtro}%`;
+      queryString += `
                 and (
                     enc_local like ?
                     or cast(enc_id as char) like ?
                     or coalesce(enc_motivo_cancelamento, '') like ?
                 )
             `;
-            params.push(termo, termo, termo);
-        }
-
-        queryString += status === "cancelados"
-            ? ` order by enc_data_cancelamento desc, enc_id desc`
-            : ` order by enc_data asc, enc_hora asc, enc_id asc`;
-
-        const [rows] = await connection.query(queryString, params);
-        return rows.map((row) => Encontro.fromRow(row));
+      params.push(termo, termo, termo);
     }
 
-    async alterar() {
-        const [resultado] = await connection.query(
-            `
+    queryString +=
+      status === "cancelados"
+        ? ` order by enc_data_cancelamento desc, enc_id desc`
+        : ` order by enc_data asc, enc_hora asc, enc_id asc`;
+
+    const [rows] = await connection.query(queryString, params);
+    return rows.map((row) => Encontro.fromRow(row));
+  }
+
+  async alterar() {
+    const [resultado] = await connection.query(
+      `
                 update encontros set
                     enc_data = ?,
                     enc_hora = ?,
@@ -150,36 +153,36 @@ class Encontro {
                     enc_local = ?
                 where enc_id = ?
             `,
-            [
-                this.data,
-                this.hora,
-                this.horaFim,
-                this.disponibilidade,
-                this.qtdeMax,
-                this.qtde,
-                this.local,
-                this.id,
-            ]
-        );
+      [
+        this.data,
+        this.hora,
+        this.horaFim,
+        this.disponibilidade,
+        this.qtdeMax,
+        this.qtde,
+        this.local,
+        this.id,
+      ],
+    );
 
-        return resultado;
-    }
+    return resultado;
+  }
 
-    async excluir() {
-        const [resultado] = await connection.query(
-            `
+  async excluir() {
+    const [resultado] = await connection.query(
+      `
                 delete from encontros
                 where enc_id = ?
             `,
-            [this.id]
-        );
+      [this.id],
+    );
 
-        return resultado;
-    }
+    return resultado;
+  }
 
-    async gravar() {
-        const [resultado] = await connection.query(
-            `
+  async gravar() {
+    const [resultado] = await connection.query(
+      `
                 insert into encontros(
                     enc_data,
                     enc_hora,
@@ -190,160 +193,174 @@ class Encontro {
                     enc_local
                 ) values (?, ?, ?, ?, ?, ?, ?)
             `,
-            [
-                this.data,
-                this.hora,
-                this.horaFim,
-                this.disponibilidade,
-                this.qtdeMax,
-                this.qtde,
-                this.local,
-            ]
+      [
+        this.data,
+        this.hora,
+        this.horaFim,
+        this.disponibilidade,
+        this.qtdeMax,
+        this.qtde,
+        this.local,
+      ],
+    );
+
+    return resultado;
+  }
+
+  static async buscarPorLocal(local) {
+    const [[row]] = await connection.query(
+      `select * from encontros where enc_local = ?`,
+      [local],
+    );
+
+    return row ? Encontro.fromRow(row) : null;
+  }
+
+  static async buscarPorId(id) {
+    const [[row]] = await connection.query(
+      `select * from encontros where enc_id = ?`,
+      [id],
+    );
+
+    return row ? Encontro.fromRow(row) : null;
+  }
+
+  static async contarImpacto(connectionRef, id) {
+    const [[beneficiarios]] = await connectionRef.query(
+      `select count(*) as total from participantes where enc_id = ?`,
+      [id],
+    );
+
+    const [[responsaveis]] = await connectionRef.query(
+      `select count(*) as total from responsaveis where enc_id = ?`,
+      [id],
+    );
+
+    const [[materiais]] = await connectionRef.query(
+      `select count(*) as total from materiais where enc_id = ?`,
+      [id],
+    );
+
+    return {
+      beneficiarios: beneficiarios.total,
+      responsaveis: responsaveis.total,
+      materiais: materiais.total,
+    };
+  }
+
+  static montarResumoImpacto(encontro, impacto) {
+    const dataEncontro = normalizarData(encontro.data);
+    const agora = new Date();
+    const distancia = dataEncontro
+      ? dataEncontro.getTime() - agora.getTime()
+      : null;
+    const proximo = distancia !== null && distancia <= 1000 * 60 * 60 * 24;
+
+    const motivosBloqueio = [];
+    if (encontro.cancelado === "S") {
+      motivosBloqueio.push("Este encontro ja foi cancelado.");
+    }
+    if (encontro.disponibilidade === "F") {
+      motivosBloqueio.push("Encontro finalizado nao pode ser cancelado.");
+    }
+
+    return {
+      encontro,
+      ...impacto,
+      proximo,
+      exigeDetalhes: encontro.disponibilidade === "E" || proximo,
+      confirmacaoReforcada:
+        impacto.beneficiarios > 0 ||
+        impacto.responsaveis > 0 ||
+        impacto.materiais > 0,
+      motivosBloqueio,
+    };
+  }
+
+  static async buscarImpacto(id) {
+    const encontro = await Encontro.buscarPorId(id);
+    if (!encontro) {
+      return null;
+    }
+
+    const impacto = await Encontro.contarImpacto(connection, id);
+    return Encontro.montarResumoImpacto(encontro, impacto);
+  }
+
+  static validarCancelamento(resumoImpacto, detalhes, opcao, novaData) {
+    if (resumoImpacto.motivosBloqueio.length > 0) {
+      const erro = new Error(resumoImpacto.motivosBloqueio[0]);
+      erro.status = 400;
+      throw erro;
+    }
+
+    const detalhesLimpos = (detalhes || "").trim();
+    if (resumoImpacto.exigeDetalhes && detalhesLimpos.length < 15) {
+      const erro = new Error(
+        "Informe uma justificativa detalhada para encontros em andamento ou proximos da data.",
+      );
+      erro.status = 400;
+      throw erro;
+    }
+
+    if (opcao === "transferirInscritos" && resumoImpacto.beneficiarios === 0) {
+      const erro = new Error(
+        "Nao ha inscritos para transferir para um novo encontro.",
+      );
+      erro.status = 400;
+      throw erro;
+    }
+
+    if (opcao === "reagendar" || opcao === "transferirInscritos") {
+      if (!novaData) {
+        const erro = new Error("Nova data obrigatoria para reagendamento.");
+        erro.status = 400;
+        throw erro;
+      }
+
+      const novaDataNormalizada = normalizarData(novaData);
+      const dataOriginal = normalizarData(resumoImpacto.encontro.data);
+
+      if (!novaDataNormalizada || Number.isNaN(novaDataNormalizada.getTime())) {
+        const erro = new Error("Nova data invalida.");
+        erro.status = 400;
+        throw erro;
+      }
+
+      if (
+        dataOriginal &&
+        novaDataNormalizada.toISOString().slice(0, 10) ===
+          dataOriginal.toISOString().slice(0, 10)
+      ) {
+        const erro = new Error(
+          "A nova data precisa ser diferente da data original do encontro.",
         );
+        erro.status = 400;
+        throw erro;
+      }
 
-        return resultado;
-    }
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      novaDataNormalizada.setHours(0, 0, 0, 0);
 
-    static async buscarPorLocal(local) {
-        const [[row]] = await connection.query(
-            `select * from encontros where enc_local = ?`,
-            [local]
+      if (novaDataNormalizada < hoje) {
+        const erro = new Error(
+          "A nova data precisa estar no presente ou no futuro.",
         );
-
-        return row ? Encontro.fromRow(row) : null;
+        erro.status = 400;
+        throw erro;
+      }
     }
+  }
 
-    static async buscarPorId(id) {
-        const [[row]] = await connection.query(
-            `select * from encontros where enc_id = ?`,
-            [id]
-        );
-
-        return row ? Encontro.fromRow(row) : null;
-    }
-
-    static async contarImpacto(connectionRef, id) {
-        const [[beneficiarios]] = await connectionRef.query(
-            `select count(*) as total from participantes where enc_id = ?`,
-            [id]
-        );
-
-        const [[responsaveis]] = await connectionRef.query(
-            `select count(*) as total from responsaveis where enc_id = ?`,
-            [id]
-        );
-
-        const [[materiais]] = await connectionRef.query(
-            `select count(*) as total from materiais where enc_id = ?`,
-            [id]
-        );
-
-        return {
-            beneficiarios: beneficiarios.total,
-            responsaveis: responsaveis.total,
-            materiais: materiais.total,
-        };
-    }
-
-    static montarResumoImpacto(encontro, impacto) {
-        const dataEncontro = normalizarData(encontro.data);
-        const agora = new Date();
-        const distancia = dataEncontro ? dataEncontro.getTime() - agora.getTime() : null;
-        const proximo = distancia !== null && distancia <= 1000 * 60 * 60 * 24;
-
-        const motivosBloqueio = [];
-        if (encontro.cancelado === "S") {
-            motivosBloqueio.push("Este encontro ja foi cancelado.");
-        }
-        if (encontro.disponibilidade === "F") {
-            motivosBloqueio.push("Encontro finalizado nao pode ser cancelado.");
-        }
-
-        return {
-            encontro,
-            ...impacto,
-            proximo,
-            exigeDetalhes: encontro.disponibilidade === "E" || proximo,
-            confirmacaoReforcada:
-                impacto.beneficiarios > 0 ||
-                impacto.responsaveis > 0 ||
-                impacto.materiais > 0,
-            motivosBloqueio,
-        };
-    }
-
-    static async buscarImpacto(id) {
-        const encontro = await Encontro.buscarPorId(id);
-        if (!encontro) {
-            return null;
-        }
-
-        const impacto = await Encontro.contarImpacto(connection, id);
-        return Encontro.montarResumoImpacto(encontro, impacto);
-    }
-
-    static validarCancelamento(resumoImpacto, detalhes, opcao, novaData) {
-        if (resumoImpacto.motivosBloqueio.length > 0) {
-            const erro = new Error(resumoImpacto.motivosBloqueio[0]);
-            erro.status = 400;
-            throw erro;
-        }
-
-        const detalhesLimpos = (detalhes || "").trim();
-        if (resumoImpacto.exigeDetalhes && detalhesLimpos.length < 15) {
-            const erro = new Error(
-                "Informe uma justificativa detalhada para encontros em andamento ou proximos da data."
-            );
-            erro.status = 400;
-            throw erro;
-        }
-
-        if (opcao === "transferirInscritos" && resumoImpacto.beneficiarios === 0) {
-            const erro = new Error("Nao ha inscritos para transferir para um novo encontro.");
-            erro.status = 400;
-            throw erro;
-        }
-
-        if (opcao === "reagendar" || opcao === "transferirInscritos") {
-            if (!novaData) {
-                const erro = new Error("Nova data obrigatoria para reagendamento.");
-                erro.status = 400;
-                throw erro;
-            }
-
-            const novaDataNormalizada = normalizarData(novaData);
-            const dataOriginal = normalizarData(resumoImpacto.encontro.data);
-
-            if (!novaDataNormalizada || Number.isNaN(novaDataNormalizada.getTime())) {
-                const erro = new Error("Nova data invalida.");
-                erro.status = 400;
-                throw erro;
-            }
-
-            if (
-                dataOriginal &&
-                novaDataNormalizada.toISOString().slice(0, 10) === dataOriginal.toISOString().slice(0, 10)
-            ) {
-                const erro = new Error("A nova data precisa ser diferente da data original do encontro.");
-                erro.status = 400;
-                throw erro;
-            }
-
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            novaDataNormalizada.setHours(0, 0, 0, 0);
-
-            if (novaDataNormalizada < hoje) {
-                const erro = new Error("A nova data precisa estar no presente ou no futuro.");
-                erro.status = 400;
-                throw erro;
-            }
-        }
-    }
-
-    static async criarReagendamentoTransacional(connectionRef, encontroAnterior, novaData, transferirInscritos) {
-        const [resultado] = await connectionRef.query(
-            `
+  static async criarReagendamentoTransacional(
+    connectionRef,
+    encontroAnterior,
+    novaData,
+    transferirInscritos,
+  ) {
+    const [resultado] = await connectionRef.query(
+      `
                 insert into encontros(
                     enc_data,
                     enc_hora,
@@ -354,105 +371,117 @@ class Encontro {
                     enc_local
                 ) values (?, ?, ?, ?, ?, ?, ?)
             `,
-            [
-                novaData,
-                encontroAnterior.hora,
-                encontroAnterior.horaFim,
-                "A",
-                encontroAnterior.qtdeMax,
-                0,
-                encontroAnterior.local,
-            ]
-        );
+      [
+        novaData,
+        encontroAnterior.hora,
+        encontroAnterior.horaFim,
+        "A",
+        encontroAnterior.qtdeMax,
+        0,
+        encontroAnterior.local,
+      ],
+    );
 
-        const novoEncontroId = resultado.insertId;
+    const novoEncontroId = resultado.insertId;
 
-        if (transferirInscritos) {
-            await connectionRef.query(
-                `
+    if (transferirInscritos) {
+      await connectionRef.query(
+        `
                     insert ignore into participantes (enc_id, ben_id, participou)
                     select ?, ben_id, participou
                     from participantes
                     where enc_id = ?
                 `,
-                [novoEncontroId, encontroAnterior.id]
-            );
+        [novoEncontroId, encontroAnterior.id],
+      );
 
-            await connectionRef.query(
-                `
+      await connectionRef.query(
+        `
                     insert ignore into responsaveis (fun_id, enc_id, participou)
                     select fun_id, ?, participou
                     from responsaveis
                     where enc_id = ?
                 `,
-                [novoEncontroId, encontroAnterior.id]
-            );
+        [novoEncontroId, encontroAnterior.id],
+      );
 
-            await connectionRef.query(
-                `
+      await connectionRef.query(
+        `
                     insert ignore into materiais (enc_id, item_id, qtde, utilizado)
                     select ?, item_id, qtde, utilizado
                     from materiais
                     where enc_id = ?
                 `,
-                [novoEncontroId, encontroAnterior.id]
-            );
+        [novoEncontroId, encontroAnterior.id],
+      );
 
-            const [[{ total }]] = await connectionRef.query(
-                `select count(*) as total from participantes where enc_id = ?`,
-                [novoEncontroId]
-            );
+      const [[{ total }]] = await connectionRef.query(
+        `select count(*) as total from participantes where enc_id = ?`,
+        [novoEncontroId],
+      );
 
-            await connectionRef.query(
-                `update encontros set enc_qtde = ? where enc_id = ?`,
-                [total, novoEncontroId]
-            );
-        }
-
-        return novoEncontroId;
+      await connectionRef.query(
+        `update encontros set enc_qtde = ? where enc_id = ?`,
+        [total, novoEncontroId],
+      );
     }
 
-    static async liberarVinculos(connectionRef, encontroId) {
-        await connectionRef.query(`delete from participantes where enc_id = ?`, [encontroId]);
-        await connectionRef.query(`delete from responsaveis where enc_id = ?`, [encontroId]);
-        await connectionRef.query(`delete from materiais where enc_id = ?`, [encontroId]);
-    }
+    return novoEncontroId;
+  }
 
-    static async cancelarComFluxo({ id, motivo, detalhes = "", opcao = "semReposicao", novaData = null }) {
-        await connection.beginTransaction();
+  static async liberarVinculos(connectionRef, encontroId) {
+    await connectionRef.query(`delete from participantes where enc_id = ?`, [
+      encontroId,
+    ]);
+    await connectionRef.query(`delete from responsaveis where enc_id = ?`, [
+      encontroId,
+    ]);
+    await connectionRef.query(`delete from materiais where enc_id = ?`, [
+      encontroId,
+    ]);
+  }
 
-        try {
-            const [[row]] = await connection.query(
-                `select * from encontros where enc_id = ? for update`,
-                [id]
-            );
+  static async cancelarComFluxo({
+    id,
+    motivo,
+    detalhes = "",
+    opcao = "semReposicao",
+    novaData = null,
+  }) {
+    await connection.beginTransaction();
 
-            if (!row) {
-                const erro = new Error(`Nao existe encontro com id ${id}`);
-                erro.status = 404;
-                throw erro;
-            }
+    try {
+      const [[row]] = await connection.query(
+        `select * from encontros where enc_id = ? for update`,
+        [id],
+      );
 
-            const encontro = Encontro.fromRow(row);
-            const impacto = await Encontro.contarImpacto(connection, id);
-            const resumoImpacto = Encontro.montarResumoImpacto(encontro, impacto);
+      if (!row) {
+        const erro = new Error(`Nao existe encontro com id ${id}`);
+        erro.status = 404;
+        throw erro;
+      }
 
-            Encontro.validarCancelamento(resumoImpacto, detalhes, opcao, novaData);
+      const encontro = Encontro.fromRow(row);
+      const impacto = await Encontro.contarImpacto(connection, id);
+      const resumoImpacto = Encontro.montarResumoImpacto(encontro, impacto);
 
-            let novoEncontroId = null;
-            if (opcao === "reagendar" || opcao === "transferirInscritos") {
-                novoEncontroId = await Encontro.criarReagendamentoTransacional(
-                    connection,
-                    encontro,
-                    novaData,
-                    opcao === "transferirInscritos"
-                );
-            }
+      Encontro.validarCancelamento(resumoImpacto, detalhes, opcao, novaData);
 
-            await Encontro.liberarVinculos(connection, id);
+      let novoEncontroId = null;
+      if (opcao === "reagendar" || opcao === "transferirInscritos") {
+        novoEncontroId = await Encontro.criarReagendamentoTransacional(
+          connection,
+          encontro,
+          novaData,
+          opcao === "transferirInscritos",
+        );
+      }
 
-            await connection.query(
-                `
+      await Encontro.liberarVinculos(connection, id);
+
+      await connection.query(
+        `
                     update encontros set
                         enc_cancelado = 'S',
                         enc_motivo_cancelamento = ?,
@@ -467,77 +496,88 @@ class Encontro {
                         enc_qtde = 0
                     where enc_id = ?
                 `,
-                [
-                    motivo,
-                    detalhes,
-                    opcao,
-                    novoEncontroId,
-                    impacto.beneficiarios,
-                    impacto.responsaveis,
-                    impacto.materiais,
-                    id,
-                ]
-            );
+        [
+          motivo,
+          detalhes,
+          opcao,
+          novoEncontroId,
+          impacto.beneficiarios,
+          impacto.responsaveis,
+          impacto.materiais,
+          id,
+        ],
+      );
 
-            await connection.commit();
+      await connection.commit();
 
-            return {
-                encontroId: id,
-                motivo,
-                detalhes,
-                opcao,
-                novaData,
-                novoEncontroId,
-                liberados: {
-                    beneficiarios: impacto.beneficiarios,
-                    responsaveis: impacto.responsaveis,
-                    materiais: impacto.materiais,
-                },
-            };
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
+      return {
+        encontroId: id,
+        motivo,
+        detalhes,
+        opcao,
+        novaData,
+        novoEncontroId,
+        liberados: {
+          beneficiarios: impacto.beneficiarios,
+          responsaveis: impacto.responsaveis,
+          materiais: impacto.materiais,
+        },
+      };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
     }
+  }
 
-    static mapFuncionarioRow(funcionario) {
-        return {
-            id: funcionario.fun_id,
-            nome: funcionario.fun_nome,
-            usuario: funcionario.fun_usuario,
-            cargo: funcionario.fun_cargo,
-            cpf: funcionario.fun_cpf,
-            telefone: funcionario.fun_telefone,
-        };
-    }
+  static mapFuncionarioRow(funcionario) {
+    return {
+      id: funcionario.fun_id,
+      nome: funcionario.fun_nome,
+      usuario: funcionario.fun_usuario,
+      cargo: funcionario.fun_cargo,
+      cpf: funcionario.fun_cpf,
+      telefone: funcionario.fun_telefone,
+    };
+  }
 
-    static async listarResponsaveis(idEncontro, filtroNome = "", filtroUsuario = "") {
-        let queryString = `
+  static async listarResponsaveis(
+    idEncontro,
+    filtroNome = "",
+    filtroUsuario = "",
+  ) {
+    let queryString = `
             select f.*
             from responsaveis r
             inner join funcionarios f on f.fun_id = r.fun_id
             where r.enc_id = ?
         `;
-        const valores = [idEncontro];
+    const valores = [idEncontro];
 
-        if (filtroNome) {
-            queryString += ` and f.fun_nome like ?`;
-            valores.push(`%${filtroNome}%`);
-        }
-
-        if (filtroUsuario) {
-            queryString += ` and f.fun_usuario like ?`;
-            valores.push(`%${filtroUsuario}%`);
-        }
-
-        queryString += ` order by f.fun_nome asc`;
-
-        const [responsaveis] = await connection.query(queryString, valores);
-        return responsaveis.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    if (filtroNome) {
+      queryString += ` and f.fun_nome like ?`;
+      valores.push(`%${filtroNome}%`);
     }
 
-    static async listarSubstitutosDisponiveis(idEncontro, idFuncionarioAtual, filtroNome = "", filtroUsuario = "") {
-        let queryString = `
+    if (filtroUsuario) {
+      queryString += ` and f.fun_usuario like ?`;
+      valores.push(`%${filtroUsuario}%`);
+    }
+
+    queryString += ` order by f.fun_nome asc`;
+
+    const [responsaveis] = await connection.query(queryString, valores);
+    return responsaveis.map((funcionario) =>
+      Encontro.mapFuncionarioRow(funcionario),
+    );
+  }
+
+  static async listarSubstitutosDisponiveis(
+    idEncontro,
+    idFuncionarioAtual,
+    filtroNome = "",
+    filtroUsuario = "",
+  ) {
+    let queryString = `
             select f.*
             from funcionarios f
             inner join encontros atual on atual.enc_id = ?
@@ -560,63 +600,82 @@ class Encontro {
                     and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
               )
         `;
-        const valores = [idEncontro, idFuncionarioAtual];
+    const valores = [idEncontro, idFuncionarioAtual];
 
-        if (filtroNome) {
-            queryString += ` and f.fun_nome like ?`;
-            valores.push(`%${filtroNome}%`);
-        }
-
-        if (filtroUsuario) {
-            queryString += ` and f.fun_usuario like ?`;
-            valores.push(`%${filtroUsuario}%`);
-        }
-
-        queryString += ` order by f.fun_nome asc`;
-
-        const [substitutos] = await connection.query(queryString, valores);
-        return substitutos.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    if (filtroNome) {
+      queryString += ` and f.fun_nome like ?`;
+      valores.push(`%${filtroNome}%`);
     }
 
-    static async substituirTutor(idEncontro, idFuncionarioAtual, idFuncionarioNovo) {
-        const encontro = await Encontro.buscarPorId(idEncontro);
-        if (!encontro) {
-            throw Object.assign(new Error("Encontro nao encontrado"), { status: 404 });
-        }
+    if (filtroUsuario) {
+      queryString += ` and f.fun_usuario like ?`;
+      valores.push(`%${filtroUsuario}%`);
+    }
 
-        if (encontro.cancelado === "S") {
-            throw Object.assign(new Error("Nao e possivel substituir tutor em encontro cancelado"), { status: 400 });
-        }
+    queryString += ` order by f.fun_nome asc`;
 
-        const [[responsavelAtual]] = await connection.query(
-            `select * from responsaveis where enc_id = ? and fun_id = ?`,
-            [idEncontro, idFuncionarioAtual]
-        );
+    const [substitutos] = await connection.query(queryString, valores);
+    return substitutos.map((funcionario) =>
+      Encontro.mapFuncionarioRow(funcionario),
+    );
+  }
 
-        if (!responsavelAtual) {
-            throw Object.assign(new Error("Funcionario atual nao esta vinculado a este encontro"), { status: 404 });
-        }
+  static async substituirTutor(
+    idEncontro,
+    idFuncionarioAtual,
+    idFuncionarioNovo,
+  ) {
+    const encontro = await Encontro.buscarPorId(idEncontro);
+    if (!encontro) {
+      throw Object.assign(new Error("Encontro nao encontrado"), {
+        status: 404,
+      });
+    }
 
-        const [[funcionarioNovo]] = await connection.query(
-            `select * from funcionarios where fun_id = ?`,
-            [idFuncionarioNovo]
-        );
+    if (encontro.cancelado === "S") {
+      throw Object.assign(
+        new Error("Nao e possivel substituir tutor em encontro cancelado"),
+        { status: 400 },
+      );
+    }
 
-        if (!funcionarioNovo) {
-            throw Object.assign(new Error("Funcionario substituto nao encontrado"), { status: 404 });
-        }
+    const [[responsavelAtual]] = await connection.query(
+      `select * from responsaveis where enc_id = ? and fun_id = ?`,
+      [idEncontro, idFuncionarioAtual],
+    );
 
-        const [[jaResponsavel]] = await connection.query(
-            `select * from responsaveis where enc_id = ? and fun_id = ?`,
-            [idEncontro, idFuncionarioNovo]
-        );
+    if (!responsavelAtual) {
+      throw Object.assign(
+        new Error("Funcionario atual nao esta vinculado a este encontro"),
+        { status: 404 },
+      );
+    }
 
-        if (jaResponsavel) {
-            throw Object.assign(new Error("Funcionario substituto ja esta vinculado a este encontro"), { status: 400 });
-        }
+    const [[funcionarioNovo]] = await connection.query(
+      `select * from funcionarios where fun_id = ?`,
+      [idFuncionarioNovo],
+    );
 
-        const [[conflito]] = await connection.query(
-            `
+    if (!funcionarioNovo) {
+      throw Object.assign(new Error("Funcionario substituto nao encontrado"), {
+        status: 404,
+      });
+    }
+
+    const [[jaResponsavel]] = await connection.query(
+      `select * from responsaveis where enc_id = ? and fun_id = ?`,
+      [idEncontro, idFuncionarioNovo],
+    );
+
+    if (jaResponsavel) {
+      throw Object.assign(
+        new Error("Funcionario substituto ja esta vinculado a este encontro"),
+        { status: 400 },
+      );
+    }
+
+    const [[conflito]] = await connection.query(
+      `
                 select outro.enc_id, outro.enc_local, outro.enc_data
                 from responsaveis conflito
                 inner join encontros outro on outro.enc_id = conflito.enc_id
@@ -628,38 +687,48 @@ class Encontro {
                   and coalesce(outro.enc_hora, '') = coalesce(atual.enc_hora, '')
                 limit 1
             `,
-            [idEncontro, idFuncionarioNovo]
-        );
+      [idEncontro, idFuncionarioNovo],
+    );
 
-        if (conflito) {
-            throw Object.assign(
-                new Error(`Funcionario ja esta vinculado ao encontro ${conflito.enc_id} na mesma data`),
-                { status: 400 }
-            );
-        }
+    if (conflito) {
+      throw Object.assign(
+        new Error(
+          `Funcionario ja esta vinculado ao encontro ${conflito.enc_id} na mesma data`,
+        ),
+        { status: 400 },
+      );
+    }
 
-        const [resultado] = await connection.query(
-            `
+    const [resultado] = await connection.query(
+      `
                 update responsaveis
                 set fun_id = ?
                 where enc_id = ? and fun_id = ?
             `,
-            [idFuncionarioNovo, idEncontro, idFuncionarioAtual]
-        );
+      [idFuncionarioNovo, idEncontro, idFuncionarioAtual],
+    );
 
-        if (!resultado.affectedRows) {
-            throw Object.assign(new Error("Nao foi possivel substituir o tutor"), { status: 400 });
-        }
-
-        return {
-            encontroId: Number(idEncontro),
-            tutorAnteriorId: Number(idFuncionarioAtual),
-            tutorNovoId: Number(idFuncionarioNovo),
-        };
+    if (!resultado.affectedRows) {
+      throw Object.assign(new Error("Nao foi possivel substituir o tutor"), {
+        status: 400,
+      });
     }
 
-    static async listarFuncionariosDisponiveis(data, hora, horaFim = hora, filtroNome = "", filtroUsuario = "") {
-        let queryString = `
+    return {
+      encontroId: Number(idEncontro),
+      tutorAnteriorId: Number(idFuncionarioAtual),
+      tutorNovoId: Number(idFuncionarioNovo),
+    };
+  }
+
+  static async listarFuncionariosDisponiveis(
+    data,
+    hora,
+    horaFim = hora,
+    filtroNome = "",
+    filtroUsuario = "",
+  ) {
+    let queryString = `
             select f.*
             from funcionarios f
             where not exists (
@@ -673,83 +742,99 @@ class Encontro {
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
             )
         `;
-        const valores = [data, horaFim, hora];
+    const valores = [data, horaFim, hora];
 
-        if (filtroNome) {
-            queryString += ` and f.fun_nome like ?`;
-            valores.push(`%${filtroNome}%`);
-        }
-
-        if (filtroUsuario) {
-            queryString += ` and f.fun_usuario like ?`;
-            valores.push(`%${filtroUsuario}%`);
-        }
-
-        queryString += ` order by f.fun_nome asc`;
-
-        const [funcionarios] = await connection.query(queryString, valores);
-        return funcionarios.map((funcionario) => Encontro.mapFuncionarioRow(funcionario));
+    if (filtroNome) {
+      queryString += ` and f.fun_nome like ?`;
+      valores.push(`%${filtroNome}%`);
     }
 
-    static validarHorario(hora, horaFim) {
-        const inicioMinutos = normalizarMinutos(hora);
-        const fimMinutos = normalizarMinutos(horaFim);
-
-        if (inicioMinutos === null || fimMinutos === null) {
-            const erro = new Error("Horario de inicio e termino sao obrigatorios");
-            erro.status = 400;
-            erro.campos = {
-                enc_hora: inicioMinutos === null,
-                enc_hora_fim: fimMinutos === null,
-            };
-            throw erro;
-        }
-
-        if (fimMinutos <= inicioMinutos) {
-            const erro = new Error("Horario de termino precisa ser depois do inicio");
-            erro.status = 400;
-            erro.campos = { enc_hora_fim: "Informe um horario posterior ao inicio" };
-            throw erro;
-        }
+    if (filtroUsuario) {
+      queryString += ` and f.fun_usuario like ?`;
+      valores.push(`%${filtroUsuario}%`);
     }
 
-    static validarAgendamento({ data, hora, horaFim, local, qtdeMax, qtde, responsaveisIds = [] }) {
-        const dataHora = normalizarDataHora(data, hora);
-        const localLimpo = normalizarTexto(local);
-        const erros = {};
+    queryString += ` order by f.fun_nome asc`;
 
-        if (!data) erros.enc_data = "Data obrigatoria";
-        if (!hora) erros.enc_hora = "Hora obrigatoria";
-        if (!horaFim) erros.enc_hora_fim = "Horario de termino obrigatorio";
-        if (!dataHora) erros.enc_data = "Data ou hora invalida";
-        if (dataHora && dataHora < new Date()) erros.enc_data = "Agende para uma data e hora futuras";
-        if (localLimpo.length < 3) erros.enc_local = "Informe um local mais detalhado";
-        if (localLimpo && !LOCAL_REGEX.test(localLimpo)) {
-            erros.enc_local = "Use apenas letras, numeros e pontuacao simples no local";
-        }
-        if (!Number.isInteger(Number(qtdeMax)) || Number(qtdeMax) <= 0) {
-            erros.enc_qtdeMax = "Quantidade maxima deve ser um inteiro maior que 0";
-        }
-        if (Number(qtdeMax) > 500) erros.enc_qtdeMax = "Quantidade maxima deve ser no maximo 500";
-        if (Number(qtde) < 0) erros.enc_qtde = "Quantidade atual nao pode ser negativa";
-        if (Number(qtde) > Number(qtdeMax)) erros.enc_qtde = "Quantidade atual nao pode ser maior que a maxima";
-        if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
-            erros.responsaveis = "Selecione pelo menos um funcionario responsavel";
-        }
+    const [funcionarios] = await connection.query(queryString, valores);
+    return funcionarios.map((funcionario) =>
+      Encontro.mapFuncionarioRow(funcionario),
+    );
+  }
 
-        if (Object.keys(erros).length > 0) {
-            const erro = new Error("Revise os dados do agendamento");
-            erro.status = 400;
-            erro.campos = erros;
-            throw erro;
-        }
+  static validarHorario(hora, horaFim) {
+    const inicioMinutos = normalizarMinutos(hora);
+    const fimMinutos = normalizarMinutos(horaFim);
 
-        Encontro.validarHorario(hora, horaFim);
+    if (inicioMinutos === null || fimMinutos === null) {
+      const erro = new Error("Horario de inicio e termino sao obrigatorios");
+      erro.status = 400;
+      erro.campos = {
+        enc_hora: inicioMinutos === null,
+        enc_hora_fim: fimMinutos === null,
+      };
+      throw erro;
     }
 
-    static async buscarConflitoLocal(data, hora, horaFim, local) {
-        const [[conflito]] = await connection.query(
-            `
+    if (fimMinutos <= inicioMinutos) {
+      const erro = new Error("Horario de termino precisa ser depois do inicio");
+      erro.status = 400;
+      erro.campos = { enc_hora_fim: "Informe um horario posterior ao inicio" };
+      throw erro;
+    }
+  }
+
+  static validarAgendamento({
+    data,
+    hora,
+    horaFim,
+    local,
+    qtdeMax,
+    qtde,
+    responsaveisIds = [],
+  }) {
+    const dataHora = normalizarDataHora(data, hora);
+    const localLimpo = normalizarTexto(local);
+    const erros = {};
+
+    if (!data) erros.enc_data = "Data obrigatoria";
+    if (!hora) erros.enc_hora = "Hora obrigatoria";
+    if (!horaFim) erros.enc_hora_fim = "Horario de termino obrigatorio";
+    if (!dataHora) erros.enc_data = "Data ou hora invalida";
+    if (dataHora && dataHora < new Date())
+      erros.enc_data = "Agende para uma data e hora futuras";
+    if (localLimpo.length < 3)
+      erros.enc_local = "Informe um local mais detalhado";
+    if (localLimpo && !LOCAL_REGEX.test(localLimpo)) {
+      erros.enc_local =
+        "Use apenas letras, numeros e pontuacao simples no local";
+    }
+    if (!Number.isInteger(Number(qtdeMax)) || Number(qtdeMax) <= 0) {
+      erros.enc_qtdeMax = "Quantidade maxima deve ser um inteiro maior que 0";
+    }
+    if (Number(qtdeMax) > 500)
+      erros.enc_qtdeMax = "Quantidade maxima deve ser no maximo 500";
+    if (Number(qtde) < 0)
+      erros.enc_qtde = "Quantidade atual nao pode ser negativa";
+    if (Number(qtde) > Number(qtdeMax))
+      erros.enc_qtde = "Quantidade atual nao pode ser maior que a maxima";
+    if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
+      erros.responsaveis = "Selecione pelo menos um funcionario responsavel";
+    }
+
+    if (Object.keys(erros).length > 0) {
+      const erro = new Error("Revise os dados do agendamento");
+      erro.status = 400;
+      erro.campos = erros;
+      throw erro;
+    }
+
+    Encontro.validarHorario(hora, horaFim);
+  }
+
+  static async buscarConflitoLocal(data, hora, horaFim, local) {
+    const [[conflito]] = await connection.query(
+      `
                 select enc_id, enc_local
                 from encontros
                 where enc_cancelado = 'N'
@@ -759,20 +844,27 @@ class Encontro {
                   and lower(trim(enc_local)) = lower(trim(?))
                 limit 1
             `,
-            [data, horaFim, hora, local]
-        );
+      [data, horaFim, hora, local],
+    );
 
-        return conflito || null;
+    return conflito || null;
+  }
+
+  static async listarResponsaveisComConflito(
+    data,
+    hora,
+    horaFim,
+    responsaveisIds = [],
+  ) {
+    const idsUnicos = [
+      ...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean)),
+    ];
+    if (idsUnicos.length === 0) {
+      return [];
     }
 
-    static async listarResponsaveisComConflito(data, hora, horaFim, responsaveisIds = []) {
-        const idsUnicos = [...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean))];
-        if (idsUnicos.length === 0) {
-            return [];
-        }
-
-        const [conflitos] = await connection.query(
-            `
+    const [conflitos] = await connection.query(
+      `
                 select f.fun_id, f.fun_nome, e.enc_id
                 from responsaveis r
                 inner join funcionarios f on f.fun_id = r.fun_id
@@ -783,42 +875,42 @@ class Encontro {
                   and e.enc_hora < ?
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
             `,
-            [idsUnicos, data, horaFim, hora]
-        );
+      [idsUnicos, data, horaFim, hora],
+    );
 
-        return conflitos;
+    return conflitos;
+  }
+
+  static normalizarMateriais(materiais = []) {
+    if (!Array.isArray(materiais)) {
+      return [];
     }
 
-    static normalizarMateriais(materiais = []) {
-        if (!Array.isArray(materiais)) {
-            return [];
-        }
+    const agrupados = new Map();
+    for (const material of materiais) {
+      const itemId = Number(material.itemId || material.item_id);
+      const qtde = Number(material.qtde);
 
-        const agrupados = new Map();
-        for (const material of materiais) {
-            const itemId = Number(material.itemId || material.item_id);
-            const qtde = Number(material.qtde);
+      if (!itemId || !Number.isInteger(qtde) || qtde <= 0 || qtde > 999) {
+        continue;
+      }
 
-            if (!itemId || !Number.isInteger(qtde) || qtde <= 0 || qtde > 999) {
-                continue;
-            }
-
-            agrupados.set(itemId, (agrupados.get(itemId) || 0) + qtde);
-        }
-
-        return [...agrupados.entries()].map(([itemId, qtde]) => ({ itemId, qtde }));
+      agrupados.set(itemId, (agrupados.get(itemId) || 0) + qtde);
     }
 
-    static async listarMateriaisComConflito(data, hora, horaFim, materiais = []) {
-        const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
-        const itemIds = materiaisNormalizados.map((material) => material.itemId);
+    return [...agrupados.entries()].map(([itemId, qtde]) => ({ itemId, qtde }));
+  }
 
-        if (itemIds.length === 0) {
-            return [];
-        }
+  static async listarMateriaisComConflito(data, hora, horaFim, materiais = []) {
+    const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+    const itemIds = materiaisNormalizados.map((material) => material.itemId);
 
-        const [conflitos] = await connection.query(
-            `
+    if (itemIds.length === 0) {
+      return [];
+    }
+
+    const [conflitos] = await connection.query(
+      `
                 select i.item_id, i.item_nome, e.enc_id
                 from materiais m
                 inner join itens i on i.item_id = m.item_id
@@ -829,61 +921,158 @@ class Encontro {
                   and e.enc_hora < ?
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
             `,
-            [itemIds, data, horaFim, hora]
+      [itemIds, data, horaFim, hora],
+    );
+
+    return conflitos;
+  }
+
+  static async vincularResponsaveis(idEncontro, responsaveisIds = []) {
+    if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
+      return;
+    }
+
+    const idsUnicos = [
+      ...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean)),
+    ];
+    for (const funId of idsUnicos) {
+      await connection.query(
+        `insert ignore into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
+        [funId, idEncontro],
+      );
+    }
+  }
+
+  static async vincularMateriais(idEncontro, materiais = []) {
+    const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+    if (materiaisNormalizados.length === 0) {
+      return;
+    }
+
+    for (const material of materiaisNormalizados) {
+      const [[item]] = await connection.query(
+        `select item_id from itens where item_id = ?`,
+        [material.itemId],
+      );
+      if (!item) {
+        const erro = new Error(`Item ${material.itemId} nao encontrado`);
+        erro.status = 400;
+        throw erro;
+      }
+
+      await connection.query(
+        `insert ignore into materiais (enc_id, item_id, qtde, utilizado) values (?, ?, ?, 'N')`,
+        [idEncontro, material.itemId, material.qtde],
+      );
+    }
+  }
+
+  static async gravarComRelacionamentos(
+    encontro,
+    responsaveis = [],
+    materiais = [],
+  ) {
+    await connection.beginTransaction();
+
+    try {
+      const resultado = await encontro.gravar();
+      await Encontro.vincularResponsaveis(resultado.insertId, responsaveis);
+      await Encontro.vincularMateriais(resultado.insertId, materiais);
+      await connection.commit();
+      return resultado;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    }
+  }
+
+  static async finalizar({ id, participantes = [] }) {
+    const db = await SingletonDB.getConnection();
+
+    try {
+      await db.beginTransaction();
+
+      const [enc] = await db.execute(
+        `SELECT enc_id, enc_disponibilidade 
+       FROM encontros 
+       WHERE enc_id = ? 
+       FOR UPDATE`,
+        [id],
+      );
+
+      if (enc.length === 0) {
+        throw { status: 404, message: "Encontro não encontrado" };
+      }
+
+      const encontro = enc[0];
+
+      if (encontro.enc_disponibilidade === "F") {
+        throw { status: 400, message: "Encontro já finalizado" };
+      }
+
+      if (
+        encontro.enc_disponibilidade !== "A" &&
+        encontro.enc_disponibilidade !== "E"
+      ) {
+        throw { status: 400, message: "Encontro não está em andamento" };
+      }
+
+      const [rowsParticipantes] = await db.execute(
+        `SELECT ben_id FROM participantes WHERE enc_id = ?`,
+        [id],
+      );
+
+      const idsValidos = rowsParticipantes.map((p) => p.ben_id);
+
+      for (const p of participantes) {
+        if (!idsValidos.includes(p)) {
+          throw {
+            status: 400,
+            message: `Participante ${p} não pertence ao encontro`,
+          };
+        }
+      }
+
+      await db.execute(
+        `UPDATE participantes 
+       SET participou = 'N' 
+       WHERE enc_id = ?`,
+        [id],
+      );
+
+      if (participantes.length > 0) {
+        const placeholders = participantes.map(() => "?").join(",");
+
+        await db.execute(
+          `UPDATE participantes 
+         SET participou = 'S'
+         WHERE enc_id = ? AND ben_id IN (${placeholders})`,
+          [id, ...participantes],
         );
+      }
 
-        return conflitos;
+      const qtdePresentes = participantes.length;
+
+      await db.execute(
+        `UPDATE encontros
+       SET enc_qtde = ?, 
+           enc_disponibilidade = 'F'
+       WHERE enc_id = ?`,
+        [qtdePresentes, id],
+      );
+
+      await db.commit();
+
+      return {
+        id,
+        qtdePresentes,
+        participantesConfirmados: qtdePresentes,
+      };
+    } catch (err) {
+      await db.rollback();
+      throw err;
     }
-
-    static async vincularResponsaveis(idEncontro, responsaveisIds = []) {
-        if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
-            return;
-        }
-
-        const idsUnicos = [...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean))];
-        for (const funId of idsUnicos) {
-            await connection.query(
-                `insert ignore into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
-                [funId, idEncontro]
-            );
-        }
-    }
-
-    static async vincularMateriais(idEncontro, materiais = []) {
-        const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
-        if (materiaisNormalizados.length === 0) {
-            return;
-        }
-
-        for (const material of materiaisNormalizados) {
-            const [[item]] = await connection.query(`select item_id from itens where item_id = ?`, [material.itemId]);
-            if (!item) {
-                const erro = new Error(`Item ${material.itemId} nao encontrado`);
-                erro.status = 400;
-                throw erro;
-            }
-
-            await connection.query(
-                `insert ignore into materiais (enc_id, item_id, qtde, utilizado) values (?, ?, ?, 'N')`,
-                [idEncontro, material.itemId, material.qtde]
-            );
-        }
-    }
-
-    static async gravarComRelacionamentos(encontro, responsaveis = [], materiais = []) {
-        await connection.beginTransaction();
-
-        try {
-            const resultado = await encontro.gravar();
-            await Encontro.vincularResponsaveis(resultado.insertId, responsaveis);
-            await Encontro.vincularMateriais(resultado.insertId, materiais);
-            await connection.commit();
-            return resultado;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    }
+  }
 }
 
 export default Encontro;

@@ -10,6 +10,7 @@ router.get("/substitutos", EncontroController.listarSubstitutos);
 router.get("/funcionarios-disponiveis", EncontroController.listarFuncionariosDisponiveis);
 router.post("/gravar",EncontroController.cadastrar);
 router.post("/cancelar", EncontroController.cancelar);
+router.post("/finalizar", EncontroController.finalizar);
 router.post("/substituir-tutor", EncontroController.substituirTutor);
 router.put("/alterar", EncontroController.alterar);
 router.delete("/excluir", EncontroController.excluir);
