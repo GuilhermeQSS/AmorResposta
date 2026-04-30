@@ -1,4 +1,5 @@
 import Itens from "./itensModel.js";
+import Ben from "./beneficiarioModel.js";
 
 function ehAnteriorHoje(dataStr) {
     const data = new Date(dataStr);
@@ -16,13 +17,12 @@ function ehAnteriorHoje(dataStr) {
 }
 
 class Lotes{
-    constructor(id, idItem, unidadeMed, data, quantidade) {
-        if (!idItem || !unidadeMed || !quantidade)
+    constructor(id, idItem, data, quantidade) {
+        if (!idItem || !quantidade)
             throw new Error("Todos os campos devem ser preenchidos");
 
         this.id = id;
         this.idItem = idItem;
-        this.unidadeMed = unidadeMed;
         this.data = data;
         this.quantidade = quantidade;
     }
@@ -43,7 +43,6 @@ class Lotes{
         const lotesList = lotes.map(e => new Lotes(
             e.lot_id,
             e.item_id,
-            e.lot_unidadeMedida,
             e.lot_validade,
             e.lot_qtde
         ));
@@ -79,7 +78,7 @@ class Lotes{
             item_descricao: e.item_descricao,
             item_tipo: e.item_tipo,
             item_possuiValidade: e.item_possuiValidade,
-            lot_unidadeMedida: e.lot_unidadeMedida,
+            item_unidadeMedida: e.item_unidadeMedida,
             lot_validade: e.lot_validade,
             lot_qtde: e.lot_qtde
         }));
@@ -89,7 +88,6 @@ class Lotes{
         const queryString = `
             UPDATE lotes SET
                 item_id            = ?,
-                lot_unidadeMedida  = ?,
                 lot_validade       = ?,
                 lot_qtde           = ?
             WHERE lot_id = ?;
@@ -107,7 +105,6 @@ class Lotes{
 
         const valores = [
             this.idItem,
-            this.unidadeMed,
             this.data,
             this.quantidade,
             this.id
@@ -140,7 +137,6 @@ class Lotes{
         return new Lotes(
             lote.lot_id,
             lote.item_id,
-            lote.lot_unidadeMedida,
             lote.lot_validade,
             lote.lot_qtde
         );
@@ -163,21 +159,46 @@ class Lotes{
         const queryString = `
             INSERT INTO lotes (
                 item_id,
-                lot_unidadeMedida,
                 lot_validade,
                 lot_qtde
-            ) VALUES (?, ?, ?, ?);
+            ) VALUES (?, ?, ?);
         `;
 
         const valores = [
             this.idItem,
-            this.unidadeMed,
             this.data,
             this.quantidade
         ];
 
         const [resultado] = await connection.query(queryString, valores);
         return resultado;
+    }
+
+    static async saidaDoacao(connection, benId, listaLotes, data){
+        const beneficiario = await Ben.buscarPorId(benId);
+        if(beneficiario == null)
+            throw new Error("Beneficiario não encontrado");
+
+        await connection.beginTransaction();
+
+        const [resultado] = await connection.query(`
+            INSERT INTO lotesDoados(ben_id,data)
+            VALUES (?, ?);` ,[benId,data]);
+        let i = 0;
+        for(let lItem of listaLotes){
+            if(lItem.qtd <= 0)
+                throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.qtd+": quantidade invalida");
+            else{
+                const lote = await this.buscarPorId(connection, lItem.id);
+                if(lote == null)
+                    throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.id+": id não encontrado");
+                else
+                    await connection.query(`
+                        INSERT INTO lotesDoadosLotes(lotd_id,lot_id,qtde)
+                        VALUES (?, ?, ?);`,[resultado.insertId,lote.id,lItem.qtd]);
+            }
+        }
+        await connection.commit();
     }
 }
 

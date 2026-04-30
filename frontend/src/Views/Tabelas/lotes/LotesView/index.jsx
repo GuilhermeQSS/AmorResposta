@@ -76,7 +76,6 @@ function LotesView() {
                             <th>#</th>
                             <th>Item</th>
                             <th>Tipo</th>
-                            <th>Unidade de Medida</th>
                             <th>Quantidade</th>
                             <th>Validade</th>
                             <th>Ações</th>
@@ -88,7 +87,6 @@ function LotesView() {
                                 <td>{e.lot_id}</td>
                                 <td>{e.item_nome}</td>
                                 <td>{e.item_tipo}</td>
-                                <td>{e.lot_unidadeMedida}</td>
                                 <td>{e.lot_qtde}</td>
                                 <td>{e.lot_validade
                                     ? new Date(e.lot_validade).toLocaleDateString("pt-BR")

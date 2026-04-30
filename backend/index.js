@@ -7,6 +7,8 @@ import doacaoRoutes from "./routes/doacoesRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import itensRoutes from "./routes/itensRoute.js"
 import lotesRoute from "./routes/lotesRoute.js"
+import doacaoRoutes from "./routes/doacoesRoute.js"
+import beneficiarioRoutes from "./routes/beneficiariosRoute.js"
 import e from "express";
 import cors from "cors";
 
@@ -27,6 +29,8 @@ app.use("/doacoes", doacaoRoutes);
 app.use("/documentos", documentoRoutes);
 app.use("/itens", itensRoutes);
 app.use("/lotes",lotesRoute);
+app.use("/doacoes", doacaoRoutes);
+app.use("/beneficiarios", beneficiarioRoutes);
 
 app.listen(port,()=>{
     console.log(`Servidor iniciado em: http://localhost:${port}`);

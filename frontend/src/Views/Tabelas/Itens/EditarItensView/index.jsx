@@ -18,6 +18,7 @@ function EditarItensView() {
             descricao: !form.descricao,
             nome: !form.nome,
             tipo: !form.tipo,
+            unidadeMedida: !form.unidadeMedida,
         };
         setCamposVazios(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
@@ -35,6 +36,7 @@ function EditarItensView() {
                     descricao: form.descricao,
                     nome: form.nome,
                     tipo: form.tipo,
+                    unidadeMedida: form.unidadeMedida,
                     possuiValidade: form.possuiValidade
                 })
             });
@@ -66,6 +68,7 @@ function EditarItensView() {
         descricao: "",
         nome: "",
         tipo: "",
+        unidadeMedida: "",
         possuiValidade: false
     });
     const [formOriginal, setFormOriginal] = useState({
@@ -73,6 +76,7 @@ function EditarItensView() {
         descricao: "",
         nome: "",
         tipo: "",
+        unidadeMedida: "",
         possuiValidade: false
     });
     const [editado, setEditado] = useState(false);
@@ -132,6 +136,17 @@ function EditarItensView() {
                             value={form.tipo}
                             onChange={atualizarForm}
                             style={{ border: camposVazios.tipo ? "2px solid red" : "" }}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="unidadeMedida">Unidade de Medida: </label>
+                        <input
+                            type="text"
+                            name="unidadeMedida"
+                            value={form.unidadeMedida}
+                            onChange={atualizarForm}
+                            style={{ border: camposVazios.unidadeMedida ? "2px solid red" : "" }}
                         />
                     </div>
 

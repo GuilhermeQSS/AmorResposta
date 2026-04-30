@@ -35,6 +35,7 @@ import CadastrarDespesaView from './Views/Tabelas/Despesas/CadastrarDespesaView'
 import CadastrarLotesView from './Views/Tabelas/lotes/CadastrarLotesView'
 import EditarLotesView from './Views/Tabelas/lotes/EditarLotesView'
 import LotesView from './Views/Tabelas/lotes/LotesView'
+import SaidaDoacao from './Views/Tabelas/SaidaDoacao'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -76,6 +77,7 @@ createRoot(document.getElementById('root')).render(
           <Route path='/tabelas/lotes' element={<LotesView />} />
           <Route path="/lotes/cadastro" element={<CadastrarLotesView />}/>
           <Route path="/lotes/:id" element={<EditarLotesView />}/>
+          <Route path="/lotes/saida-doacao" element={<SaidaDoacao />} />
         </Route>
       </Routes>
     </BrowserRouter>

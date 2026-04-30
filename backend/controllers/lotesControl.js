@@ -38,13 +38,13 @@ class lotesControl {
     static async alterar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            const { id, idItem, unidadeMed, data, quantidade } = req.body;
+            const { id, idItem, data, quantidade } = req.body;
 
             const loteOriginal = await Lotes.buscarPorId(connection, id);
             if (!loteOriginal)
                 throw new Error("Id não existe");
 
-            const lote = new Lotes(id, idItem, unidadeMed, data, quantidade);
+            const lote = new Lotes(id, idItem, data, quantidade);
             const resultado = await lote.alterar(connection);
             return res.status(200).json(resultado);
         } catch (err) {
@@ -68,13 +68,28 @@ class lotesControl {
 
     static async cadastrar(req, res) {
         try {
-            const { idItem, unidadeMed, data, quantidade } = req.body;
+            const { idItem, data, quantidade } = req.body;
 
-            const lote = new Lotes(0, idItem, unidadeMed, data, quantidade);
+            const lote = new Lotes(0, idItem, data, quantidade);
             const connection = await SingletonDB.getConnection();
             const resp = await lote.gravar(connection);
             return res.status(200).json(resp);
         } catch (err) {
+            return res.status(500).json({ err: err.message });
+        }
+    }
+
+    static async sairDoacao(req, res) {
+        let connection = null;
+        try {
+            const { benId, listaLotes, data } = req.body;
+
+            connection = await SingletonDB.getConnection();
+            const resp = await Lotes.saidaDoacao(connection, benId, listaLotes, data);
+
+            return res.status(200).json(resp);
+        } catch(err) {
+            await connection.rollback();
             return res.status(500).json({ err: err.message });
         }
     }
