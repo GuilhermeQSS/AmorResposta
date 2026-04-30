@@ -1,9 +1,8 @@
 import e from "express";
 import funcionarioRoutes from "./funcionariosRoute.js"
-import beneficiarioRoute from "./beneficiarioRoute.js"
+import beneficiarioRoute from "./beneficiariosRoute.js"
 import encontroRoutes from "./encontrosRoute.js";
 import loginRoutes from "./loginRoute.js"
-import encontroRoutes from "./encontrosRoute.js"
 import { autenticarAdminOuVoluntario } from "../middlewares/authMiddleware.js";
 const router = e.Router();
 

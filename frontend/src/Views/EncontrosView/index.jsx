@@ -253,7 +253,7 @@ function EncontrosView() {
                                     $inscrito={item.beneficiario !== null}
                                     $lotado={isLotado(item.encontro) && item.beneficiario === null}
                                 >
-                                    <strong>{item.encontro.titulo}</strong>
+                                    <strong>{item.titulo}</strong>
                                     {item.encontro.data && (
                                         <span>{formatarDataExibicao(item.encontro.data)}</span>
                                     )}
