@@ -22,8 +22,8 @@ function EditarDespesaView() {
                 },
                 body: JSON.stringify({
                     id: form.id,
-                    valor: form.valor,
-                    descricao: form.descricao
+                    descricao: form.descricao,
+                    categoria: form.categoria
                 })
             });
 
@@ -74,13 +74,13 @@ function EditarDespesaView() {
     const [erros, setErros] = useState({});
     const [form, setForm] = useState({
         id: 0,
-        valor: "",
-        descricao: ""
+        descricao: "",
+        categoria: ""
     });
     const [formOriginal, setFormOriginal] = useState({
         id: 0,
-        valor: "",
-        descricao: ""
+        descricao: "",
+        categoria: ""
     });
     const [editado, setEditado] = useState(false);
 
@@ -91,9 +91,8 @@ function EditarDespesaView() {
                 return;
             }
 
-            const despesa = { ...data, valor: data.valor ?? "" };
-            setForm(despesa);
-            setFormOriginal(despesa);
+            setForm(data);
+            setFormOriginal(data);
         }
 
         carregar();
@@ -114,25 +113,22 @@ function EditarDespesaView() {
                 </Styled.BackBtn>
                 <Styled.Form noValidate>
                     <div>
-                        <label htmlFor="valor">Valor:</label>
-                        <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            name="valor"
-                            value={form.valor}
-                            onChange={atualizarForm}
-                            style={{ border: erros.des_valor ? "2px solid red" : "" }}
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="descricao">Descrição:</label>
+                        <label htmlFor="descricao">Descricao:</label>
                         <input
                             name="descricao"
                             value={form.descricao}
                             onChange={atualizarForm}
                             style={{ border: erros.des_descricao ? "2px solid red" : "" }}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="categoria">Categoria:</label>
+                        <input
+                            name="categoria"
+                            value={form.categoria}
+                            onChange={atualizarForm}
+                            style={{ border: erros.des_categoria ? "2px solid red" : "" }}
                         />
                     </div>
 
