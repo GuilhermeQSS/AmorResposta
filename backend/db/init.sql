@@ -186,10 +186,6 @@ CREATE TABLE IF NOT EXISTS `materiais` (
   PRIMARY KEY (`enc_id`, `item_id`)
 );
 
-alter table `despesas`
-  add CONSTRAINT `fk_despesas_documentos`
-    FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
-
 alter table `doacoes`
   add CONSTRAINT `fk_doacoes_doador`
     FOREIGN KEY (`doad_id`) REFERENCES `doadores` (`doad_id`),
