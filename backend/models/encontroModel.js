@@ -1,27 +1,3 @@
-import SingletonDB from "../db/SingletonDB.js";
-
-const connection = {
-  async query(...args) {
-    const db = await SingletonDB.getConnection();
-    return db.query(...args);
-  },
-
-  async beginTransaction() {
-    const db = await SingletonDB.getConnection();
-    return db.beginTransaction();
-  },
-
-  async commit() {
-    const db = await SingletonDB.getConnection();
-    return db.commit();
-  },
-
-  async rollback() {
-    const db = await SingletonDB.getConnection();
-    return db.rollback();
-  },
-};
-
 function normalizarData(data) {
   return data ? new Date(data) : null;
 }
@@ -124,7 +100,7 @@ class Encontro {
     );
   }
 
-  static async listar(filtro, status = "ativos") {
+  static async listar(connectionRef, filtro, status = "ativos") {
     let queryString = `
       select
         e.*,
@@ -153,12 +129,12 @@ class Encontro {
         ? ` order by e.enc_data_cancelamento desc, e.enc_id desc`
         : ` order by e.enc_data asc, e.enc_hora asc, e.enc_id asc`;
 
-    const [rows] = await connection.query(queryString, params);
+    const [rows] = await connectionRef.query(queryString, params);
     return rows.map((row) => Encontro.fromRow(row));
   }
 
-  async alterar() {
-    const [resultado] = await connection.query(
+  async alterar(connectionRef) {
+    const [resultado] = await connectionRef.query(
       `
                 update encontros set
                     enc_data = ?,
@@ -185,18 +161,18 @@ class Encontro {
     return resultado;
   }
 
-  async excluir() {
-    await connection.beginTransaction();
+  async excluir(connectionRef) {
+    await connectionRef.beginTransaction();
 
     try {
-      await connection.query(`delete from participantes where enc_id = ?`, [this.id]);
-      await connection.query(`delete from responsaveis where enc_id = ?`, [this.id]);
-      await connection.query(`delete from materiais where enc_id = ?`, [this.id]);
-      await connection.query(`delete from beneficiariosEncontros where enc_id = ?`, [this.id]);
-      await connection.query(`delete from funcionariosEncontros where enc_id = ?`, [this.id]);
-      await connection.query(`delete from encontrosItens where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from participantes where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from responsaveis where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from materiais where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from beneficiariosEncontros where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from funcionariosEncontros where enc_id = ?`, [this.id]);
+      await connectionRef.query(`delete from encontrosItens where enc_id = ?`, [this.id]);
 
-      const [resultado] = await connection.query(
+      const [resultado] = await connectionRef.query(
         `
           delete from encontros
           where enc_id = ?
@@ -204,16 +180,16 @@ class Encontro {
         [this.id],
       );
 
-      await connection.commit();
+      await connectionRef.commit();
       return resultado;
     } catch (error) {
-      await connection.rollback();
+      await connectionRef.rollback();
       throw error;
     }
   }
 
-  async gravar() {
-    const [resultado] = await connection.query(
+  async gravar(connectionRef) {
+    const [resultado] = await connectionRef.query(
       `
                 insert into encontros(
                     enc_data,
@@ -239,8 +215,8 @@ class Encontro {
     return resultado;
   }
 
-  static async buscarPorLocal(local) {
-    const [[row]] = await connection.query(
+  static async buscarPorLocal(connectionRef, local) {
+    const [[row]] = await connectionRef.query(
       `select * from encontros where enc_local = ?`,
       [local],
     );
@@ -248,8 +224,8 @@ class Encontro {
     return row ? Encontro.fromRow(row) : null;
   }
 
-  static async buscarPorId(id) {
-    const [[row]] = await connection.query(
+  static async buscarPorId(connectionRef, id) {
+    const [[row]] = await connectionRef.query(
       `
         select
           e.*,
@@ -317,13 +293,13 @@ class Encontro {
     };
   }
 
-  static async buscarImpacto(id) {
-    const encontro = await Encontro.buscarPorId(id);
+  static async buscarImpacto(connectionRef, id) {
+    const encontro = await Encontro.buscarPorId(connectionRef, id);
     if (!encontro) {
       return null;
     }
 
-    const impacto = await Encontro.contarImpacto(connection, id);
+    const impacto = await Encontro.contarImpacto(connectionRef, id);
     return Encontro.montarResumoImpacto(encontro, impacto);
   }
 
@@ -481,7 +457,7 @@ class Encontro {
     ]);
   }
 
-  static async cancelarComFluxo({
+  static async cancelarComFluxo(connectionRef, {
     id,
     motivo,
     detalhes = "",
@@ -489,10 +465,10 @@ class Encontro {
     novaData = null,
     canceladoPorId,
   }) {
-    await connection.beginTransaction();
+    await connectionRef.beginTransaction();
 
     try {
-      const [[row]] = await connection.query(
+      const [[row]] = await connectionRef.query(
         `select * from encontros where enc_id = ? for update`,
         [id],
       );
@@ -504,7 +480,7 @@ class Encontro {
       }
 
       const encontro = Encontro.fromRow(row);
-      const impacto = await Encontro.contarImpacto(connection, id);
+      const impacto = await Encontro.contarImpacto(connectionRef, id);
       const resumoImpacto = Encontro.montarResumoImpacto(encontro, impacto);
 
       Encontro.validarCancelamento(resumoImpacto, detalhes, opcao, novaData);
@@ -512,16 +488,16 @@ class Encontro {
       let novoEncontroId = null;
       if (opcao === "reagendar" || opcao === "transferirInscritos") {
         novoEncontroId = await Encontro.criarReagendamentoTransacional(
-          connection,
+          connectionRef,
           encontro,
           novaData,
           opcao === "transferirInscritos",
         );
       }
 
-      await Encontro.liberarVinculos(connection, id);
+      await Encontro.liberarVinculos(connectionRef, id);
 
-      await connection.query(
+      await connectionRef.query(
         `
                     update encontros set
                         enc_cancelado = 'S',
@@ -551,7 +527,7 @@ class Encontro {
         ],
       );
 
-      await connection.commit();
+      await connectionRef.commit();
 
       return {
         encontroId: id,
@@ -567,7 +543,7 @@ class Encontro {
         },
       };
     } catch (error) {
-      await connection.rollback();
+      await connectionRef.rollback();
       throw error;
     }
   }
@@ -584,6 +560,7 @@ class Encontro {
   }
 
   static async listarResponsaveis(
+    connectionRef,
     idEncontro,
     filtroNome = "",
     filtroUsuario = "",
@@ -608,13 +585,14 @@ class Encontro {
 
     queryString += ` order by f.fun_nome asc`;
 
-    const [responsaveis] = await connection.query(queryString, valores);
+    const [responsaveis] = await connectionRef.query(queryString, valores);
     return responsaveis.map((funcionario) =>
       Encontro.mapFuncionarioRow(funcionario),
     );
   }
 
   static async listarSubstitutosDisponiveis(
+    connectionRef,
     idEncontro,
     idFuncionarioAtual,
     filtroNome = "",
@@ -658,18 +636,19 @@ class Encontro {
 
     queryString += ` order by f.fun_nome asc`;
 
-    const [substitutos] = await connection.query(queryString, valores);
+    const [substitutos] = await connectionRef.query(queryString, valores);
     return substitutos.map((funcionario) =>
       Encontro.mapFuncionarioRow(funcionario),
     );
   }
 
   static async substituirTutor(
+    connectionRef,
     idEncontro,
     idFuncionarioAtual,
     idFuncionarioNovo,
   ) {
-    const encontro = await Encontro.buscarPorId(idEncontro);
+    const encontro = await Encontro.buscarPorId(connectionRef, idEncontro);
     if (!encontro) {
       throw Object.assign(new Error("Encontro nao encontrado"), {
         status: 404,
@@ -683,7 +662,7 @@ class Encontro {
       );
     }
 
-    const [[responsavelAtual]] = await connection.query(
+    const [[responsavelAtual]] = await connectionRef.query(
       `select * from responsaveis where enc_id = ? and fun_id = ?`,
       [idEncontro, idFuncionarioAtual],
     );
@@ -695,7 +674,7 @@ class Encontro {
       );
     }
 
-    const [[funcionarioNovo]] = await connection.query(
+    const [[funcionarioNovo]] = await connectionRef.query(
       `select * from funcionarios where fun_id = ?`,
       [idFuncionarioNovo],
     );
@@ -706,7 +685,7 @@ class Encontro {
       });
     }
 
-    const [[jaResponsavel]] = await connection.query(
+    const [[jaResponsavel]] = await connectionRef.query(
       `select * from responsaveis where enc_id = ? and fun_id = ?`,
       [idEncontro, idFuncionarioNovo],
     );
@@ -718,7 +697,7 @@ class Encontro {
       );
     }
 
-    const [[conflito]] = await connection.query(
+    const [[conflito]] = await connectionRef.query(
       `
                 select outro.enc_id, outro.enc_local, outro.enc_data
                 from responsaveis conflito
@@ -744,7 +723,7 @@ class Encontro {
       );
     }
 
-    const [resultado] = await connection.query(
+    const [resultado] = await connectionRef.query(
       `
                 update responsaveis
                 set fun_id = ?
@@ -767,6 +746,7 @@ class Encontro {
   }
 
   static async listarFuncionariosDisponiveis(
+    connectionRef,
     data,
     hora,
     horaFim = hora,
@@ -801,7 +781,7 @@ class Encontro {
 
     queryString += ` order by f.fun_nome asc`;
 
-    const [funcionarios] = await connection.query(queryString, valores);
+    const [funcionarios] = await connectionRef.query(queryString, valores);
     return funcionarios.map((funcionario) =>
       Encontro.mapFuncionarioRow(funcionario),
     );
@@ -877,7 +857,7 @@ class Encontro {
     Encontro.validarHorario(hora, horaFim);
   }
 
-  static async buscarConflitoLocal(data, hora, horaFim, local, ignorarId = null) {
+  static async buscarConflitoLocal(connectionRef, data, hora, horaFim, local, ignorarId = null) {
     const filtros = [];
     const valoresExtras = [];
 
@@ -886,7 +866,7 @@ class Encontro {
       valoresExtras.push(ignorarId);
     }
 
-    const [[conflito]] = await connection.query(
+    const [[conflito]] = await connectionRef.query(
       `
                 select enc_id, enc_local
                 from encontros
@@ -905,6 +885,7 @@ class Encontro {
   }
 
   static async listarResponsaveisComConflito(
+    connectionRef,
     data,
     hora,
     horaFim,
@@ -926,7 +907,7 @@ class Encontro {
       valoresExtras.push(ignorarId);
     }
 
-    const [conflitos] = await connection.query(
+    const [conflitos] = await connectionRef.query(
       `
                 select f.fun_id, f.fun_nome, e.enc_id
                 from responsaveis r
@@ -945,8 +926,8 @@ class Encontro {
     return conflitos;
   }
 
-  static async listarResponsaveisIds(idEncontro) {
-    const [responsaveis] = await connection.query(
+  static async listarResponsaveisIds(connectionRef, idEncontro) {
+    const [responsaveis] = await connectionRef.query(
       `select fun_id from responsaveis where enc_id = ?`,
       [idEncontro],
     );
@@ -974,7 +955,7 @@ class Encontro {
     return [...agrupados.entries()].map(([itemId, qtde]) => ({ itemId, qtde }));
   }
 
-  static async listarMateriaisComConflito(data, hora, horaFim, materiais = [], ignorarId = null) {
+  static async listarMateriaisComConflito(connectionRef, data, hora, horaFim, materiais = [], ignorarId = null) {
     const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
     const itemIds = materiaisNormalizados.map((material) => material.itemId);
 
@@ -990,7 +971,7 @@ class Encontro {
       valoresExtras.push(ignorarId);
     }
 
-    const [conflitos] = await connection.query(
+    const [conflitos] = await connectionRef.query(
       `
                 select i.item_id, i.item_nome, e.enc_id
                 from materiais m
@@ -1009,8 +990,8 @@ class Encontro {
     return conflitos;
   }
 
-  static async listarMateriaisPorEncontro(idEncontro) {
-    const [materiais] = await connection.query(
+  static async listarMateriaisPorEncontro(connectionRef, idEncontro) {
+    const [materiais] = await connectionRef.query(
       `select item_id as itemId, qtde from materiais where enc_id = ?`,
       [idEncontro],
     );
@@ -1018,7 +999,7 @@ class Encontro {
     return materiais;
   }
 
-  static async vincularResponsaveis(idEncontro, responsaveisIds = []) {
+  static async vincularResponsaveis(connectionRef, idEncontro, responsaveisIds = []) {
     if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
       return;
     }
@@ -1027,21 +1008,21 @@ class Encontro {
       ...new Set(responsaveisIds.map((id) => Number(id)).filter(Boolean)),
     ];
     for (const funId of idsUnicos) {
-      await connection.query(
+      await connectionRef.query(
         `insert ignore into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
         [funId, idEncontro],
       );
     }
   }
 
-  static async vincularMateriais(idEncontro, materiais = []) {
+  static async vincularMateriais(connectionRef, idEncontro, materiais = []) {
     const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
     if (materiaisNormalizados.length === 0) {
       return;
     }
 
     for (const material of materiaisNormalizados) {
-      const [[item]] = await connection.query(
+      const [[item]] = await connectionRef.query(
         `select item_id from itens where item_id = ?`,
         [material.itemId],
       );
@@ -1051,7 +1032,7 @@ class Encontro {
         throw erro;
       }
 
-      await connection.query(
+      await connectionRef.query(
         `insert ignore into materiais (enc_id, item_id, qtde, utilizado) values (?, ?, ?, 'N')`,
         [idEncontro, material.itemId, material.qtde],
       );
@@ -1059,31 +1040,30 @@ class Encontro {
   }
 
   static async gravarComRelacionamentos(
+    connectionRef,
     encontro,
     responsaveis = [],
     materiais = [],
   ) {
-    await connection.beginTransaction();
+    await connectionRef.beginTransaction();
 
     try {
-      const resultado = await encontro.gravar();
-      await Encontro.vincularResponsaveis(resultado.insertId, responsaveis);
-      await Encontro.vincularMateriais(resultado.insertId, materiais);
-      await connection.commit();
+      const resultado = await encontro.gravar(connectionRef);
+      await Encontro.vincularResponsaveis(connectionRef, resultado.insertId, responsaveis);
+      await Encontro.vincularMateriais(connectionRef, resultado.insertId, materiais);
+      await connectionRef.commit();
       return resultado;
     } catch (error) {
-      await connection.rollback();
+      await connectionRef.rollback();
       throw error;
     }
   }
 
-  static async finalizar({ id, participantes = [] }) {
-    const db = await SingletonDB.getConnection();
-
+  static async finalizar(connectionRef, { id, participantes = [] }) {
     try {
-      await db.beginTransaction();
+      await connectionRef.beginTransaction();
 
-      const [enc] = await db.execute(
+      const [enc] = await connectionRef.execute(
         `SELECT enc_id, enc_disponibilidade 
        FROM encontros 
        WHERE enc_id = ? 
@@ -1108,7 +1088,7 @@ class Encontro {
         throw { status: 400, message: "Encontro não está em andamento" };
       }
 
-      const [rowsParticipantes] = await db.execute(
+      const [rowsParticipantes] = await connectionRef.execute(
         `SELECT ben_id FROM participantes WHERE enc_id = ?`,
         [id],
       );
@@ -1124,7 +1104,7 @@ class Encontro {
         }
       }
 
-      await db.execute(
+      await connectionRef.execute(
         `UPDATE participantes 
        SET participou = 'N' 
        WHERE enc_id = ?`,
@@ -1134,7 +1114,7 @@ class Encontro {
       if (participantes.length > 0) {
         const placeholders = participantes.map(() => "?").join(",");
 
-        await db.execute(
+        await connectionRef.execute(
           `UPDATE participantes 
          SET participou = 'S'
          WHERE enc_id = ? AND ben_id IN (${placeholders})`,
@@ -1144,7 +1124,7 @@ class Encontro {
 
       const qtdePresentes = participantes.length;
 
-      await db.execute(
+      await connectionRef.execute(
         `UPDATE encontros
        SET enc_qtde = ?, 
            enc_disponibilidade = 'F'
@@ -1152,7 +1132,7 @@ class Encontro {
         [qtdePresentes, id],
       );
 
-      await db.commit();
+      await connectionRef.commit();
 
       return {
         id,
@@ -1160,7 +1140,7 @@ class Encontro {
         participantesConfirmados: qtdePresentes,
       };
     } catch (err) {
-      await db.rollback();
+      await connectionRef.rollback();
       throw err;
     }
   }

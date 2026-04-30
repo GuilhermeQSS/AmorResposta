@@ -1,4 +1,5 @@
 import Encontro from "../models/encontroModel.js";
+import SingletonDB from "../db/SingletonDB.js";
 
 const MOTIVOS_CANCELAMENTO = [
   "falta de beneficiarios minimos",
@@ -19,7 +20,12 @@ const OPCOES_CANCELAMENTO = [
 class EncontroController {
   static async listar(req, res) {
     try {
-      const resp = await Encontro.listar(req.query.filtro, req.query.status);
+      const connection = await SingletonDB.getConnection();
+      const resp = await Encontro.listar(
+        connection,
+        req.query.filtro,
+        req.query.status,
+      );
       return res.status(200).json(resp);
     } catch (err) {
       return res
@@ -30,7 +36,8 @@ class EncontroController {
 
   static async buscarPorId(req, res) {
     try {
-      const resp = await Encontro.buscarPorId(req.query.id);
+      const connection = await SingletonDB.getConnection();
+      const resp = await Encontro.buscarPorId(connection, req.query.id);
       if (!resp) {
         return res
           .status(500)
@@ -47,8 +54,9 @@ class EncontroController {
 
   static async impacto(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id } = req.query;
-      const resp = await Encontro.buscarImpacto(id);
+      const resp = await Encontro.buscarImpacto(connection, id);
       if (!resp) {
         return res
           .status(500)
@@ -65,12 +73,13 @@ class EncontroController {
 
   static async listarResponsaveis(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id, filtroNome, filtroUsuario } = req.query;
       if (!id) {
         return res.status(400).json({ err: "ID do encontro e obrigatorio" });
       }
 
-      const encontro = await Encontro.buscarPorId(id);
+      const encontro = await Encontro.buscarPorId(connection, id);
       if (!encontro) {
         return res
           .status(404)
@@ -78,6 +87,7 @@ class EncontroController {
       }
 
       const resp = await Encontro.listarResponsaveis(
+        connection,
         id,
         filtroNome,
         filtroUsuario,
@@ -92,6 +102,7 @@ class EncontroController {
 
   static async listarSubstitutos(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id, funIdAtual, filtroNome, filtroUsuario } = req.query;
       if (!id || !funIdAtual) {
         return res
@@ -99,7 +110,7 @@ class EncontroController {
           .json({ err: "ID do encontro e funcionario atual sao obrigatorios" });
       }
 
-      const encontro = await Encontro.buscarPorId(id);
+      const encontro = await Encontro.buscarPorId(connection, id);
       if (!encontro) {
         return res
           .status(404)
@@ -107,6 +118,7 @@ class EncontroController {
       }
 
       const resp = await Encontro.listarSubstitutosDisponiveis(
+        connection,
         id,
         funIdAtual,
         filtroNome,
@@ -123,12 +135,14 @@ class EncontroController {
 
   static async listarFuncionariosDisponiveis(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { data, hora, horaFim, filtroNome, filtroUsuario } = req.query;
       if (!data || !hora) {
         return res.status(400).json({ err: "Data e hora sao obrigatorias" });
       }
 
       const resp = await Encontro.listarFuncionariosDisponiveis(
+        connection,
         data,
         hora,
         horaFim || hora,
@@ -148,6 +162,7 @@ class EncontroController {
 
   static async substituirTutor(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { encId, funIdAtual, funIdNovo } = req.body;
       if (!encId || !funIdAtual || !funIdNovo) {
         return res
@@ -157,7 +172,12 @@ class EncontroController {
           });
       }
 
-      const resp = await Encontro.substituirTutor(encId, funIdAtual, funIdNovo);
+      const resp = await Encontro.substituirTutor(
+        connection,
+        encId,
+        funIdAtual,
+        funIdNovo,
+      );
       return res.status(200).json(resp);
     } catch (err) {
       return res
@@ -168,6 +188,7 @@ class EncontroController {
 
   static async cancelar(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id, motivo, detalhes, opcao, novaData } = req.body;
       const canceladoPorId = Number(req.usuarioLogado?.id);
 
@@ -189,7 +210,7 @@ class EncontroController {
         return res.status(400).json({ err: "Opcao de cancelamento invalida" });
       }
 
-      const resposta = await Encontro.cancelarComFluxo({
+      const resposta = await Encontro.cancelarComFluxo(connection, {
         id,
         motivo,
         detalhes: detalhes || "",
@@ -222,6 +243,7 @@ class EncontroController {
 
   static async alterar(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id, data, hora, horaFim, disponibilidade, qtdeMax, qtde, local } =
         req.body;
       const localLimpo = String(local || "").trim();
@@ -294,6 +316,7 @@ class EncontroController {
       Encontro.validarHorario(hora, horaFim);
 
       const conflitoLocal = await Encontro.buscarConflitoLocal(
+        connection,
         data,
         hora,
         horaFim,
@@ -309,9 +332,10 @@ class EncontroController {
         });
       }
 
-      const responsaveisAtuais = await Encontro.listarResponsaveisIds(id);
+      const responsaveisAtuais = await Encontro.listarResponsaveisIds(connection, id);
       const conflitosResponsaveis =
         await Encontro.listarResponsaveisComConflito(
+          connection,
           data,
           hora,
           horaFim,
@@ -328,8 +352,9 @@ class EncontroController {
         });
       }
 
-      const materiaisAtuais = await Encontro.listarMateriaisPorEncontro(id);
+      const materiaisAtuais = await Encontro.listarMateriaisPorEncontro(connection, id);
       const conflitosMateriais = await Encontro.listarMateriaisComConflito(
+        connection,
         data,
         hora,
         horaFim,
@@ -357,7 +382,7 @@ class EncontroController {
         localLimpo,
       );
 
-      const resultado = await encontro.alterar();
+      const resultado = await encontro.alterar(connection);
       return res.status(200).json(resultado);
     } catch (error) {
       return res.status(error.status || 500).json({
@@ -369,13 +394,14 @@ class EncontroController {
 
   static async excluir(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id } = req.body;
       if (!id) {
         return res.status(400).json({ erro: "ID do encontro e obrigatorio" });
       }
 
       const encontro = new Encontro(id);
-      const resultado = await encontro.excluir();
+      const resultado = await encontro.excluir(connection);
       if (!resultado.affectedRows) {
         return res.status(404).json({ erro: `Nao existe encontro com id ${id}` });
       }
@@ -389,6 +415,7 @@ class EncontroController {
 
   static async cadastrar(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const {
         data,
         hora,
@@ -448,6 +475,7 @@ class EncontroController {
       });
 
       const conflitoLocal = await Encontro.buscarConflitoLocal(
+        connection,
         data,
         hora,
         horaFim,
@@ -464,6 +492,7 @@ class EncontroController {
 
       const conflitosResponsaveis =
         await Encontro.listarResponsaveisComConflito(
+          connection,
           data,
           hora,
           horaFim,
@@ -494,6 +523,7 @@ class EncontroController {
       }
 
       const conflitosMateriais = await Encontro.listarMateriaisComConflito(
+        connection,
         data,
         hora,
         horaFim,
@@ -521,6 +551,7 @@ class EncontroController {
       );
 
       const resp = await Encontro.gravarComRelacionamentos(
+        connection,
         encontro,
         responsaveis,
         materiaisNormalizados,
@@ -536,6 +567,7 @@ class EncontroController {
 
   static async finalizar(req, res) {
     try {
+      const connection = await SingletonDB.getConnection();
       const { id, participantes = [] } = req.body;
 
       if (!id) {
@@ -544,7 +576,7 @@ class EncontroController {
         });
       }
 
-      const encontro = await Encontro.buscarPorId(id);
+      const encontro = await Encontro.buscarPorId(connection, id);
       if (!encontro) {
         return res.status(404).json({
           err: "Encontro não encontrado",
@@ -566,7 +598,7 @@ class EncontroController {
         });
       }
 
-      const resultado = await Encontro.finalizar({
+      const resultado = await Encontro.finalizar(connection, {
         id,
         participantes,
       });
