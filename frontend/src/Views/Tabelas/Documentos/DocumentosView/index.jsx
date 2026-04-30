@@ -138,7 +138,7 @@ function DocumentosView() {
                             Buscar documento
                             <input
                                 type="text"
-                                placeholder="Titulo, termo, comprovante..."
+                                placeholder="Título, termo, comprovante..."
                                 value={filtroTitulo}
                                 onChange={(e) => setFiltroTitulo(e.target.value)}
                             />
@@ -166,9 +166,9 @@ function DocumentosView() {
                                         <th>Documento</th>
                                         <th>Tipo</th>
                                         <th>Data</th>
-                                        <th>Descricao</th>
+                                        <th>Descrição</th>
                                         <th>Acesso</th>
-                                        <th>Acoes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>

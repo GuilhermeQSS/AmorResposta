@@ -40,7 +40,7 @@ function BeneficiariosView() {
 
             if (!response.ok) {
                 const json = await response.json();
-                throw new Error(json.erro || json.Erro || "Nao foi possivel excluir o beneficiario");
+                throw new Error(json.erro || json.Erro || "Não foi possível excluir o beneficiário");
             }
 
             setBeneficiarios((prev) => prev.filter((beneficiario) => beneficiario.id !== id));
@@ -69,7 +69,7 @@ function BeneficiariosView() {
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"
-                        placeholder="Buscar por nome ou usuario..."
+                        placeholder="Buscar por nome ou usuário..."
                         value={filtro}
                         onChange={(e) => setFiltro(e.target.value)}
                     />
@@ -83,7 +83,7 @@ function BeneficiariosView() {
                 </Styled.Filtros>
                 <Styled.Actions>
                     <button onClick={() => navigate("/beneficiarios/cadastro")}>
-                        + Cadastrar Beneficiario
+                        + Cadastrar Beneficiário
                     </button>
                 </Styled.Actions>
                 <Styled.Table>
@@ -93,7 +93,7 @@ function BeneficiariosView() {
                             <th>nome</th>
                             <th>endereço</th>
                             <th>telefone</th>
-                            <th>usuario</th>
+                            <th>usuário</th>
                             <th>ações</th>
                         </tr>
                     </thead>

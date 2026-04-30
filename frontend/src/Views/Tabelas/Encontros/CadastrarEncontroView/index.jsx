@@ -16,14 +16,14 @@ function criarDataHora(data, hora) {
 
 function formatarResumoData(data, hora, horaFim) {
   const dataHora = criarDataHora(data, hora);
-  if (!dataHora) return "Data e hora ainda nao definidas";
+  if (!dataHora) return "Data e hora ainda não definidas";
 
   const inicio = dataHora.toLocaleString("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
   });
 
-  return horaFim ? `${inicio} ate ${horaFim}` : inicio;
+  return horaFim ? `${inicio} até ${horaFim}` : inicio;
 }
 
 function getAuthHeaders(extraHeaders = {}) {
@@ -72,8 +72,8 @@ function CadastrarEncontroView() {
   const criteriosPlanejamento = [
     { texto: "Data e hora futuras", pronto: Boolean(form.data && form.hora && form.horaFim && !encontroNoPassado && !terminoInvalido) },
     { texto: "Local definido", pronto: form.local.trim().length >= 3 },
-    { texto: "Capacidade valida", pronto: form.qtdeMax > 0 },
-    { texto: "Pelo menos um responsavel", pronto: funcionariosSelecionados.length > 0 },
+    { texto: "Capacidade válida", pronto: form.qtdeMax > 0 },
+    { texto: "Pelo menos um responsável", pronto: funcionariosSelecionados.length > 0 },
   ];
   const prontidao = Math.round(
     (criteriosPlanejamento.filter((criterio) => criterio.pronto).length / criteriosPlanejamento.length) * 100
@@ -81,18 +81,18 @@ function CadastrarEncontroView() {
 
   function validar() {
     const novosErros = {};
-    if (!form.data) novosErros.data = "Data obrigatoria";
-    if (!form.hora) novosErros.hora = "Hora obrigatoria";
-    if (!form.horaFim) novosErros.horaFim = "Horario de termino obrigatorio";
-    if (terminoInvalido) novosErros.horaFim = "Termino precisa ser depois do inicio";
-    if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opcao";
-    if (!form.local.trim()) novosErros.local = "Local obrigatorio";
+    if (!form.data) novosErros.data = "Data obrigatória";
+    if (!form.hora) novosErros.hora = "Hora obrigatória";
+    if (!form.horaFim) novosErros.horaFim = "Horário de término obrigatório";
+    if (terminoInvalido) novosErros.horaFim = "Término precisa ser depois do início";
+    if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opção";
+    if (!form.local.trim()) novosErros.local = "Local obrigatório";
     if (form.local.trim() && form.local.trim().length < 3) novosErros.local = "Informe um local mais detalhado";
     if (form.local.trim() && !LOCAL_REGEX.test(form.local.trim())) {
       novosErros.local = "Use apenas letras, numeros e pontuacao simples";
     }
     if (encontroNoPassado) novosErros.data = "Agende para uma data e hora futuras";
-    if (!Number.isInteger(form.qtdeMax) || form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
+    if (!Number.isInteger(form.qtdeMax) || form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade máxima";
     if (form.qtdeMax <= 0) {
       novosErros.qtdeMax = "Deve ser maior que 0";
     }
@@ -100,7 +100,7 @@ function CadastrarEncontroView() {
       novosErros.qtdeMax = "Informe no maximo 500 vagas";
     }
     if (funcionariosSelecionados.length === 0) {
-      novosErros.responsaveis = "Selecione pelo menos um funcionario responsavel";
+      novosErros.responsaveis = "Selecione pelo menos um funcionário responsável";
     }
 
     setErros(novosErros);
@@ -117,14 +117,14 @@ function CadastrarEncontroView() {
 
       if (!response.ok) {
         const json = await response.json();
-        throw new Error(json.err || "Erro ao carregar funcionarios disponiveis");
+        throw new Error(json.err || "Erro ao carregar funcionários disponíveis");
       }
 
       const dataJson = await response.json();
       setFuncionariosDisponiveis(Array.isArray(dataJson) ? dataJson : []);
     } catch (error) {
       setFuncionariosDisponiveis([]);
-      alert(error.message || "Erro ao carregar funcionarios");
+      alert(error.message || "Erro ao carregar funcionários");
     }
   }
 
@@ -257,7 +257,7 @@ function CadastrarEncontroView() {
         <Styled.Form noValidate>
           <Styled.SectionTitle>
             <h2>Agendar encontro</h2>
-            <p>Planeje data, local, capacidade e equipe responsavel antes de confirmar.</p>
+            <p>Planeje data, local, capacidade e equipe responsável antes de confirmar.</p>
           </Styled.SectionTitle>
 
           <Styled.FormGrid>
@@ -275,7 +275,7 @@ function CadastrarEncontroView() {
           </div>
 
           <div>
-            <label htmlFor="hora">Hora de inicio: </label>
+            <label htmlFor="hora">Hora de início: </label>
             <input
               name="hora"
               value={form.hora}
@@ -288,7 +288,7 @@ function CadastrarEncontroView() {
           </div>
 
           <div>
-            <label htmlFor="horaFim">Hora de termino: </label>
+            <label htmlFor="horaFim">Hora de término: </label>
             <input
               name="horaFim"
               value={form.horaFim}
@@ -320,7 +320,7 @@ function CadastrarEncontroView() {
           </div>
 
           <div>
-            <label>Quantidade Maxima:</label>
+            <label>Quantidade Máxima:</label>
             <input
               type="number"
               name="qtdeMax"
@@ -380,7 +380,7 @@ function CadastrarEncontroView() {
                 <strong>{vagasRestantes}</strong>
               </div>
               <div>
-                <small>Responsaveis</small>
+                <small>Responsáveis</small>
                 <strong>{funcionariosSelecionados.length}</strong>
               </div>
               <div>
@@ -391,20 +391,20 @@ function CadastrarEncontroView() {
           </Styled.PlanningPanel>
 
           <Styled.FunctionariosPanel>
-            <h3>Funcionarios disponiveis</h3>
-            <p>Selecione data, inicio e termino para listar quem esta livre nesse intervalo.</p>
+            <h3>Funcionários disponíveis</h3>
+            <p>Selecione data, início e término para listar quem está livre nesse intervalo.</p>
             {erros.responsaveis && <Styled.ErrorText>{erros.responsaveis}</Styled.ErrorText>}
             {!form.data || !form.hora || !form.horaFim || terminoInvalido ? (
-              <Styled.EmptyState>Preencha data, inicio e termino valido para carregar os funcionarios disponiveis.</Styled.EmptyState>
+              <Styled.EmptyState>Preencha data, início e término válido para carregar os funcionários disponíveis.</Styled.EmptyState>
             ) : funcionariosDisponiveis.length === 0 ? (
-              <Styled.EmptyState>Nenhum funcionario disponivel encontrado para este horario.</Styled.EmptyState>
+              <Styled.EmptyState>Nenhum funcionário disponível encontrado para este horário.</Styled.EmptyState>
             ) : (
               <Styled.Table>
                 <thead>
                   <tr>
                     <th>#</th>
                     <th>nome</th>
-                    <th>usuario</th>
+                    <th>usuário</th>
                     <th>cargo</th>
                     <th>cpf</th>
                     <th>telefone</th>
@@ -440,7 +440,7 @@ function CadastrarEncontroView() {
               </Styled.Table>
             )}
             <Styled.SelectionInfo>
-              Responsaveis selecionados: <strong>{funcionariosSelecionados.length}</strong>
+              Responsáveis selecionados: <strong>{funcionariosSelecionados.length}</strong>
               {responsaveisSelecionados.length > 0 && (
                 <span>
                   {responsaveisSelecionados.map((funcionario) => funcionario.nome).join(", ")}

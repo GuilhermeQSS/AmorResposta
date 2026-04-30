@@ -102,7 +102,7 @@ function FuncionariosView() {
                         <tr>
                             <th>#</th>
                             <th>nome</th>
-                            <th>usuario</th>
+                            <th>usuário</th>
                             <th>cargo</th>
                             <th>cpf</th>
                             <th>telefone</th>

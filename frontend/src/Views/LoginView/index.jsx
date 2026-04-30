@@ -114,7 +114,7 @@ function LoginView() {
                                 style={{ border: camposVazios.perfil ? "2px solid red" : "" }}
                             >
                                 <option value="" disabled>Selecione</option>
-                                <option value="Beneficiario">Beneficiario</option>
+                                <option value="Beneficiario">Beneficiário</option>
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
                             </select>

@@ -46,7 +46,7 @@ function DespesasView() {
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"
-                        placeholder="Buscar por descricao..."
+                        placeholder="Buscar por descrição..."
                         value={filtro}
                         onChange={(e) => setFiltro(e.target.value)}
                     />
@@ -68,7 +68,7 @@ function DespesasView() {
                         <tr>
                             <th>#</th>
                             <th>valor</th>
-                            <th>descricao</th>
+                            <th>descrição</th>
                         </tr>
                     </thead>
                     <tbody>

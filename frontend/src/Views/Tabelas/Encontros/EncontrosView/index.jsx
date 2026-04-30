@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const motivos = [
-  "falta de beneficiarios minimos",
+  "falta de beneficiários mínimos",
   "ausencia de tutor/funcionario responsavel",
   "indisponibilidade do local",
-  "problema climatico",
+  "problema climático",
   "falta de materiais/itens necessarios",
   "conflito de agenda",
   "motivo emergencial/outros",
@@ -75,7 +75,7 @@ function getDisponibilidadeLabel(value) {
 function getAcaoCancelamentoLabel(value) {
   if (value === "reagendar") return "Cancelar e reagendar";
   if (value === "transferirInscritos") return "Cancelar e transferir inscritos";
-  return "Cancelar sem reposicao";
+  return "Cancelar sem reposição";
 }
 
 function buildAlertas(impacto) {
@@ -91,18 +91,18 @@ function buildAlertas(impacto) {
 
   if (impacto.confirmacaoReforcada) {
     alertas.push(
-      "Este cancelamento afeta participantes, responsaveis ou materiais vinculados.",
+      "Este cancelamento afeta participantes, responsáveis ou materiais vinculados.",
     );
   }
 
   if (impacto.exigeDetalhes) {
     alertas.push(
-      "Uma justificativa detalhada e obrigatoria e necessaria para este cancelamento.",
+      "Uma justificativa detalhada e obrigatória é necessária para este cancelamento.",
     );
   }
 
   if (impacto.proximo) {
-    alertas.push("O encontro esta muito proximo da data planejada.");
+    alertas.push("O encontro esta muito próximo da data planejada.");
   }
 
   return alertas;
@@ -168,7 +168,7 @@ function EncontrosView() {
 
     return parseResponse(
       response,
-      "Erro ao carregar funcionarios responsaveis.",
+      "Erro ao carregar funcionários responsáveis.",
     );
   }
 
@@ -277,8 +277,8 @@ function EncontrosView() {
         }),
       });
 
-      await parseResponse(response, "Nao foi possivel substituir o tutor.");
-      alert("Tutor substituido com sucesso.");
+      await parseResponse(response, "Não foi possível substituir o tutor.");
+      alert("Tutor substituído com sucesso.");
 
       const listaResponsaveis = await fetchResponsaveis(
         selectedEncontroSubstituicao.id,
@@ -545,8 +545,8 @@ function EncontrosView() {
 
         {activeView === views.cancelados && (
           <Styled.ModeMessage>
-            Consulte o historico de cancelamentos, o motivo registrado e a acao
-            tomada apos cada evento.
+            Consulte o histórico de cancelamentos, o motivo registrado e a ação
+            tomada após cada evento.
           </Styled.ModeMessage>
         )}
 
@@ -563,17 +563,17 @@ function EncontrosView() {
             </p>
             <Styled.Summary>
               <div>
-                <strong>Beneficiarios inscritos:</strong>{" "}
+                <strong>Beneficiários inscritos:</strong>{" "}
                 {impacto.beneficiarios}
               </div>
               <div>
-                <strong>Responsaveis vinculados:</strong> {impacto.responsaveis}
+                <strong>Responsáveis vinculados:</strong> {impacto.responsaveis}
               </div>
               <div>
                 <strong>Materiais vinculados:</strong> {impacto.materiais}
               </div>
               <div>
-                <strong>Proximo da data:</strong>{" "}
+                <strong>Próximo da data:</strong>{" "}
                 {impacto.proximo ? "Sim" : "Nao"}
               </div>
             </Styled.Summary>
@@ -587,7 +587,7 @@ function EncontrosView() {
             )}
 
             <label>
-              Motivo obrigatorio:
+              Motivo obrigatório:
               <select
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}>
@@ -608,7 +608,7 @@ function EncontrosView() {
               />
             </label>
             <div>
-              <strong>Opcao apos cancelamento:</strong>
+              <strong>Opcao após cancelamento:</strong>
             </div>
             <Styled.OptionGroup>
               <label>
@@ -619,7 +619,7 @@ function EncontrosView() {
                   checked={cancelOption === "semReposicao"}
                   onChange={(e) => setCancelOption(e.target.value)}
                 />
-                Cancelar sem reposicao
+                Cancelar sem reposição
               </label>
               <label>
                 <input
@@ -687,14 +687,14 @@ function EncontrosView() {
             </p>
 
             <Styled.SubstituteSection>
-              <h3>Funcionarios responsaveis atuais</h3>
+              <h3>Funcionários responsáveis atuais</h3>
               <p>
-                Selecione um funcionario abaixo para listar os substitutos
-                disponiveis.
+                Selecione um funcionário abaixo para listar os substitutos
+                disponíveis.
               </p>
               {responsaveis.length === 0 ? (
                 <Styled.EmptyState>
-                  Nenhum funcionario responsavel esta vinculado a este encontro.
+                  Nenhum funcionário responsável esta vinculado a este encontro.
                 </Styled.EmptyState>
               ) : (
                 <Styled.MiniTable>
@@ -702,7 +702,7 @@ function EncontrosView() {
                     <tr>
                       <th>#</th>
                       <th>nome</th>
-                      <th>usuario</th>
+                      <th>usuário</th>
                       <th>cargo</th>
                       <th>cpf</th>
                       <th>telefone</th>
@@ -734,15 +734,15 @@ function EncontrosView() {
             {responsavelSelecionado && (
               <Styled.SubstituteSection>
                 <h3>
-                  Substitutos disponiveis para {responsavelSelecionado.nome}
+                  Substitutos disponíveis para {responsavelSelecionado.nome}
                 </h3>
                 <p>
-                  A lista abaixo exclui funcionarios ja vinculados a outro
+                  A lista abaixo exclui funcionários já vinculados a outro
                   encontro ativo na mesma data.
                 </p>
                 {substitutos.length === 0 ? (
                   <Styled.EmptyState>
-                    Nenhum funcionario disponivel foi encontrado para substituir
+                    Nenhum funcionário disponível foi encontrado para substituir
                     este tutor.
                   </Styled.EmptyState>
                 ) : (
@@ -751,11 +751,11 @@ function EncontrosView() {
                       <tr>
                         <th>#</th>
                         <th>nome</th>
-                        <th>usuario</th>
+                        <th>usuário</th>
                         <th>cargo</th>
                         <th>cpf</th>
                         <th>telefone</th>
-                        <th>acao</th>
+                        <th>ação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -801,7 +801,7 @@ function EncontrosView() {
 
         {selectedHistorico && activeView === views.cancelados && (
           <Styled.CancelCard>
-            <h2>Historico do encontro cancelado #{selectedHistorico.id}</h2>
+            <h2>Histórico do encontro cancelado #{selectedHistorico.id}</h2>
             <p>
               Local: <strong>{selectedHistorico.local}</strong>
             </p>
@@ -819,11 +819,11 @@ function EncontrosView() {
               <div>
                 <strong>Motivo:</strong>
                 <div>
-                  {selectedHistorico.motivoCancelamento || "Nao informado"}
+                  {selectedHistorico.motivoCancelamento || "Não informado"}
                 </div>
               </div>
               <div>
-                <strong>Acao apos cancelamento:</strong>
+                <strong>Ação após cancelamento:</strong>
                 <div>
                   {getAcaoCancelamentoLabel(selectedHistorico.acaoCancelamento)}
                 </div>
@@ -833,15 +833,15 @@ function EncontrosView() {
                 <div>
                   {selectedHistorico.reagendadoPara
                     ? `#${selectedHistorico.reagendadoPara}`
-                    : "Nao houve"}
+                    : "Não houve"}
                 </div>
               </div>
               <div>
-                <strong>Beneficiarios afetados:</strong>
+                <strong>Beneficiários afetados:</strong>
                 <div>{selectedHistorico.beneficiariosAfetados ?? 0}</div>
               </div>
               <div>
-                <strong>Responsaveis afetados:</strong>
+                <strong>Responsáveis afetados:</strong>
                 <div>{selectedHistorico.responsaveisAfetados ?? 0}</div>
               </div>
               <div>
@@ -876,14 +876,14 @@ function EncontrosView() {
                 <th>#</th>
                 <th>Local</th>
                 <th>Data</th>
-                <th>Horario</th>
+                <th>Horário</th>
 
                 {activeView === views.cancelados ? (
                   <>
                     <th>Data cancelamento</th>
                     <th>Motivo</th>
-                    <th>Acao</th>
-                    <th>Acoes</th>
+                    <th>Ação</th>
+                    <th>Ações</th>
                   </>
                 ) : (
                   <>
@@ -894,7 +894,7 @@ function EncontrosView() {
                     {(activeView === views.cancelar ||
                       activeView === views.substituir ||
                       activeView === views.finalizar ||
-                      activeView === views.encontros) && <th>Acoes</th>}
+                      activeView === views.encontros) && <th>Ações</th>}
                   </>
                 )}
               </tr>
@@ -925,7 +925,7 @@ function EncontrosView() {
                             event.stopPropagation();
                             setSelectedHistorico(encontro);
                           }}>
-                          Ver historico
+                          Ver histórico
                         </Styled.TableSecondaryButton>
                       </td>
                     </>
