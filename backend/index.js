@@ -7,8 +7,6 @@ import doacaoRoutes from "./routes/doacoesRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import itensRoutes from "./routes/itensRoute.js"
 import lotesRoute from "./routes/lotesRoute.js"
-import doacaoRoutes from "./routes/doacoesRoute.js"
-import beneficiarioRoutes from "./routes/beneficiariosRoute.js"
 import e from "express";
 import cors from "cors";
 

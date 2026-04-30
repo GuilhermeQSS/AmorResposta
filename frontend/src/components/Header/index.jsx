@@ -53,7 +53,9 @@ function Header(){
                     <li><Link to="/tabelas/encontros">Encontros</Link></li>
                 )}
                 {isAdmin && (
-                    <li><Link to="/lotes/saida-doacao">Saida de Doações</Link></li>,
+                    <li><Link to={"/lotes/saida-doacao"}>Saida de Doações</Link></li>
+                )}
+                {isAdmin && (
                     <li
                         onClick={() => {
                             setDropdownTabela(!dropdownTabela);
