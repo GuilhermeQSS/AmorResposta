@@ -1,24 +1,11 @@
-function normalizarValor(valor) {
-    if (valor === "" || valor === null || valor === undefined) {
-        return null;
-    }
-
-    const numero = Number(valor);
-    return Number.isFinite(numero) ? numero : null;
-}
-
-function normalizarTextoValor(valor) {
-    return String(valor || "").trim().replace(",", ".");
-}
-
 class Despesa {
-    constructor(id, valor, descricao) {
+    constructor(id, descricao, categoria) {
         this.id = id;
-        this.valor = normalizarValor(valor);
         this.descricao = descricao;
+        this.categoria = categoria;
     }
 
-    static async listar(connection, filtro, valor) {
+    static async listar(connection, filtro) {
         let queryString = "select * from despesas where 1=1";
         const params = [];
 
@@ -27,19 +14,13 @@ class Despesa {
             params.push(`%${filtro}%`);
         }
 
-        const valorTexto = normalizarTextoValor(valor);
-        if (valorTexto) {
-            queryString += " and cast(des_valor as char) like ?";
-            params.push(`%${valorTexto}%`);
-        }
-
-        queryString += " order by des_id desc";
+        queryString += " order by des_descricao asc, des_id asc";
 
         const [despesas] = await connection.query(queryString, params);
         return despesas.map((d) => new Despesa(
             d.des_id,
-            d.des_valor,
-            d.des_descricao
+            d.des_descricao,
+            d.des_categoria
         ));
     }
 
@@ -53,23 +34,20 @@ class Despesa {
 
         return new Despesa(
             despesa.des_id,
-            despesa.des_valor,
-            despesa.des_descricao
+            despesa.des_descricao,
+            despesa.des_categoria
         );
     }
 
     async gravar(connection) {
         const queryString = `
             insert into despesas(
-                des_valor,
-                des_descricao
+                des_descricao,
+                des_categoria
             ) values (?, ?);
         `;
 
-        const [resultado] = await connection.query(queryString, [
-            this.valor,
-            this.descricao
-        ]);
+        const [resultado] = await connection.query(queryString, [this.descricao, this.categoria]);
 
         return resultado;
     }
@@ -77,14 +55,14 @@ class Despesa {
     async alterar(connection) {
         const queryString = `
             update despesas set
-                des_valor = ?,
-                des_descricao = ?
+                des_descricao = ?,
+                des_categoria = ?
             where des_id = ?;
         `;
 
         const [resultado] = await connection.query(queryString, [
-            this.valor,
             this.descricao,
+            this.categoria,
             this.id
         ]);
 

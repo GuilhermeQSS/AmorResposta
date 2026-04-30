@@ -11,6 +11,7 @@ const tabelas = [
     { label: "Itens", path: "/tabelas/itens" },
     { label: "Documentos", path: "/tabelas/documentos" },
     { label: "Despesas", path: "/tabelas/despesas" },
+    { label: "Caixas", path: "/tabelas/caixas" },
     { label: "Lotes", path: "/tabelas/lotes" },
 ];
 
@@ -22,6 +23,7 @@ const cadastros = [
     { label: "Itens", path: "/itens/cadastro" },
     { label: "Documentos", path: "/documentos/cadastro" },
     { label: "Despesas", path: "/despesas/cadastro" },
+    { label: "Abrir Caixa", path: "/caixas/cadastro" },
     { label: "lotes", path: "/lotes/cadastro" },
 ];
 
@@ -51,6 +53,9 @@ function Header(){
                 <li><Link to={"/sobre"}>Sobre</Link></li>
                 {podeGerenciarEncontros && (
                     <li><Link to="/tabelas/encontros">Encontros</Link></li>
+                )}
+                {isAdmin && (
+                    <li><Link to="/tabelas/caixas">Caixas</Link></li>
                 )}
                 {isAdmin && (
                     <li><Link to={"/lotes/saida-doacao"}>Saida de Doações</Link></li>

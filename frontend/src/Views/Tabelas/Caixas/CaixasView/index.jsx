@@ -4,27 +4,40 @@ import Styled from "./styles";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function DespesasView() {
-    function fetchDespesaLista(filtro) {
+function formatarData(data) {
+    if (!data) return "";
+    const [ano, mes, dia] = String(data).split("T")[0].split("-");
+    return `${dia}/${mes}/${ano}`;
+}
+
+function formatarMoeda(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+function CaixasView() {
+    function fetchCaixasLista(filtro) {
         const params = new URLSearchParams({
             filtro
         });
 
-        return fetch(`http://localhost:3000/despesas/listar?${params.toString()}`, {
+        return fetch(`http://localhost:3000/caixas/listar?${params.toString()}`, {
             method: "GET"
         })
             .then((response) => response.json())
             .catch((error) => alert(error));
     }
 
-    const [despesas, setDespesas] = useState([]);
+    const [caixas, setCaixas] = useState([]);
     const [filtro, setFiltro] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const data = await fetchDespesaLista(filtro);
-            setDespesas(data);
+            const data = await fetchCaixasLista(filtro);
+            setCaixas(data);
         }
 
         carregar();
@@ -37,33 +50,37 @@ function DespesasView() {
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"
-                        placeholder="Buscar por descrição..."
+                        placeholder="Buscar por turno..."
                         value={filtro}
                         onChange={(e) => setFiltro(e.target.value)}
                     />
                 </Styled.Filtros>
                 <Styled.Actions>
-                    <button onClick={() => navigate("/despesas/cadastro")}>
-                        + Cadastrar Tipo de Despesa
+                    <button onClick={() => navigate("/caixas/cadastro")}>
+                        + Abrir Caixa
                     </button>
                 </Styled.Actions>
                 <Styled.Table>
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>descricao</th>
-                            <th>categoria</th>
+                            <th>Data</th>
+                            <th>Turno</th>
+                            <th>Valor inicial</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {despesas.map((d) => (
+                        {caixas.map((c) => (
                             <tr
-                                key={d.id}
-                                onClick={() => navigate(`/despesas/${d.id}`)}
+                                key={c.id}
+                                onClick={() => navigate(`/caixas/${c.id}`)}
                             >
-                                <td>{d.id}</td>
-                                <td>{d.descricao}</td>
-                                <td>{d.categoria}</td>
+                                <td>{c.id}</td>
+                                <td>{formatarData(c.data)}</td>
+                                <td>{c.turno}</td>
+                                <td>{formatarMoeda(c.suprimentoInicial)}</td>
+                                <td>{c.status}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -74,4 +91,4 @@ function DespesasView() {
     );
 }
 
-export default DespesasView;
+export default CaixasView;
