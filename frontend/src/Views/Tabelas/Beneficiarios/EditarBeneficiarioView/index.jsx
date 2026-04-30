@@ -15,27 +15,22 @@ function EditarBeneficiarioView() {
         .catch((error) => alert(error));
     }
 
-    function montarEnderecoResumo(dados) {
-        return [dados.rua, dados.numero, dados.bairro, dados.cidade, dados.estado]
-            .map((item) => String(item || "").trim())
-            .filter(Boolean)
-            .join(", ");
-    }
-
     function normalizarBeneficiario(data) {
         if (!data) {
             return data;
         }
 
         return {
-            ...data,
+            id: data.id,
+            nome: String(data.nome ?? "").trim(),
             estado: String(data.estado ?? "").trim(),
             cidade: String(data.cidade ?? "").trim(),
             bairro: String(data.bairro ?? "").trim(),
-            rua: String(data.rua ?? data.endereco ?? "").trim(),
+            rua: String(data.rua ?? "").trim(),
             numero: String(data.numero ?? "").replace(/\D/g, ""),
             telefone: formatarTelefone(data.telefone),
-            endereco: String(data.endereco ?? "").trim() || montarEnderecoResumo(data)
+            usuario: String(data.usuario ?? "").trim(),
+            senha: String(data.senha ?? "").trim()
         };
     }
 
@@ -73,8 +68,7 @@ function EditarBeneficiarioView() {
             numero: limparNumeros(form.numero),
             telefone: limparTelefone(form.telefone),
             usuario: form.usuario.trim(),
-            senha: form.senha.trim(),
-            endereco: montarEnderecoResumo(form)
+            senha: form.senha.trim()
         };
 
         try {
@@ -148,8 +142,7 @@ function EditarBeneficiarioView() {
         numero: "",
         telefone: "",
         usuario: "",
-        senha: "",
-        endereco: ""
+        senha: ""
     });
     const [formOriginal, setFormOriginal] = useState({
         id:0,
@@ -161,8 +154,7 @@ function EditarBeneficiarioView() {
         numero: "",
         telefone: "",
         usuario: "",
-        senha: "",
-        endereco: ""
+        senha: ""
     });
     const [editado, setEditado] = useState(false);
 

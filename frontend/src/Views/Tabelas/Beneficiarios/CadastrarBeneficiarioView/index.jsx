@@ -7,13 +7,6 @@ import { formatarTelefone, limparTelefone } from "../../../../utils/telefone";
 import { limparNumeros } from "../../../../utils/numeros";
 
 function CadastrarBeneficiarioView() {
-    function montarEnderecoResumo(dados) {
-        return [dados.rua, dados.numero, dados.bairro, dados.cidade, dados.estado]
-            .map((item) => String(item || "").trim())
-            .filter(Boolean)
-            .join(", ");
-    }
-
     function validarFormulario() {
         return Object.entries(form)
             .filter(([campo, valor]) => {
@@ -47,8 +40,7 @@ function CadastrarBeneficiarioView() {
             numero: limparNumeros(form.numero),
             telefone: limparTelefone(form.telefone),
             usuario: form.usuario.trim(),
-            senha: form.senha.trim(),
-            endereco: montarEnderecoResumo(form)
+            senha: form.senha.trim()
         };
 
         try {

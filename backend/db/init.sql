@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS `beneficiarios` (
   `ben_bairro` VARCHAR(100) NULL,
   `ben_rua` VARCHAR(100) NULL,
   `ben_numero` INT NULL,
-  `ben_endereco` VARCHAR(255) NULL,
   `ben_telefone` VARCHAR(20) NULL,
   `ben_usuario` VARCHAR(45) NULL,
   `ben_senha` VARCHAR(45) NULL,
