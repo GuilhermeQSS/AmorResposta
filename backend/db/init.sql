@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS `documentos` (
   `doc_tipo` VARCHAR(45) NULL,
   `doc_descricao` VARCHAR(45) NULL,
   `doc_data_criacao` DATE NULL,
-  `doc_dataCriacao` DATE NULL,
   `doc_link` VARCHAR(255) NULL,
   `doc_caminho` VARCHAR(255) NULL,
   PRIMARY KEY (`doc_id`)
