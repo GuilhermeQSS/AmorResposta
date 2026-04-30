@@ -145,11 +145,6 @@ class Doacao {
             valores.push(dataCriacao);
         }
 
-        if (colunasDocumentos.has("doc_dataCriacao")) {
-            campos.push("doc_dataCriacao");
-            valores.push(dataCriacao);
-        }
-
         if (colunasDocumentos.has("doc_descricao")) {
             campos.push("doc_descricao");
             valores.push(descricao);
