@@ -1144,6 +1144,63 @@ class Encontro {
       throw err;
     }
   }
+  
+  async cadastrarBeneficiario(connection, beneficiario){
+      let queryString = `
+          insert into beneficiariosEncontros(
+              enc_id,
+              ben_id,
+              participou
+          ) values (?, ?, ?);
+      `;
+      let valores = [
+          this.id,
+          beneficiario.id,
+          0
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async retirarBeneficiario(connection, beneficiario){
+      let queryString = `
+          delete from beneficiariosEncontros
+          where enc_id = ? and ben_id = ?;
+      `;
+      let valores = [
+          this.id,
+          beneficiario.id
+      ];
+      
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async incrementarParticipantes(connection){
+      let queryString = `
+          UPDATE encontros 
+          SET enc_qtde = enc_qtde + 1 
+          WHERE enc_id = ?;
+      `;
+      let valores = [
+          this.id,
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async decrementarParticipantes(connection){
+      let queryString = `
+          UPDATE encontros 
+          SET enc_qtde = enc_qtde - 1
+          WHERE enc_id = ?;
+      `;
+      let valores = [
+          this.id,
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
 }
 
 export default Encontro;

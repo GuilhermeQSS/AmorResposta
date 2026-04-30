@@ -1,4 +1,5 @@
 import Funcionario from "../models/funcionarioModel.js";
+import Beneficiario from "../models/beneficiarioModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 import jwt from "jsonwebtoken";
 
@@ -15,35 +16,34 @@ class LoginControl {
 
             switch (perfil) {
                 case "Beneficiario":
-                    
+                    usuarioEncontrado = await Beneficiario.buscarPorUsuario(connection, usuario);
                     break;
-
                 case "Administrador": 
                 case "Voluntario":
                     usuarioEncontrado = await Funcionario.buscarPorUsuario(connection, usuario);
-                    
-                    if (!usuarioEncontrado){
-                        return res.status(401).json({ message: "Usuário não encontrado." });
-                    }
-
-                    if (senha !== usuarioEncontrado.senha){
-                        return res.status(401).json({ message: "Senha incorreta." });
-                    }
-
-                    token = jwt.sign(
-                        { 
-                            id: usuarioEncontrado.id, 
-                            usuario: usuarioEncontrado.usuario,
-                            perfil: perfil 
-                        },
-                        CHAVE_SECRETA, 
-                        { expiresIn: "1h" }
-                    );
                     break;
-
                 default:
                     return res.status(400).json({ message: "Perfil inválido." });
             }
+
+
+            if (!usuarioEncontrado){
+                return res.status(401).json({ message: "Usuário não encontrado." });
+            }
+
+            if (senha !== usuarioEncontrado.senha){
+                return res.status(401).json({ message: "Senha incorreta." });
+            }
+
+            token = jwt.sign(
+                { 
+                    id: usuarioEncontrado.id, 
+                    usuario: usuarioEncontrado.usuario,
+                    perfil: perfil 
+                },
+                CHAVE_SECRETA, 
+                { expiresIn: "1h" }
+            );
 
             return res.status(200).json({
                 auth: true,

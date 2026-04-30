@@ -93,6 +93,9 @@ function Header(){
                         )}
                     </li>
                 )}
+                {user?.perfil === "Beneficiario" && (
+                    <li><Link to={'/beneficiario/encontros'}>Encontros</Link></li>
+                )}
                 {!token ? (
                     <li><Link to={"/login"}>Login</Link></li>
                 ) : (
