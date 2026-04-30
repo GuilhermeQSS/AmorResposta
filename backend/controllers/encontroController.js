@@ -169,9 +169,16 @@ class EncontroController {
   static async cancelar(req, res) {
     try {
       const { id, motivo, detalhes, opcao, novaData } = req.body;
+      const canceladoPorId = Number(req.usuarioLogado?.id);
 
       if (!id || !motivo) {
         return res.status(400).json({ err: "ID e motivo sao obrigatorios" });
+      }
+
+      if (!Number.isInteger(canceladoPorId) || canceladoPorId <= 0) {
+        return res
+          .status(401)
+          .json({ err: "Usuario autenticado invalido para cancelar encontro" });
       }
 
       if (!MOTIVOS_CANCELAMENTO.includes(motivo)) {
@@ -188,6 +195,7 @@ class EncontroController {
         detalhes: detalhes || "",
         opcao,
         novaData,
+        canceladoPorId,
       });
 
       return res.status(200).json({

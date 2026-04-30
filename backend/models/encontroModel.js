@@ -73,6 +73,9 @@ class Encontro {
     beneficiariosAfetados = 0,
     responsaveisAfetados = 0,
     materiaisAfetados = 0,
+    canceladoPorId = null,
+    canceladoPorNome = null,
+    canceladoPorUsuario = null,
   ) {
     this.id = id;
     this.data = data;
@@ -91,6 +94,9 @@ class Encontro {
     this.beneficiariosAfetados = beneficiariosAfetados;
     this.responsaveisAfetados = responsaveisAfetados;
     this.materiaisAfetados = materiaisAfetados;
+    this.canceladoPorId = canceladoPorId;
+    this.canceladoPorNome = canceladoPorNome;
+    this.canceladoPorUsuario = canceladoPorUsuario;
   }
 
   static fromRow(row) {
@@ -112,20 +118,31 @@ class Encontro {
       row.enc_beneficiarios_afetados,
       row.enc_responsaveis_afetados,
       row.enc_materiais_afetados,
+      row.enc_cancelado_por_fun_id,
+      row.canceladoPorNome,
+      row.canceladoPorUsuario,
     );
   }
 
   static async listar(filtro, status = "ativos") {
-    let queryString = `select * from encontros where enc_cancelado = ?`;
+    let queryString = `
+      select
+        e.*,
+        f.fun_nome as canceladoPorNome,
+        f.fun_usuario as canceladoPorUsuario
+      from encontros e
+      left join funcionarios f on f.fun_id = e.enc_cancelado_por_fun_id
+      where e.enc_cancelado = ?
+    `;
     const params = [status === "cancelados" ? "S" : "N"];
 
     if (filtro) {
       const termo = `%${filtro}%`;
       queryString += `
                 and (
-                    enc_local like ?
-                    or cast(enc_id as char) like ?
-                    or coalesce(enc_motivo_cancelamento, '') like ?
+                    e.enc_local like ?
+                    or cast(e.enc_id as char) like ?
+                    or coalesce(e.enc_motivo_cancelamento, '') like ?
                 )
             `;
       params.push(termo, termo, termo);
@@ -133,8 +150,8 @@ class Encontro {
 
     queryString +=
       status === "cancelados"
-        ? ` order by enc_data_cancelamento desc, enc_id desc`
-        : ` order by enc_data asc, enc_hora asc, enc_id asc`;
+        ? ` order by e.enc_data_cancelamento desc, e.enc_id desc`
+        : ` order by e.enc_data asc, e.enc_hora asc, e.enc_id asc`;
 
     const [rows] = await connection.query(queryString, params);
     return rows.map((row) => Encontro.fromRow(row));
@@ -233,7 +250,15 @@ class Encontro {
 
   static async buscarPorId(id) {
     const [[row]] = await connection.query(
-      `select * from encontros where enc_id = ?`,
+      `
+        select
+          e.*,
+          f.fun_nome as canceladoPorNome,
+          f.fun_usuario as canceladoPorUsuario
+        from encontros e
+        left join funcionarios f on f.fun_id = e.enc_cancelado_por_fun_id
+        where e.enc_id = ?
+      `,
       [id],
     );
 
@@ -462,6 +487,7 @@ class Encontro {
     detalhes = "",
     opcao = "semReposicao",
     novaData = null,
+    canceladoPorId,
   }) {
     await connection.beginTransaction();
 
@@ -504,6 +530,7 @@ class Encontro {
                         enc_data_cancelamento = now(),
                         enc_disponibilidade = 'C',
                         enc_acao_cancelamento = ?,
+                        enc_cancelado_por_fun_id = ?,
                         enc_reagendado_para = ?,
                         enc_beneficiarios_afetados = ?,
                         enc_responsaveis_afetados = ?,
@@ -515,6 +542,7 @@ class Encontro {
           motivo,
           detalhes,
           opcao,
+          canceladoPorId,
           novoEncontroId,
           impacto.beneficiarios,
           impacto.responsaveis,

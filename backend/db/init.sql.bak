@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS `encontros` (
   `enc_detalhes_cancelamento` TEXT NULL,
   `enc_data_cancelamento` DATETIME NULL,
   `enc_acao_cancelamento` VARCHAR(40) NULL,
+  `enc_cancelado_por_fun_id` INT NULL,
   `enc_reagendado_para` INT NULL,
   `enc_beneficiarios_afetados` INT NOT NULL DEFAULT 0,
   `enc_responsaveis_afetados` INT NOT NULL DEFAULT 0,
@@ -230,6 +231,18 @@ SET @add_enc_acao_cancelamento = IF(
   'SELECT 1'
 );
 PREPARE stmt FROM @add_enc_acao_cancelamento;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @add_enc_cancelado_por_fun_id = IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'encontros'
+      AND COLUMN_NAME = 'enc_cancelado_por_fun_id') = 0,
+  'ALTER TABLE encontros ADD COLUMN enc_cancelado_por_fun_id INT NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @add_enc_cancelado_por_fun_id;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 

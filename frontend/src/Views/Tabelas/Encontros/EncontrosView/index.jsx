@@ -78,6 +78,22 @@ function getAcaoCancelamentoLabel(value) {
   return "Cancelar sem reposicao";
 }
 
+function formatCanceladoPor(encontro) {
+  if (encontro?.canceladoPorNome && encontro?.canceladoPorUsuario) {
+    return `${encontro.canceladoPorNome} (${encontro.canceladoPorUsuario})`;
+  }
+
+  if (encontro?.canceladoPorNome) {
+    return encontro.canceladoPorNome;
+  }
+
+  if (encontro?.canceladoPorUsuario) {
+    return encontro.canceladoPorUsuario;
+  }
+
+  return "Nao identificado";
+}
+
 function buildAlertas(impacto) {
   const alertas = [];
 
@@ -811,7 +827,11 @@ function EncontrosView() {
             </p>
             <Styled.HistoryGrid>
               <div>
-                <strong>Data do cancelamento:</strong>
+                <strong>Quem cancelou:</strong>
+                <div>{formatCanceladoPor(selectedHistorico)}</div>
+              </div>
+              <div>
+                <strong>Data e hora do cancelamento:</strong>
                 <div>
                   {formatDate(selectedHistorico.dataCancelamento, true)}
                 </div>

@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS `encontros` (
   `enc_detalhes_cancelamento` TEXT NULL,
   `enc_data_cancelamento` DATETIME NULL,
   `enc_acao_cancelamento` VARCHAR(40) NULL,
+  `enc_cancelado_por_fun_id` INT NULL,
   `enc_reagendado_para` INT NULL,
   `enc_beneficiarios_afetados` INT NOT NULL DEFAULT 0,
   `enc_responsaveis_afetados` INT NOT NULL DEFAULT 0,
@@ -219,7 +220,7 @@ alter table `encontrosItens`
 alter table `beneficiariosEncontros`
   add CONSTRAINT `fk_EParticipantes_Beneficiarios`
     FOREIGN KEY (`ben_id`) REFERENCES `beneficiarios` (`ben_id`),
-  add CONSTRAINT `fk_Participantes_Encontros`
+  add CONSTRAINT `fk_Participantes_Encontros_beneficiarios`
     FOREIGN KEY (`enc_id`) REFERENCES `encontros` (`enc_id`);
 
 alter table `funcionariosEncontros`
@@ -250,4 +251,10 @@ INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, 
 SELECT 'PerfilTeste', 'adm', 'adm', 'Administrador', '99131079032', '1899999999'
 WHERE NOT EXISTS (
   SELECT 1 FROM funcionarios WHERE fun_usuario = 'adm'
+);
+
+INSERT INTO funcionarios (fun_nome, fun_usuario, fun_senha, fun_cargo, fun_cpf, fun_telefone)
+SELECT 'PerfilTesteFun', 'fun', 'fun', 'Voluntario', '42950277829', '1899999999'
+WHERE NOT EXISTS (
+  SELECT 1 FROM funcionarios WHERE fun_usuario = 'vol'
 );
