@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const motivos = [
-  "falta de beneficiários mínimos",
-  "ausencia de tutor/funcionario responsavel",
-  "indisponibilidade do local",
-  "problema climático",
-  "falta de materiais/itens necessarios",
-  "conflito de agenda",
-  "motivo emergencial/outros",
+  { value: "falta de beneficiarios minimos", label: "Falta de beneficiários mínimos" },
+  { value: "ausencia de tutor/funcionario responsavel", label: "Ausência de tutor/funcionário responsável" },
+  { value: "indisponibilidade do local", label: "Indisponibilidade do local" },
+  { value: "problema climatico", label: "Problema climático" },
+  { value: "falta de materiais/itens necessarios", label: "Falta de materiais/itens necessários" },
+  { value: "conflito de agenda", label: "Conflito de agenda" },
+  { value: "motivo emergencial/outros", label: "Motivo emergencial/outros" },
 ];
 
 const views = {
@@ -78,6 +78,10 @@ function getAcaoCancelamentoLabel(value) {
   return "Cancelar sem reposição";
 }
 
+function getMotivoCancelamentoLabel(value) {
+  return motivos.find((motivo) => motivo.value === value)?.label || value;
+}
+
 function formatCanceladoPor(encontro) {
   if (encontro?.canceladoPorNome && encontro?.canceladoPorUsuario) {
     return `${encontro.canceladoPorNome} (${encontro.canceladoPorUsuario})`;
@@ -127,7 +131,7 @@ function buildAlertas(impacto) {
 async function parseResponse(response, fallbackMessage) {
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(json.err || json.Erro || json.erro || fallbackMessage);
+    throw new Error(json.err || json.Erro || json.erro || json.message || fallbackMessage);
   }
   return json;
 }
@@ -616,8 +620,8 @@ function EncontrosView() {
                 onChange={(e) => setCancelReason(e.target.value)}>
                 <option value="">Selecione</option>
                 {motivos.map((motivo) => (
-                  <option key={motivo} value={motivo}>
-                    {motivo}
+                  <option key={motivo.value} value={motivo.value}>
+                    {motivo.label}
                   </option>
                 ))}
               </select>
@@ -846,7 +850,9 @@ function EncontrosView() {
               <div>
                 <strong>Motivo:</strong>
                 <div>
-                  {selectedHistorico.motivoCancelamento || "Não informado"}
+                  {selectedHistorico.motivoCancelamento
+                    ? getMotivoCancelamentoLabel(selectedHistorico.motivoCancelamento)
+                    : "Não informado"}
                 </div>
               </div>
               <div>
@@ -941,7 +947,11 @@ function EncontrosView() {
                   {activeView === views.cancelados ? (
                     <>
                       <td>{formatDate(encontro.dataCancelamento, true)}</td>
-                      <td>{encontro.motivoCancelamento || "-"}</td>
+                      <td>
+                        {encontro.motivoCancelamento
+                          ? getMotivoCancelamentoLabel(encontro.motivoCancelamento)
+                          : "-"}
+                      </td>
                       <td>
                         {getAcaoCancelamentoLabel(encontro.acaoCancelamento)}
                       </td>
