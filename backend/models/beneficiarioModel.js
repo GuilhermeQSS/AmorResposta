@@ -22,10 +22,10 @@ class Beneficiario {
     constructor(
         id,
         nome,
-        enderecoOuEstado,
-        telefoneOuCidade,
-        usuarioOuBairro,
-        senhaOuRua,
+        estado,
+        cidade,
+        bairro,
+        rua,
         numero,
         telefone,
         usuario,
@@ -34,23 +34,10 @@ class Beneficiario {
         this.id = id;
         this.nome = nome;
 
-        if (arguments.length <= 6) {
-            this.estado = "";
-            this.cidade = "";
-            this.bairro = "";
-            this.rua = "";
-            this.numero = "";
-            this.endereco = String(enderecoOuEstado || "").trim();
-            this.telefone = limparTelefone(telefoneOuCidade);
-            this.usuario = usuarioOuBairro;
-            this.senha = senhaOuRua;
-            return;
-        }
-
-        this.estado = String(enderecoOuEstado || "").trim();
-        this.cidade = String(telefoneOuCidade || "").trim();
-        this.bairro = String(usuarioOuBairro || "").trim();
-        this.rua = String(senhaOuRua || "").trim();
+        this.estado = String(estado || "").trim();
+        this.cidade = String(cidade || "").trim();
+        this.bairro = String(bairro || "").trim();
+        this.rua = String(rua || "").trim();
         this.numero = limparNumero(numero);
         this.telefone = limparTelefone(telefone);
         this.usuario = usuario;
@@ -65,16 +52,12 @@ class Beneficiario {
             row.ben_estado ?? "",
             row.ben_cidade ?? "",
             row.ben_bairro ?? "",
-            row.ben_rua ?? row.ben_endereco ?? "",
+            row.ben_rua ?? "",
             row.ben_numero ?? "",
             row.ben_telefone,
             row.ben_usuario,
             row.ben_senha
         );
-
-        if (!beneficiario.endereco && row.ben_endereco) {
-            beneficiario.endereco = String(row.ben_endereco).trim();
-        }
 
         return beneficiario;
     }
@@ -109,7 +92,6 @@ class Beneficiario {
                 ben_bairro = ?,
                 ben_rua = ?,
                 ben_numero = ?,
-                ben_endereco = ?,
                 ben_telefone = ?,
                 ben_usuario = ?,
                 ben_senha = ?
@@ -123,7 +105,6 @@ class Beneficiario {
             this.bairro || null,
             this.rua || null,
             this.numero ? Number(this.numero) : null,
-            this.endereco || null,
             this.telefone,
             this.usuario,
             this.senha,
@@ -167,11 +148,10 @@ class Beneficiario {
                 ben_bairro,
                 ben_rua,
                 ben_numero,
-                ben_endereco,
                 ben_telefone,
                 ben_usuario,
                 ben_senha
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
 
         const valores = [
@@ -181,7 +161,6 @@ class Beneficiario {
             this.bairro || null,
             this.rua || null,
             this.numero ? Number(this.numero) : null,
-            this.endereco || null,
             this.telefone,
             this.usuario,
             this.senha
