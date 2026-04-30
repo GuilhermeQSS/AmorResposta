@@ -38,7 +38,7 @@ class itensControl{
                 await Itens.buscarPorNome(connection,descricao)){
                 throw new Error("Item já exite");
             }
-            const item = new Itens(id,nome,descricao,tipo,possuiValidade, unidadeMedida);
+            const item = new Itens(id,descricao,nome,tipo,possuiValidade, unidadeMedida);
             const resultado = await item.alterar(connection);
             return res.status(200).json(resultado);
         } catch (err) {

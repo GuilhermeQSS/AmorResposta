@@ -5,7 +5,7 @@ function ehAnteriorHoje(dataStr) {
     const data = new Date(dataStr);
     const hoje = new Date();
 
-    // compara apenas ano, mês e dia ignorando horário e fuso
+    // compara apenas ano, mes e dia ignorando horario e fuso
     return (
         data.getUTCFullYear() < hoje.getFullYear() ||
         (data.getUTCFullYear() === hoje.getFullYear() &&
@@ -95,13 +95,13 @@ class Lotes{
 
         const item = await Itens.buscarPorId(connection, this.idItem);
         if (item == null)
-            throw new Error("Item não encontrado");
+            throw new Error("Item nao encontrado");
 
         if (item.item_possuiValidade == '0' || item.possuiValidade == false)
             this.data = null;
         else
             if(this.data == null)
-                throw new Error("Validade é necessária");
+                throw new Error("Validade e necessaria");
 
         const valores = [
             this.idItem,
@@ -145,13 +145,13 @@ class Lotes{
     async gravar(connection) {
         const item = await Itens.buscarPorId(connection, this.idItem);
         if (item == null)
-            throw new Error("Item não encontrado");
+            throw new Error("Item nao encontrado");
 
         if (item.item_possuiValidade == '0' || item.possuiValidade == false)
             this.data = null;
         else
             if(this.data == null)
-                throw new Error("Validade é necessária");
+                throw new Error("Validade e necessaria");
             else 
                 if (this.data && ehAnteriorHoje(this.data))
                     throw new Error("Data anterior a atual");
@@ -175,30 +175,36 @@ class Lotes{
     }
 
     static async saidaDoacao(connection, benId, listaLotes, data){
-        const beneficiario = await Ben.buscarPorId(benId);
+        const beneficiario = await Ben.buscarPorId(connection, benId);
         if(beneficiario == null)
-            throw new Error("Beneficiario não encontrado");
+            throw new Error("Beneficiario nao encontrado");
 
         await connection.beginTransaction();
+        try {
+            const [resultado] = await connection.query(`
+                INSERT INTO lotesDoados(ben_id,data)
+                VALUES (?, ?);`, [benId, data]);
 
-        const [resultado] = await connection.query(`
-            INSERT INTO lotesDoados(ben_id,data)
-            VALUES (?, ?);` ,[benId,data]);
-        let i = 0;
-        for(let lItem of listaLotes){
-            if(lItem.qtd <= 0)
-                throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.qtd+": quantidade invalida");
-            else{
-                const lote = await this.buscarPorId(connection, lItem.id);
-                if(lote == null)
-                    throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.id+": id não encontrado");
-                else
-                    await connection.query(`
-                        INSERT INTO lotesDoadosLotes(lotd_id,lot_id,qtde)
-                        VALUES (?, ?, ?);`,[resultado.insertId,lote.id,lItem.qtd]);
+            for (let lItem of listaLotes) {
+                if (lItem.qtd <= 0)
+                    throw new Error("index[" + listaLotes.indexOf(lItem) + "]" + lItem.qtd + ": quantidade invalida");
+                else {
+                    const lote = await this.buscarPorId(connection, lItem.id);
+                    if (lote == null)
+                        throw new Error("index[" + listaLotes.indexOf(lItem) + "]" + lItem.id + ": id nao encontrado");
+                    else
+                        await connection.query(`
+                            INSERT INTO lotesDoadosLotes(lotd_id,lot_id,qtde)
+                            VALUES (?, ?, ?);`, [resultado.insertId, lote.id, lItem.qtd]);
+                }
             }
+
+            await connection.commit();
+            return resultado;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
         }
-        await connection.commit();
     }
 }
 

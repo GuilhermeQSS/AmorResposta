@@ -1,52 +1,69 @@
 class Itens{
     constructor(id, descricao, nome, tipo, possuiValidade,unidadeMedida){
-        if(!descricao || !tipo || !nome || !unidadeMedida)
-            throw new Error("Todos os campos devem ser preenchidos");    
         this.id = id;
-        this.descricao = descricao;
-        this.tipo = tipo;
-        this.nome = nome;
-        this.possuiValidade = possuiValidade;
-        this.unidadeMedida = unidadeMedida;
+        this.descricao = descricao ?? "";
+        this.tipo = tipo ?? "";
+        this.nome = nome ?? "";
+        this.possuiValidade = possuiValidade ?? 0;
+        this.unidadeMedida = unidadeMedida ?? "";
+    }
+
+    static validarDados({ descricao, nome, tipo, unidadeMedida }) {
+        if (!descricao || !tipo || !nome || !unidadeMedida) {
+            throw new Error("Todos os campos devem ser preenchidos");
+        }
+    }
+
+    static fromRow(item) {
+        return new Itens(
+            item.item_id,
+            item.item_descricao,
+            item.item_nome,
+            item.item_tipo,
+            item.item_possuiValidade,
+            item.item_unidadeMedida
+        );
     }
 
     static async listar(connection, nome, tipo) {
-        let queryString = `select * from itens`
-        if(nome && tipo)
-            queryString += ` where item_nome like '%${nome}%' and item_tipo like '%${tipo}%'`;
-        else
-            if (nome)
-                queryString += ` where item_nome like '%${nome}%'`;
-            else
-                if(tipo)
-                    queryString += ` where item_tipo like '%${tipo}%'`;
+        let queryString = `select * from itens`;
+        const valores = [];
+
+        if (nome && tipo) {
+            queryString += ` where item_nome like ? and item_tipo like ?`;
+            valores.push(`%${nome}%`, `%${tipo}%`);
+        } else if (nome) {
+            queryString += ` where item_nome like ?`;
+            valores.push(`%${nome}%`);
+        } else if (tipo) {
+            queryString += ` where item_tipo like ?`;
+            valores.push(`%${tipo}%`);
+        }
+
         queryString += ` order by item_nome asc`;
-        const [itens] = await connection.query(queryString);
-        let itensList = [];
-        itens.forEach(e => {
-            itensList.push(new Itens(
-                e.item_id,
-                e.item_descricao,
-                e.item_nome,
-                e.item_tipo,
-                e.item_possuiValidade,
-                e.item_unidadeMedida
-            ));
-        });
-        return itensList;
+        const [itens] = await connection.query(queryString, valores);
+        return itens.map((item) => Itens.fromRow(item));
     }
 
     async alterar(connection){
+        Itens.validarDados(this);
         let queryString = `
             update itens set
-                item_descricao = '${this.descricao}',
-                item_tipo = '${this.tipo}',
-                item_nome = '${this.nome}',
-                item_possuiValidade = '${this.possuiValidade}',
-                item_unidadeMedida = '${this.unidadeMedida}'
-            where item_id = ${this.id};
+                item_descricao = ?,
+                item_tipo = ?,
+                item_nome = ?,
+                item_possuiValidade = ?,
+                item_unidadeMedida = ?
+            where item_id = ?;
         `;
-        const [resultado] = await connection.query(queryString,[this.validade]);
+        const [resultado] = await connection.query(queryString, [
+            this.descricao,
+            this.tipo,
+            this.nome,
+            this.possuiValidade,
+            this.unidadeMedida,
+            this.id
+        ]);
         return resultado;
     }
 
@@ -63,19 +80,12 @@ class Itens{
     }
 
     static async buscarPorNome(connection, nome){
-            let queryString = `select * from itens where item_nome = '${nome}'`
-            const [[itens]] = await connection.query(queryString);
+            let queryString = `select * from itens where item_nome = ?`;
+            const [[itens]] = await connection.query(queryString, [nome]);
             if(!itens){
                 return null;
             }else{
-                return new Itens(
-                    itens.item_id,
-                    itens.item_descricao,
-                    itens.item_nome,
-                    itens.item_tipo,
-                    itens.item_possuiValidade,
-                    itens.unidadeMedida
-                );
+                return Itens.fromRow(itens);
             }
         }
 
@@ -86,18 +96,12 @@ class Itens{
         if(!item){
             return null;
         }else{
-            return new Itens(
-                item.item_id,
-                item.item_descricao,
-                item.item_nome,
-                item.item_tipo,
-                item.item_possuiValidade,
-                item.item_unidadeMedida
-            );
+            return Itens.fromRow(item);
         }
     }
 
     async gravar(connection){
+        Itens.validarDados(this);
         if(await Itens.buscarPorNome(connection, this.nome) != null)
             throw new Error("Item ja cadastrado");
         let queryString = `

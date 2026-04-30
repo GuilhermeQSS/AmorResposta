@@ -364,6 +364,13 @@ function EncontrosView() {
       return;
     }
 
+    const confirmarExclusao = window.confirm(
+      "Confirmacao final: um encontro cancelado nao pode ser revertido. Deseja mesmo cancelar?",
+    );
+    if (!confirmarExclusao) {
+      return;
+    }
+
     try {
       setCancelLoading(true);
       const response = await fetch(`${API_URL}/cancelar`, {

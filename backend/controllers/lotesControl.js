@@ -80,16 +80,14 @@ class lotesControl {
     }
 
     static async sairDoacao(req, res) {
-        let connection = null;
         try {
             const { benId, listaLotes, data } = req.body;
 
-            connection = await SingletonDB.getConnection();
+            const connection = await SingletonDB.getConnection();
             const resp = await Lotes.saidaDoacao(connection, benId, listaLotes, data);
 
             return res.status(200).json(resp);
         } catch(err) {
-            await connection.rollback();
             return res.status(500).json({ err: err.message });
         }
     }

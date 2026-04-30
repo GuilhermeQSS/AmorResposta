@@ -253,7 +253,7 @@ class Doacao {
         );
     }
 
-    async gravar() {
+    async gravar(connection) {
         let documentoPersistido = null;
 
         await connection.beginTransaction();

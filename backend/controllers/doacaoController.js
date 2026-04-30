@@ -58,6 +58,7 @@ class DoacaoController {
 
     static async cadastrar(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes, documento } = req.body;
 
             if (!DoacaoController.documentoValido(documento)) {
@@ -100,6 +101,7 @@ class DoacaoController {
 
     static async alterar(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const { id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes } = req.body;
 
             if (
