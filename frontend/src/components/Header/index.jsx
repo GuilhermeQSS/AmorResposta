@@ -30,6 +30,8 @@ function Header(){
                             <Link to="/tabelas/encontros">Encontros</Link>
                             <Link to="/tabelas/itens">Itens</Link>
                             <Link to="/tabelas/lotes">Lotes</Link>
+                            <Link to="/tabelas/despesas">Despesas</Link>
+                            <Link to="/tabelas/caixas">Caixas</Link>
                         </div>    
                     )}
                     
@@ -47,6 +49,8 @@ function Header(){
                             <Link to="/encontros/cadastro">Encontros</Link>
                             <Link to="/itens/cadastro">itens</Link>
                             <Link to="/lotes/cadastro">lotes</Link>
+                            <Link to="/despesas/cadastro">Despesas</Link>
+                            <Link to="/caixas/cadastro">Abrir Caixa</Link>
                         </div>
                     )}
                 </li>

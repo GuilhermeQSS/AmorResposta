@@ -51,7 +51,17 @@ CREATE TABLE IF NOT EXISTS `despesas` (
   	`des_id` INT NOT NULL auto_increment,
   	`des_valor` DECIMAL(10,2) NULL,
   	`des_descricao` VARCHAR(45) NULL,
+  	`des_categoria` VARCHAR(45) NULL,
   	PRIMARY KEY (`des_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `caixas` (
+  	`cai_id` INT NOT NULL auto_increment,
+  	`cai_data` DATE NOT NULL,
+  	`cai_turno` VARCHAR(20) NOT NULL,
+  	`cai_suprimentoInicial` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  	`cai_status` VARCHAR(20) NOT NULL DEFAULT 'aberto',
+  	PRIMARY KEY (`cai_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontros` (

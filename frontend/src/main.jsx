@@ -20,6 +20,12 @@ import ItensView from './Views/Tabelas/Itens/ItensView'
 import CadastrarLotesView from './Views/Tabelas/Lotes/CadastrarLotesView'
 import EditarLotesView from './Views/Tabelas/Lotes/EditarLotesView'
 import LotesView from './Views/Tabelas/Lotes/LotesView'
+import CaixasView from './Views/Tabelas/Caixas/CaixasView'
+import CadastrarCaixasView from './Views/Tabelas/Caixas/CadastrarCaixasView'
+import EditarCaixasView from './Views/Tabelas/Caixas/EditarCaixasView'
+import DespesasView from './Views/Tabelas/Despesas/DespesasView'
+import CadastrarDespesaView from './Views/Tabelas/Despesas/CadastrarDespesaView'
+import EditarDespesaView from './Views/Tabelas/Despesas/EditarDespesaView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -43,6 +49,12 @@ createRoot(document.getElementById('root')).render(
         <Route Component={LotesView} path='/tabelas/lotes'/>
         <Route Component={CadastrarLotesView} path="/lotes/cadastro" />
         <Route Component={EditarLotesView} path="/lotes/:id" />
+        <Route Component={DespesasView} path='/tabelas/despesas'/>
+        <Route Component={CadastrarDespesaView} path="/despesas/cadastro" />
+        <Route Component={EditarDespesaView} path="/despesas/:id" />
+        <Route Component={CaixasView} path='/tabelas/caixas'/>
+        <Route Component={CadastrarCaixasView} path="/caixas/cadastro" />
+        <Route Component={EditarCaixasView} path="/caixas/:id" />
       </Routes>
     </BrowserRouter>
   </StrictMode>
