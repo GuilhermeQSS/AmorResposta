@@ -29,7 +29,7 @@ class itensControl{
     static async alterar(req, res){
         try {
             const connection = await SingletonDB.getConnection();
-            const { id, nome, descricao, tipo, possuiValidade} = req.body;
+            const { id, nome, descricao, tipo, possuiValidade, unidadeMedida} = req.body;
             const itemOriginal = await Itens.buscarPorId(connection,id);
             if(!itemOriginal){
                 throw new Error("Id não existe");
@@ -38,7 +38,7 @@ class itensControl{
                 await Itens.buscarPorNome(connection,descricao)){
                 throw new Error("Item já exite");
             }
-            const item = new Itens(id,nome,descricao,tipo,possuiValidade);
+            const item = new Itens(id,nome,descricao,tipo,possuiValidade, unidadeMedida);
             const resultado = await item.alterar(connection);
             return res.status(200).json(resultado);
         } catch (err) {
@@ -63,7 +63,7 @@ class itensControl{
     
     static async cadastrar(req,res){
         try{
-            const {descricao, nome, tipo, possuiValidade} = req.body;
+            const {descricao, nome, tipo, possuiValidade, unidadeMed} = req.body;
             if (!nome) {
                 return res.status(500).json({ 
                     err: "Nome vazio",
@@ -75,7 +75,8 @@ class itensControl{
                 descricao,
                 nome,
                 tipo,
-                possuiValidade
+                possuiValidade,
+                unidadeMed
             );
             const connection = await SingletonDB.getConnection();
             let resp = await item.gravar(connection);

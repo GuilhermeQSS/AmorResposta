@@ -63,7 +63,7 @@ function CadastrarBeneficiarioView() {
             if (!response.ok) {
                 const json = await response.json();
                 setErros(json.campos || {});
-                throw new Error(json.err || json.erro || json.Erro || "Nao foi possivel cadastrar o beneficiario");
+                throw new Error(json.err || json.erro || json.Erro || "Não foi possível cadastrar o beneficiário");
             }
 
             setErros({});
@@ -168,7 +168,7 @@ function CadastrarBeneficiarioView() {
                     </div>
 
                     <div>
-                        <label htmlFor="numero">Numero: </label>
+                        <label htmlFor="numero">Número: </label>
                         <input
                             id="numero"
                             name="numero"
@@ -194,7 +194,7 @@ function CadastrarBeneficiarioView() {
                     </div>
 
                     <div>
-                        <label htmlFor="usuario">Usuario: </label>
+                        <label htmlFor="usuario">Usuário: </label>
                         <input
                             id="usuario"
                             name="usuario"

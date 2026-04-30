@@ -71,7 +71,7 @@ function CadastrarDespesaView() {
                     </div>
 
                     <div>
-                        <label htmlFor="descricao">Descricao:</label>
+                        <label htmlFor="descricao">Descrição:</label>
                         <input
                             name="descricao"
                             value={form.descricao}

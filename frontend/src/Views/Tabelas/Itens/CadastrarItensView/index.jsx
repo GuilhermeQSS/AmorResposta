@@ -10,6 +10,7 @@ function CadastrarItensView() {
             descricao: !form.descricao,
             nome: !form.nome,
             tipo: !form.tipo,
+            unidadeMed: !form.unidadeMed,
         };
         setCamposVazios(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
@@ -26,7 +27,8 @@ function CadastrarItensView() {
                     descricao: form.descricao,
                     nome: form.nome,
                     tipo: form.tipo,
-                    possuiValidade: form.possuiValidade
+                    possuiValidade: form.possuiValidade,
+                    unidadeMed: form.unidadeMed,
                 })
             });
             if(response.ok){
@@ -35,6 +37,7 @@ function CadastrarItensView() {
                         descricao: "",
                         nome: "",
                         tipo: "",
+                        unidadeMed: "",
                         possuiValidade: false
                     });
             }else{
@@ -60,6 +63,7 @@ function CadastrarItensView() {
         descricao: "",
         nome: "",
         tipo: "",
+        unidadeMed: "",
         possuiValidade: false
     });
     //const navigate = useNavigate();
@@ -106,6 +110,17 @@ function CadastrarItensView() {
                             value={form.tipo}
                             onChange={atualizarForm}
                             style={{ border: camposVazios.tipo ? "2px solid red" : "" }}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="unidadeMed">Unidade de Medida: </label>
+                        <input
+                            type="text"
+                            name="unidadeMed"
+                            value={form.unidadeMed}
+                            onChange={atualizarForm}
+                            style={{ border: camposVazios.unidadeMed ? "2px solid red" : "" }}
                         />
                     </div>
 

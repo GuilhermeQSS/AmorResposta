@@ -32,7 +32,7 @@ function arquivoParaDocumento(arquivo) {
                 conteudoBase64: resultado.includes(",") ? resultado.split(",")[1] : resultado,
             });
         };
-        leitor.onerror = () => reject(new Error("Nao foi possivel ler o arquivo selecionado"));
+        leitor.onerror = () => reject(new Error("Não foi possível ler o arquivo selecionado"));
         leitor.readAsDataURL(arquivo);
     });
 }
@@ -87,34 +87,34 @@ function CadastrarDocumentoView() {
 
     function validarLocalmente() {
         const novosErros = {};
-        if (!form.titulo.trim()) novosErros.titulo = "Titulo obrigatorio";
+        if (!form.titulo.trim()) novosErros.titulo = "Título obrigatório";
         if (form.titulo.trim() && !TEXTO_REGEX.test(form.titulo.trim())) {
-            novosErros.titulo = "Use pelo menos 3 caracteres e apenas texto valido";
+            novosErros.titulo = "Use pelo menos 3 caracteres e apenas texto válido";
         }
-        if (!form.tipo.trim()) novosErros.tipo = "Tipo obrigatorio";
+        if (!form.tipo.trim()) novosErros.tipo = "Tipo obrigatório";
         if (form.tipo && !TIPOS_DOCUMENTO.includes(form.tipo)) {
             novosErros.tipo = "Tipo invalido";
         }
-        if (!form.dataCriacao) novosErros.dataCriacao = "Data obrigatoria";
+        if (!form.dataCriacao) novosErros.dataCriacao = "Data obrigatória";
         if (form.dataCriacao && dataNoFuturo(form.dataCriacao)) {
-            novosErros.dataCriacao = "Data nao pode estar no futuro";
+            novosErros.dataCriacao = "Data não pode estar no futuro";
         }
-        if (!form.descricao.trim()) novosErros.descricao = "Descricao obrigatoria";
+        if (!form.descricao.trim()) novosErros.descricao = "Descrição obrigatória";
         if (form.descricao.trim() && !TEXTO_REGEX.test(form.descricao.trim())) {
-            novosErros.descricao = "Use pelo menos 3 caracteres e apenas texto valido";
+            novosErros.descricao = "Use pelo menos 3 caracteres e apenas texto válido";
         }
         if (modoFonte === "arquivo" && !arquivo) {
             novosErros.link = "Selecione um arquivo";
         } else if (modoFonte === "arquivo" && arquivo) {
             if (!NOME_ARQUIVO_REGEX.test(arquivo.name)) novosErros.link = "Nome de arquivo invalido";
             if (arquivo.size <= 0 || arquivo.size > TAMANHO_MAXIMO_ARQUIVO) {
-                novosErros.link = "Arquivo deve ter ate 10MB";
+                novosErros.link = "Arquivo deve ter até 10MB";
             }
         }
         if (modoFonte === "link" && !form.link.trim()) {
             novosErros.link = "Informe o link de acesso";
         } else if (modoFonte === "link" && !dominio) {
-            novosErros.link = "Informe uma URL valida";
+            novosErros.link = "Informe uma URL válida";
         }
 
         setErros(novosErros);
@@ -164,12 +164,12 @@ function CadastrarDocumentoView() {
                 <Styled.Form>
                     <Styled.FormHeader>
                         <h2>Novo documento</h2>
-                        <p>Envie um arquivo ou cadastre um link externo para acesso rapido.</p>
+                        <p>Envie um arquivo ou cadastre um link externo para acesso rápido.</p>
                     </Styled.FormHeader>
 
                     <Styled.Grid>
                         <label>
-                            Titulo
+                            Título
                             <input
                                 type="text"
                                 name="titulo"
@@ -195,7 +195,7 @@ function CadastrarDocumentoView() {
                         </label>
 
                         <label>
-                            Data de criacao
+                            Data de criação
                             <input
                                 type="date"
                                 name="dataCriacao"
@@ -250,7 +250,7 @@ function CadastrarDocumentoView() {
                     </Styled.SourcePanel>
 
                     <label>
-                        Descricao
+                        Descrição
                         <textarea
                             name="descricao"
                             rows="4"

@@ -89,14 +89,14 @@ function EditarBeneficiarioView() {
             if (!response.ok) {
                 const json = await response.json();
                 setErros(json.campos || {});
-                throw new Error(json.err || json.erro || json.Erro || "Nao foi possivel alterar o beneficiario");
+                throw new Error(json.err || json.erro || json.Erro || "Não foi possível alterar o beneficiário");
             }
 
             const beneficiarioAtualizado = normalizarBeneficiario(payload);
             setForm(beneficiarioAtualizado);
             setFormOriginal(beneficiarioAtualizado);
             setErros({});
-            alert("Beneficiario atualizado com sucesso");
+            alert("Beneficiário atualizado com sucesso");
         } catch (error) {
             alert(error.message || "Erro ao atualizar");
         }
@@ -258,7 +258,7 @@ function EditarBeneficiarioView() {
                     </div>
 
                     <div>
-                        <label htmlFor="numero">Numero: </label>
+                        <label htmlFor="numero">Número: </label>
                         <input
                             id="numero"
                             name="numero"
@@ -284,7 +284,7 @@ function EditarBeneficiarioView() {
                     </div>
 
                     <div>
-                        <label htmlFor="usuario">Usuario: </label>
+                        <label htmlFor="usuario">Usuário: </label>
                         <input
                             id="usuario"
                             name="usuario"

@@ -1,12 +1,13 @@
 class Itens{
-    constructor(id, descricao, nome, tipo, possuiValidade){
-        if(!descricao || !tipo || !nome)
+    constructor(id, descricao, nome, tipo, possuiValidade,unidadeMedida){
+        if(!descricao || !tipo || !nome || !unidadeMedida)
             throw new Error("Todos os campos devem ser preenchidos");    
         this.id = id;
         this.descricao = descricao;
         this.tipo = tipo;
         this.nome = nome;
-        this.possuiValidade = possuiValidade
+        this.possuiValidade = possuiValidade;
+        this.unidadeMedida = unidadeMedida;
     }
 
     static async listar(connection, nome, tipo) {
@@ -28,7 +29,8 @@ class Itens{
                 e.item_descricao,
                 e.item_nome,
                 e.item_tipo,
-                e.item_possuiValidade
+                e.item_possuiValidade,
+                e.item_unidadeMedida
             ));
         });
         return itensList;
@@ -40,7 +42,8 @@ class Itens{
                 item_descricao = '${this.descricao}',
                 item_tipo = '${this.tipo}',
                 item_nome = '${this.nome}',
-                item_possuiValidade = '${this.possuiValidade}'
+                item_possuiValidade = '${this.possuiValidade}',
+                item_unidadeMedida = '${this.unidadeMedida}'
             where item_id = ${this.id};
         `;
         const [resultado] = await connection.query(queryString,[this.validade]);
@@ -70,7 +73,8 @@ class Itens{
                     itens.item_descricao,
                     itens.item_nome,
                     itens.item_tipo,
-                    itens.item_possuiValidade
+                    itens.item_possuiValidade,
+                    itens.unidadeMedida
                 );
             }
         }
@@ -87,7 +91,8 @@ class Itens{
                 item.item_descricao,
                 item.item_nome,
                 item.item_tipo,
-                item.item_possuiValidade
+                item.item_possuiValidade,
+                item.item_unidadeMedida
             );
         }
     }
@@ -100,15 +105,17 @@ class Itens{
                 item_descricao,
                 item_nome,
                 item_tipo,
-                item_possuiValidade
-            ) values (?, ?, ?, ?);
+                item_possuiValidade,
+                item_unidadeMedida
+            ) values (?, ?, ?, ?, ?);
         `;
 
         let valores = [
             this.descricao,
             this.nome,
             this.tipo,
-            this.possuiValidade
+            this.possuiValidade,
+            this.unidadeMedida
         ];
 
         const [resultado] = await connection.query(queryString, valores);

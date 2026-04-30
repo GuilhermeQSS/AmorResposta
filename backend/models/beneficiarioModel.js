@@ -1,12 +1,3 @@
-import SingletonDB from "../db/SingletonDB.js";
-
-const connection = {
-    async query(...args) {
-        const db = await SingletonDB.getConnection();
-        return db.query(...args);
-    }
-};
-
 function limparTelefone(telefone = "") {
     return String(telefone).replace(/\D/g, "");
 }
@@ -28,7 +19,18 @@ function montarEnderecoResumo(estado, cidade, bairro, rua, numero) {
 }
 
 class Beneficiario {
-    constructor(id, nome, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
+    constructor(
+        id,
+        nome,
+        enderecoOuEstado,
+        telefoneOuCidade,
+        usuarioOuBairro,
+        senhaOuRua,
+        numero,
+        telefone,
+        usuario,
+        senha
+    ) {
         this.id = id;
         this.nome = nome;
 
@@ -38,21 +40,21 @@ class Beneficiario {
             this.bairro = "";
             this.rua = "";
             this.numero = "";
-            this.endereco = String(arg3 || "").trim();
-            this.telefone = limparTelefone(arg4);
-            this.usuario = arg5;
-            this.senha = arg6;
+            this.endereco = String(enderecoOuEstado || "").trim();
+            this.telefone = limparTelefone(telefoneOuCidade);
+            this.usuario = usuarioOuBairro;
+            this.senha = senhaOuRua;
             return;
         }
 
-        this.estado = String(arg3 || "").trim();
-        this.cidade = String(arg4 || "").trim();
-        this.bairro = String(arg5 || "").trim();
-        this.rua = String(arg6 || "").trim();
-        this.numero = limparNumero(arg7);
-        this.telefone = limparTelefone(arg8);
-        this.usuario = arg9;
-        this.senha = arg10;
+        this.estado = String(enderecoOuEstado || "").trim();
+        this.cidade = String(telefoneOuCidade || "").trim();
+        this.bairro = String(usuarioOuBairro || "").trim();
+        this.rua = String(senhaOuRua || "").trim();
+        this.numero = limparNumero(numero);
+        this.telefone = limparTelefone(telefone);
+        this.usuario = usuario;
+        this.senha = senha;
         this.endereco = montarEnderecoResumo(this.estado, this.cidade, this.bairro, this.rua, this.numero);
     }
 
@@ -77,7 +79,7 @@ class Beneficiario {
         return beneficiario;
     }
 
-    static async listar(filtro, telefone) {
+    static async listar(connection, filtro, telefone) {
         let queryString = `select * from beneficiarios where 1=1`;
         const valores = [];
 
@@ -98,7 +100,7 @@ class Beneficiario {
         return beneficiarios.map((b) => Beneficiario.fromRow(b));
     }
 
-    async alterar() {
+    async alterar(connection) {
         const queryString = `
             update beneficiarios set
                 ben_nome = ?,
@@ -132,13 +134,13 @@ class Beneficiario {
         return resultado;
     }
 
-    async excluir() {
+    async excluir(connection) {
         const queryString = `delete from beneficiarios where ben_id = ?;`;
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;
     }
 
-    static async buscarPorUsuario(usuario) {
+    static async buscarPorUsuario(connection, usuario) {
         const queryString = `select * from beneficiarios where ben_usuario = ?`;
         const [[beneficiario]] = await connection.query(queryString, [usuario]);
         if (!beneficiario) {
@@ -147,7 +149,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-    static async buscarPorId(id) {
+    static async buscarPorId(connection, id) {
         const queryString = `select * from beneficiarios where ben_id = ?`;
         const [[beneficiario]] = await connection.query(queryString, [id]);
         if (!beneficiario) {
@@ -156,7 +158,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-    async gravar() {
+    async gravar(connection) {
         const queryString = `
             insert into beneficiarios(
                 ben_nome,

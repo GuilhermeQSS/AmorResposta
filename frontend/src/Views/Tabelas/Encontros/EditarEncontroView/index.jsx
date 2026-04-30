@@ -20,20 +20,20 @@ function EditarEncontroView() {
     const inicioMinutos = form.hora ? Number(form.hora.split(":")[0]) * 60 + Number(form.hora.split(":")[1]) : null;
     const fimMinutos = form.horaFim ? Number(form.horaFim.split(":")[0]) * 60 + Number(form.horaFim.split(":")[1]) : null;
 
-    if (!form.data) novosErros.data = "Data obrigatoria";
-    if (!form.hora) novosErros.hora = "Hora obrigatoria";
-    if (!form.horaFim) novosErros.horaFim = "Horario de termino obrigatorio";
+    if (!form.data) novosErros.data = "Data obrigatória";
+    if (!form.hora) novosErros.hora = "Hora obrigatória";
+    if (!form.horaFim) novosErros.horaFim = "Horário de término obrigatório";
     if (inicioMinutos !== null && fimMinutos !== null && fimMinutos <= inicioMinutos) {
-      novosErros.horaFim = "Termino precisa ser depois do inicio";
+      novosErros.horaFim = "Término precisa ser depois do início";
     }
-    if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opcao";
-    if (!form.local) novosErros.local = "Local obrigatorio";
-    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade maxima";
+    if (!form.disponibilidade) novosErros.disponibilidade = "Selecione uma opção";
+    if (!form.local) novosErros.local = "Local obrigatório";
+    if (form.qtdeMax === 0) novosErros.qtdeMax = "Informe a quantidade máxima";
     if (form.qtdeMax <= 0) {
       novosErros.qtdeMax = "Deve ser maior que 0";
     }
     if (form.qtde > form.qtdeMax) {
-      novosErros.qtde = "Nao pode ser maior que a maxima";
+      novosErros.qtde = "Não pode ser maior que a máxima";
     }
 
     setErros(novosErros);
@@ -187,7 +187,7 @@ function EditarEncontroView() {
           </div>
 
           <div>
-            <label htmlFor="hora">Hora de inicio: </label>
+            <label htmlFor="hora">Hora de início: </label>
             <input
               name="hora"
               value={form.hora}
@@ -199,7 +199,7 @@ function EditarEncontroView() {
           </div>
 
           <div>
-            <label htmlFor="horaFim">Hora de termino: </label>
+            <label htmlFor="horaFim">Hora de término: </label>
             <input
               name="horaFim"
               value={form.horaFim}
@@ -230,7 +230,7 @@ function EditarEncontroView() {
           </div>
 
           <div>
-            <label>Quantidade Maxima:</label>
+            <label>Quantidade Máxima:</label>
             <input
               type="number"
               name="qtdeMax"

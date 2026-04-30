@@ -27,6 +27,8 @@ app.use("/doacoes", doacaoRoutes);
 app.use("/documentos", documentoRoutes);
 app.use("/itens", itensRoutes);
 app.use("/lotes",lotesRoute);
+app.use("/doacoes", doacaoRoutes);
+app.use("/beneficiarios", beneficiarioRoutes);
 
 app.listen(port,()=>{
     console.log(`Servidor iniciado em: http://localhost:${port}`);

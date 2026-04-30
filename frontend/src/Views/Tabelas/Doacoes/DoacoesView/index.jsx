@@ -126,7 +126,7 @@ function DoacoesView() {
                     ) : (
                         <Styled.Busca
                             type={tipoFiltro === "data" ? "date" : "text"}
-                            placeholder={tipoFiltro === "data" ? "" : "Buscar doacao por doador..."}
+                            placeholder={tipoFiltro === "data" ? "" : "Buscar doação por doador..."}
                             value={filtro}
                             onChange={(e) => setFiltro(e.target.value)}
                         />
@@ -135,7 +135,7 @@ function DoacoesView() {
 
                 <Styled.Actions>
                     <button onClick={() => navigate("/doacoes/cadastro")}>
-                        + Cadastrar Doacao
+                        + Cadastrar Doação
                     </button>
                 </Styled.Actions>
 
@@ -159,7 +159,7 @@ function DoacoesView() {
                                 onClick={() => navigate(`/doacoes/${doacao.id}`)}
                             >
                                 <td>{doacao.id}</td>
-                                <td>{doacao.doadorNome || "anonimo"}</td>
+                                <td>{doacao.doadorNome || "anônimo"}</td>
                                 <td>{doacao.tipo}</td>
                                 <td>{doacao.quantidadeItens || "-"}</td>
                                 <td>{doacao.dataEntrega ? new Date(doacao.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "-"}</td>
