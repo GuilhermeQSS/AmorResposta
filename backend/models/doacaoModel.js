@@ -1,4 +1,3 @@
-import SingletonDB from "../db/SingletonDB.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,28 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DOCUMENTOS_DIR = path.join(__dirname, "..", "public", "uploads", "doacoes");
 let colunasDocumentosCache = null;
-
-const connection = {
-    async query(...args) {
-        const db = await SingletonDB.getConnection();
-        return db.query(...args);
-    },
-
-    async beginTransaction() {
-        const db = await SingletonDB.getConnection();
-        return db.beginTransaction();
-    },
-
-    async commit() {
-        const db = await SingletonDB.getConnection();
-        return db.commit();
-    },
-
-    async rollback() {
-        const db = await SingletonDB.getConnection();
-        return db.rollback();
-    }
-};
 
 class Doacao {
     constructor(id, doadorNome, dataEntrega, origem, formaEntrega, tipo, quantidadeItens, observacao, detalhes = null, documento = null) {
@@ -113,18 +90,18 @@ class Doacao {
         return extensao || "arquivo";
     }
 
-    static async obterColunasDocumentos() {
+    static async obterColunasDocumentos(connectionRef) {
         if (colunasDocumentosCache) {
             return colunasDocumentosCache;
         }
 
-        const [colunas] = await connection.query("SHOW COLUMNS FROM documentos");
+        const [colunas] = await connectionRef.query("SHOW COLUMNS FROM documentos");
         colunasDocumentosCache = new Set(colunas.map((coluna) => coluna.Field));
         return colunasDocumentosCache;
     }
 
-    static async inserirRegistroDocumento(documento, caminhoRelativo) {
-        const colunasDocumentos = await Doacao.obterColunasDocumentos();
+    static async inserirRegistroDocumento(connectionRef, documento, caminhoRelativo) {
+        const colunasDocumentos = await Doacao.obterColunasDocumentos(connectionRef);
         const dataCriacao = new Date().toISOString().slice(0, 10);
         const descricao = `Arquivo anexado automaticamente a uma doacao: ${documento.nomeArquivo}`;
         const campos = [];
@@ -168,14 +145,14 @@ class Doacao {
         if (campos.length > 0) {
             const placeholders = campos.map(() => "?").join(", ");
             const queryString = `insert into documentos(${campos.join(", ")}) values (${placeholders});`;
-            const [resultadoDocumento] = await connection.query(queryString, valores);
+            const [resultadoDocumento] = await connectionRef.query(queryString, valores);
             return resultadoDocumento;
         }
 
         throw new Error("Tabela documentos sem colunas compativeis para salvar anexos.");
     }
 
-    static async salvarDocumento(documento) {
+    static async salvarDocumento(connectionRef, documento) {
         await fs.mkdir(DOCUMENTOS_DIR, { recursive: true });
 
         const extensao = Doacao.obterExtensaoDocumento(documento.nomeArquivo);
@@ -187,7 +164,7 @@ class Doacao {
         await fs.writeFile(caminhoCompleto, conteudo);
 
         try {
-            const resultadoDocumento = await Doacao.inserirRegistroDocumento(documento, caminhoRelativo);
+            const resultadoDocumento = await Doacao.inserirRegistroDocumento(connectionRef, documento, caminhoRelativo);
 
             return {
                 documentoId: resultadoDocumento.insertId,
@@ -199,7 +176,7 @@ class Doacao {
         }
     }
 
-    static async listar(filtro, tipoFiltro = "doador", dataInicial = null, dataFinal = null) {
+    static async listar(connectionRef, filtro, tipoFiltro = "doador", dataInicial = null, dataFinal = null) {
         let queryString = "select * from doacoes";
         const params = [];
 
@@ -218,7 +195,7 @@ class Doacao {
 
         queryString += " order by doa_dataEntrega asc, doa_id asc";
 
-        const [doacoes] = await connection.query(queryString, params);
+        const [doacoes] = await connectionRef.query(queryString, params);
         return doacoes.map((d) => new Doacao(
             d.doa_id,
             d.doa_doadorNome,
@@ -260,7 +237,7 @@ class Doacao {
 
         try {
             if (this.documento) {
-                documentoPersistido = await Doacao.salvarDocumento(this.documento);
+                documentoPersistido = await Doacao.salvarDocumento(connection, this.documento);
             }
 
             const queryString = `

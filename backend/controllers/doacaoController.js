@@ -24,12 +24,14 @@ class DoacaoController {
 
     static async listar(req, res) {
         try {
+            const connection = await SingletonDB.getConnection();
             const tipoFiltro = req.query.tipoFiltro === "data"
                 ? "data"
                 : req.query.tipoFiltro === "periodo"
                     ? "periodo"
                     : "doador";
             const resp = await Doacao.listar(
+                connection,
                 req.query.filtro,
                 tipoFiltro,
                 req.query.dataInicial,
