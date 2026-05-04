@@ -5,20 +5,11 @@ function campoVazio(valor) {
     return !valor || !String(valor).trim();
 }
 
-function valorInvalido(valor) {
-    if (valor === "" || valor === null || valor === undefined) {
-        return true;
-    }
-
-    const numero = Number(valor);
-    return !Number.isFinite(numero) || numero < 0;
-}
-
 class DespesaController {
     static async listar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            const resp = await Despesa.listar(connection, req.query.filtro, req.query.valor);
+            const resp = await Despesa.listar(connection, req.query.filtro);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ erro: "Aconteceu um erro na hora de listar despesas" });
@@ -43,19 +34,19 @@ class DespesaController {
     static async cadastrar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            const { valor, descricao } = req.body;
+            const { descricao, categoria } = req.body;
 
-            if (valorInvalido(valor) || campoVazio(descricao)) {
+            if (campoVazio(descricao) || campoVazio(categoria)) {
                 return res.status(400).json({
                     err: "Preencha os campos obrigatorios corretamente",
                     campos: {
-                        des_valor: valorInvalido(valor),
-                        des_descricao: campoVazio(descricao)
+                        des_descricao: campoVazio(descricao),
+                        des_categoria: campoVazio(categoria)
                     }
                 });
             }
 
-            const despesa = new Despesa(0, valor, descricao);
+            const despesa = new Despesa(0, descricao, categoria);
             const resp = await despesa.gravar(connection);
             return res.status(200).json(resp);
         } catch (err) {
@@ -66,19 +57,19 @@ class DespesaController {
     static async alterar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            const { id, valor, descricao } = req.body;
+            const { id, descricao, categoria } = req.body;
 
-            if (valorInvalido(valor) || campoVazio(descricao)) {
+            if (campoVazio(descricao) || campoVazio(categoria)) {
                 return res.status(400).json({
                     err: "Preencha os campos obrigatorios corretamente",
                     campos: {
-                        des_valor: valorInvalido(valor),
-                        des_descricao: campoVazio(descricao)
+                        des_descricao: campoVazio(descricao),
+                        des_categoria: campoVazio(categoria)
                     }
                 });
             }
 
-            const despesa = new Despesa(id, valor, descricao);
+            const despesa = new Despesa(id, descricao, categoria);
             const resp = await despesa.alterar(connection);
             return res.status(200).json(resp);
         } catch (err) {

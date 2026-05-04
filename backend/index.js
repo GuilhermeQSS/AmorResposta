@@ -7,6 +7,7 @@ import doacaoRoutes from "./routes/doacoesRoute.js"
 import documentoRoutes from "./routes/documentosRoute.js"
 import itensRoutes from "./routes/itensRoute.js"
 import lotesRoute from "./routes/lotesRoute.js"
+import caixasRoutes from "./routes/caixasRoute.js"
 import e from "express";
 import cors from "cors";
 
@@ -27,6 +28,7 @@ app.use("/doacoes", doacaoRoutes);
 app.use("/documentos", documentoRoutes);
 app.use("/itens", itensRoutes);
 app.use("/lotes",lotesRoute);
+app.use("/caixas", caixasRoutes);
 app.use("/doacoes", doacaoRoutes);
 app.use("/beneficiarios", beneficiarioRoutes);
 

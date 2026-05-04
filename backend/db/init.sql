@@ -23,18 +23,17 @@ CREATE TABLE IF NOT EXISTS `documentos` (
   `doc_tipo` VARCHAR(45) NULL,
   `doc_descricao` VARCHAR(45) NULL,
   `doc_data_criacao` DATE NULL,
-  `doc_dataCriacao` DATE NULL,
   `doc_link` VARCHAR(255) NULL,
   `doc_caminho` VARCHAR(255) NULL,
   PRIMARY KEY (`doc_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `despesas` (
-  `des_id` INT NOT NULL AUTO_INCREMENT,
-  `des_valor` DECIMAL(10,2) NULL,
-  `des_descricao` VARCHAR(45) NULL,
-  `doc_id` INT NULL,
-  PRIMARY KEY (`des_id`)
+  	`des_id` INT NOT NULL auto_increment,
+  	`des_valor` DECIMAL(10,2) NULL,
+  	`des_descricao` VARCHAR(45) NULL,
+  	`des_categoria` VARCHAR(45) NULL,
+  	PRIMARY KEY (`des_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `doadores` (
@@ -84,6 +83,15 @@ CREATE TABLE IF NOT EXISTS `entradaDoacoes` (
   `lot_id` INT NOT NULL,
   `doc_id` INT NULL,
   PRIMARY KEY (`doa_id`, `lot_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `caixas` (
+  	`cai_id` INT NOT NULL auto_increment,
+  	`cai_data` DATE NOT NULL,
+  	`cai_turno` VARCHAR(20) NOT NULL,
+  	`cai_suprimentoInicial` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  	`cai_status` VARCHAR(20) NOT NULL DEFAULT 'aberto',
+  	PRIMARY KEY (`cai_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `encontros` (
@@ -177,10 +185,6 @@ CREATE TABLE IF NOT EXISTS `materiais` (
   `utilizado` CHAR(1) NULL,
   PRIMARY KEY (`enc_id`, `item_id`)
 );
-
-alter table `despesas`
-  add CONSTRAINT `fk_despesas_documentos`
-    FOREIGN KEY (`doc_id`) REFERENCES `documentos` (`doc_id`);
 
 alter table `doacoes`
   add CONSTRAINT `fk_doacoes_doador`

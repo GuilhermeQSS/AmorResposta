@@ -76,6 +76,7 @@ class Encontro {
   }
 
   static fromRow(row) {
+    
     return new Encontro(
       row.enc_id,
       row.enc_data,
@@ -1143,6 +1144,113 @@ class Encontro {
       await connectionRef.rollback();
       throw err;
     }
+  }
+
+  static async listarComoBeneficiario(connection, titulo, dataInicio, dataFim, idBeneficiario) {
+    let queryString = `
+        SELECT 
+            e.*, 
+            be.ben_id, 
+            be.participou 
+        FROM encontros e 
+        LEFT JOIN beneficiariosEncontros be 
+            ON be.enc_id = e.enc_id 
+            AND be.ben_id = ?
+        WHERE 1=1`;
+
+    let valores = [idBeneficiario];
+
+    if (titulo) {
+        queryString += ` AND e.enc_titulo LIKE ?`;
+        valores.push(`%${titulo}%`);
+    }
+
+    if (dataInicio && dataFim) {
+        queryString += ` AND DATE(e.enc_data) BETWEEN DATE(?) AND DATE(?)`;
+        valores.push(dataInicio, dataFim);
+    } else if (dataInicio) {
+        queryString += ` AND DATE(e.enc_data) >= DATE(?)`;
+        valores.push(dataInicio);
+    } else if (dataFim) {
+        queryString += ` AND DATE(e.enc_data) <= DATE(?)`;
+        valores.push(dataFim);
+    }
+
+
+    const [rows] = await connection.query(queryString, valores);
+    return rows.map(e => ({
+        encontro: new Encontro(
+            e.enc_id,
+            e.enc_data,
+            e.enc_hora,
+            e.enc_hora_fim,
+            e.enc_disponibilidade,
+            e.enc_qtdeMax,
+            e.enc_qtde,
+            e.enc_local,
+        ),
+        titulo:e.enc_titulo,
+        descricao:e.enc_descricao,
+        beneficiario: e.ben_id,
+        participou: e.participou
+    }));
+}
+  
+  async cadastrarBeneficiario(connection, beneficiario){
+      let queryString = `
+          insert into beneficiariosEncontros(
+              enc_id,
+              ben_id,
+              participou
+          ) values (?, ?, ?);
+      `;
+      let valores = [
+          this.id,
+          beneficiario.id,
+          0
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async retirarBeneficiario(connection, beneficiario){
+      let queryString = `
+          delete from beneficiariosEncontros
+          where enc_id = ? and ben_id = ?;
+      `;
+      let valores = [
+          this.id,
+          beneficiario.id
+      ];
+      
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async incrementarParticipantes(connection){
+      let queryString = `
+          UPDATE encontros 
+          SET enc_qtde = enc_qtde + 1 
+          WHERE enc_id = ?;
+      `;
+      let valores = [
+          this.id,
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
+  }
+
+  async decrementarParticipantes(connection){
+      let queryString = `
+          UPDATE encontros 
+          SET enc_qtde = enc_qtde - 1
+          WHERE enc_id = ?;
+      `;
+      let valores = [
+          this.id,
+      ];
+      const [resultado] = await connection.query(queryString,valores);
+      return resultado;
   }
 }
 

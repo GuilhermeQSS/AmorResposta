@@ -24,7 +24,7 @@ function mapDocumento(row) {
         row.doc_id,
         row.doc_titulo || row.doc_nome || row.doc_descricao,
         row.doc_tipo,
-        row.doc_data_criacao || row.doc_dataCriacao,
+        row.doc_data_criacao,
         row.doc_descricao,
         row.doc_link || row.doc_caminho
     );
@@ -56,7 +56,7 @@ class Documento {
         if (conditions.length > 0) {
             queryString += ` where ` + conditions.join(' and ');
         }
-        queryString += ` order by coalesce(doc_data_criacao, doc_dataCriacao) desc, doc_id desc`;
+        queryString += ` order by doc_data_criacao desc, doc_id desc`;
 
         const [documentos] = await connection.query(queryString, params);
         return documentos.map(mapDocumento);
@@ -307,16 +307,14 @@ class Documento {
             doc_nome,
             doc_tipo,
             doc_data_criacao,
-            doc_dataCriacao,
             doc_descricao,
             doc_link,
             doc_caminho
-        ) values (?, ?, ?, ?, ?, ?, ?, ?);`;
+        ) values (?, ?, ?, ?, ?, ?, ?);`;
         const [resultado] = await connection.query(queryString, [
             this.titulo,
             this.titulo,
             this.tipo,
-            this.dataCriacao,
             this.dataCriacao,
             this.descricao,
             this.link,
@@ -332,7 +330,6 @@ class Documento {
                 doc_nome = ?,
                 doc_tipo = ?,
                 doc_data_criacao = ?,
-                doc_dataCriacao = ?,
                 doc_descricao = ?,
                 doc_link = ?,
                 doc_caminho = ?
@@ -342,7 +339,6 @@ class Documento {
             this.titulo,
             this.titulo,
             this.tipo,
-            this.dataCriacao,
             this.dataCriacao,
             this.descricao,
             this.link,

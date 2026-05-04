@@ -13,8 +13,8 @@ function CadastrarDespesaView() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    valor: form.valor,
                     descricao: form.descricao,
+                    categoria: form.categoria
                 })
             });
 
@@ -42,8 +42,8 @@ function CadastrarDespesaView() {
     const [erros, setErros] = useState({});
     const [form, setForm] = useState({
         id: 0,
-        valor: "",
-        descricao: ""
+        descricao: "",
+        categoria: ""
     });
     const navigate = useNavigate();
 
@@ -58,20 +58,7 @@ function CadastrarDespesaView() {
                 </Styled.BackBtn>
                 <Styled.Form noValidate>
                     <div>
-                        <label htmlFor="valor">Valor:</label>
-                        <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            name="valor"
-                            value={form.valor}
-                            onChange={atualizarForm}
-                            style={{ border: erros.des_valor ? "2px solid red" : "" }}
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="descricao">Descrição:</label>
+                        <label htmlFor="descricao">Descricao:</label>
                         <input
                             name="descricao"
                             value={form.descricao}
@@ -80,11 +67,21 @@ function CadastrarDespesaView() {
                         />
                     </div>
 
+                    <div>
+                        <label htmlFor="categoria">Categoria:</label>
+                        <input
+                            name="categoria"
+                            value={form.categoria}
+                            onChange={atualizarForm}
+                            style={{ border: erros.des_categoria ? "2px solid red" : "" }}
+                        />
+                    </div>
+
                     <button
                         type="button"
                         onClick={fetchCadastrarDespesa}
                     >
-                        Cadastrar
+                        Cadastrar Tipo de Despesa
                     </button>
                 </Styled.Form>
             </main>
