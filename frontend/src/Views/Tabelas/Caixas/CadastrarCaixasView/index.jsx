@@ -61,6 +61,7 @@ function CadastrarCaixasView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Abertura de Caixa</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={"/tabelas/caixas"}>
                         <div>Voltar</div>

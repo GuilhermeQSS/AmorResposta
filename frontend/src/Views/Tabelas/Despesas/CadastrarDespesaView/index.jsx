@@ -51,6 +51,7 @@ function CadastrarDespesaView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Cadastro de Despesas</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={"/tabelas/despesas"}>
                         <div>Voltar</div>

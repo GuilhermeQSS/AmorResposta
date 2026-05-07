@@ -249,6 +249,7 @@ function CadastrarEncontroView() {
     <>
       <Header />
       <main>
+        <Styled.PageTitle>Cadastro de Encontros</Styled.PageTitle>
         <Styled.BackBtn>
           <Link to={"/tabelas/encontros"}>
             <div>Voltar</div>

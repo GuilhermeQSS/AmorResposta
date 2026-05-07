@@ -103,6 +103,7 @@ function CadastrarLotesView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Cadastro de Lotes</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={"/tabelas/lotes"}>
                         <div>Voltar</div>

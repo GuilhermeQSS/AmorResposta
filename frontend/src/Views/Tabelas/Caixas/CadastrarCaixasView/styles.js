@@ -1,6 +1,25 @@
 import styled from "styled-components";
 
 const Styled = {
+    PageTitle: styled.h1`
+        width: min(920px, 92%);
+        margin: 32px auto 22px;
+        color: #2b2b2b;
+        font-size: 26px;
+        font-weight: 700;
+        text-align: center;
+
+        &::after {
+            content: "";
+            display: block;
+            width: 72px;
+            height: 3px;
+            margin: 10px auto 0;
+            border-radius: 999px;
+            background: #e60000;
+        }
+    `,
+
     Form: styled.form`
         width: 400px;
         margin: 0 auto;

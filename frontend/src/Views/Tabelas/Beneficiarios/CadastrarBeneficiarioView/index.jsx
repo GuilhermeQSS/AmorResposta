@@ -96,6 +96,7 @@ function CadastrarBeneficiarioView() {
         <>
             <Header/>
             <main>
+                <Styled.PageTitle>Cadastro de Beneficiários</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={"/tabelas/beneficiarios"}>
                         <div>

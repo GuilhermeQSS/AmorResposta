@@ -72,6 +72,7 @@ function CadastrarItensView() {
         <>
             <Header/>
             <main>
+                <Styled.PageTitle>Cadastro de Itens</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={'/tabelas/itens'}>
                         <div>

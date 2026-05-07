@@ -94,6 +94,7 @@ function CadastrarFuncionarioView() {
         <>
             <Header/>
             <main>
+                <Styled.PageTitle>Cadastro de Funcionários</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={'/tabelas/funcionarios'}>
                         <div>

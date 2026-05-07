@@ -467,6 +467,7 @@ function CadastrarDoacaoView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Cadastro de Doações</Styled.PageTitle>
                 <Styled.BackBtn>
                     <Link to={"/tabelas/doacoes"}>
                         <div>Voltar</div>

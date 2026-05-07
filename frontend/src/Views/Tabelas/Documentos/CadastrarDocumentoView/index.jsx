@@ -158,6 +158,7 @@ function CadastrarDocumentoView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Cadastro de Documentos</Styled.PageTitle>
                 <Styled.BackBtn type="button" onClick={() => navigate("/tabelas/documentos")}>
                     Voltar
                 </Styled.BackBtn>
