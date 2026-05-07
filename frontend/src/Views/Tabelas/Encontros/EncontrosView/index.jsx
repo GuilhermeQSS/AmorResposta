@@ -222,6 +222,11 @@ function EncontrosView() {
   }
 
   async function handleOpenCancelar(encontro) {
+    if (encontro.disponibilidade === "F") {
+      alert("Um encontro finalizado nao pode ser cancelado.");
+      return;
+    }
+
     try {
       setLoadingImpacto(true);
       setCancelError(null);
