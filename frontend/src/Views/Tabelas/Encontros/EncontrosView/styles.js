@@ -173,7 +173,9 @@ const Styled = {
 
     select,
     textarea,
-    input[type="date"] {
+    input[type="date"],
+    input[type="time"],
+    input[type="number"] {
       width: 100%;
       padding: 10px 12px;
       margin-top: 6px;
@@ -185,6 +187,163 @@ const Styled = {
     textarea {
       min-height: 90px;
       resize: vertical;
+    }
+  `,
+
+  ReagendamentoPanel: styled.section`
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid #f0c2c2;
+
+    h3 {
+      margin: 0 0 14px;
+      color: #8f1d1d;
+      font-size: 18px;
+    }
+  `,
+
+  ReagendamentoGrid: styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+
+    label {
+      margin: 0;
+    }
+  `,
+
+  ReagendamentoSectionTitle: styled.strong`
+    display: block;
+    margin: 18px 0 10px;
+    color: #333;
+  `,
+
+  CompactTable: styled.table`
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+
+    thead {
+      background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    tbody tr:hover,
+    tbody tr.selected {
+      background: #ffe4ec;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+  `,
+
+  SelectionInfo: styled.div`
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff7fb;
+    border: 1px solid #f2bfd2;
+    color: #444;
+  `,
+
+  MaterialPicker: styled.div`
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 130px auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 12px;
+
+    label {
+      margin: 0;
+    }
+
+    button {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #4caf50;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 720px) {
+      grid-template-columns: 1fr;
+    }
+  `,
+
+  MaterialList: styled.ul`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 110px auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 10px;
+      background: #fff7fb;
+      border: 1px solid #f2bfd2;
+    }
+
+    div {
+      margin: 0;
+    }
+
+    strong {
+      color: #25303f;
+    }
+
+    span {
+      display: block;
+      margin-top: 4px;
+      color: #607078;
+      font-size: 12px;
+    }
+
+    input {
+      min-height: 38px;
+    }
+
+    button {
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid #f1b8b8;
+      background: #fff1f1;
+      color: #a52d2d;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 720px) {
+      li {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 

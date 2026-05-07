@@ -102,6 +102,31 @@ class EncontroController {
     }
   }
 
+  static async listarMateriais(req, res) {
+    try {
+      const connection = await SingletonDB.getConnection();
+      const { id } = req.query;
+
+      if (!id) {
+        return res.status(400).json({ err: "ID do encontro e obrigatorio" });
+      }
+
+      const encontro = await Encontro.buscarPorId(connection, id);
+      if (!encontro) {
+        return res
+          .status(404)
+          .json({ err: `Nao existe encontro com id ${id}` });
+      }
+
+      const resp = await Encontro.listarMateriaisPorEncontro(connection, id);
+      return res.status(200).json(resp);
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ err: "Aconteceu um erro na hora de listar materiais" });
+    }
+  }
+
   static async listarSubstitutos(req, res) {
     try {
       const connection = await SingletonDB.getConnection();
@@ -138,7 +163,7 @@ class EncontroController {
   static async listarFuncionariosDisponiveis(req, res) {
     try {
       const connection = await SingletonDB.getConnection();
-      const { data, hora, horaFim, filtroNome, filtroUsuario } = req.query;
+      const { data, hora, horaFim, filtroNome, filtroUsuario, ignorarId } = req.query;
       if (!data || !hora) {
         return res.status(400).json({ err: "Data e hora sao obrigatorias" });
       }
@@ -150,6 +175,7 @@ class EncontroController {
         horaFim || hora,
         filtroNome,
         filtroUsuario,
+        ignorarId,
       );
 
       return res.status(200).json(resp);
@@ -191,7 +217,17 @@ class EncontroController {
   static async cancelar(req, res) {
     try {
       const connection = await SingletonDB.getConnection();
-      const { id, motivo, detalhes, opcao, novaData } = req.body;
+      const {
+        id,
+        motivo,
+        detalhes,
+        opcao,
+        novaData,
+        novaHora,
+        novaHoraFim,
+        responsaveis = [],
+        materiais = [],
+      } = req.body;
       const canceladoPorId = Number(req.usuarioLogado?.id);
 
       if (!id || !motivo) {
@@ -218,6 +254,10 @@ class EncontroController {
         detalhes: detalhes || "",
         opcao,
         novaData,
+        novaHora,
+        novaHoraFim,
+        responsaveis,
+        materiais,
         canceladoPorId,
       });
 
@@ -232,6 +272,8 @@ class EncontroController {
               novoEncontroId: resposta.novoEncontroId,
               transferencia: resposta.opcao === "transferirInscritos",
               novaData: resposta.novaData,
+              novaHora: resposta.novaHora,
+              novaHoraFim: resposta.novaHoraFim,
             }
           : null,
       });

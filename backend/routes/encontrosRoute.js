@@ -9,6 +9,7 @@ router.get("/listar-como-beneficiario",autenticarBeneficiario,EncontroControl.li
 router.get("/buscar",EncontroController.buscarPorId);
 router.get("/impacto", EncontroController.impacto);
 router.get("/responsaveis", EncontroController.listarResponsaveis);
+router.get("/materiais", EncontroController.listarMateriais);
 router.get("/substitutos", EncontroController.listarSubstitutos);
 router.get("/funcionarios-disponiveis", EncontroController.listarFuncionariosDisponiveis);
 router.post("/gravar",EncontroController.cadastrar);

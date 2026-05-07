@@ -315,7 +315,15 @@ class Encontro {
     return Encontro.montarResumoImpacto(encontro, impacto);
   }
 
-  static validarCancelamento(resumoImpacto, detalhes, opcao, novaData) {
+  static validarCancelamento(
+    resumoImpacto,
+    detalhes,
+    opcao,
+    novaData,
+    novaHora,
+    novaHoraFim,
+    responsaveisIds = [],
+  ) {
     if (resumoImpacto.motivosBloqueio.length > 0) {
       const erro = new Error(resumoImpacto.motivosBloqueio[0]);
       erro.status = 400;
@@ -347,7 +355,6 @@ class Encontro {
       }
 
       const novaDataNormalizada = normalizarData(novaData);
-      const dataOriginal = normalizarData(resumoImpacto.encontro.data);
 
       if (!novaDataNormalizada || Number.isNaN(novaDataNormalizada.getTime())) {
         const erro = new Error("Nova data invalida.");
@@ -355,25 +362,19 @@ class Encontro {
         throw erro;
       }
 
-      if (
-        dataOriginal &&
-        novaDataNormalizada.toISOString().slice(0, 10) ===
-          dataOriginal.toISOString().slice(0, 10)
-      ) {
-        const erro = new Error(
-          "A nova data precisa ser diferente da data original do encontro.",
-        );
+      Encontro.validarHorario(novaHora, novaHoraFim);
+
+      if (!Array.isArray(responsaveisIds) || responsaveisIds.length === 0) {
+        const erro = new Error("Selecione pelo menos um responsavel para o reagendamento.");
         erro.status = 400;
         throw erro;
       }
 
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      novaDataNormalizada.setHours(0, 0, 0, 0);
+      const novaDataHora = normalizarDataHora(novaData, novaHora);
 
-      if (novaDataNormalizada < hoje) {
+      if (!novaDataHora || novaDataHora < new Date()) {
         const erro = new Error(
-          "A nova data precisa estar no presente ou no futuro.",
+          "A nova data e horario precisam estar no presente ou no futuro.",
         );
         erro.status = 400;
         throw erro;
@@ -385,6 +386,10 @@ class Encontro {
     connectionRef,
     encontroAnterior,
     novaData,
+    novaHora,
+    novaHoraFim,
+    responsaveisIds,
+    materiais,
     transferirInscritos,
   ) {
     const [resultado] = await connectionRef.query(
@@ -401,8 +406,8 @@ class Encontro {
             `,
       [
         novaData,
-        encontroAnterior.hora,
-        encontroAnterior.horaFim,
+        novaHora,
+        novaHoraFim,
         "A",
         encontroAnterior.qtdeMax,
         0,
@@ -411,6 +416,8 @@ class Encontro {
     );
 
     const novoEncontroId = resultado.insertId;
+    await Encontro.vincularResponsaveis(connectionRef, novoEncontroId, responsaveisIds);
+    await Encontro.vincularMateriais(connectionRef, novoEncontroId, materiais);
 
     if (transferirInscritos) {
       await connectionRef.query(
@@ -418,26 +425,6 @@ class Encontro {
                     insert ignore into participantes (enc_id, ben_id, participou)
                     select ?, ben_id, participou
                     from participantes
-                    where enc_id = ?
-                `,
-        [novoEncontroId, encontroAnterior.id],
-      );
-
-      await connectionRef.query(
-        `
-                    insert ignore into responsaveis (fun_id, enc_id, participou)
-                    select fun_id, ?, participou
-                    from responsaveis
-                    where enc_id = ?
-                `,
-        [novoEncontroId, encontroAnterior.id],
-      );
-
-      await connectionRef.query(
-        `
-                    insert ignore into materiais (enc_id, item_id, qtde, utilizado)
-                    select ?, item_id, qtde, utilizado
-                    from materiais
                     where enc_id = ?
                 `,
         [novoEncontroId, encontroAnterior.id],
@@ -475,6 +462,10 @@ class Encontro {
     detalhes = "",
     opcao = "semReposicao",
     novaData = null,
+    novaHora = null,
+    novaHoraFim = null,
+    responsaveis = [],
+    materiais = [],
     canceladoPorId,
   }) {
     await connectionRef.beginTransaction();
@@ -495,14 +486,85 @@ class Encontro {
       const impacto = await Encontro.contarImpacto(connectionRef, id);
       const resumoImpacto = Encontro.montarResumoImpacto(encontro, impacto);
 
-      Encontro.validarCancelamento(resumoImpacto, detalhes, opcao, novaData);
+      Encontro.validarCancelamento(
+        resumoImpacto,
+        detalhes,
+        opcao,
+        novaData,
+        novaHora,
+        novaHoraFim,
+        responsaveis,
+      );
 
       let novoEncontroId = null;
       if (opcao === "reagendar" || opcao === "transferirInscritos") {
+        const materiaisNormalizados = Encontro.normalizarMateriais(materiais);
+        if (
+          Array.isArray(materiais) &&
+          materiais.length > 0 &&
+          materiaisNormalizados.length === 0
+        ) {
+          const erro = new Error("Informe materiais com item e quantidade valida.");
+          erro.status = 400;
+          throw erro;
+        }
+
+        const conflitoLocal = await Encontro.buscarConflitoLocal(
+          connectionRef,
+          novaData,
+          novaHora,
+          novaHoraFim,
+          encontro.local,
+          id,
+        );
+        if (conflitoLocal) {
+          const erro = new Error(
+            `Ja existe encontro agendado neste local e horario: #${conflitoLocal.enc_id}`,
+          );
+          erro.status = 400;
+          throw erro;
+        }
+
+        const conflitosResponsaveis = await Encontro.listarResponsaveisComConflito(
+          connectionRef,
+          novaData,
+          novaHora,
+          novaHoraFim,
+          responsaveis,
+          id,
+        );
+        if (conflitosResponsaveis.length > 0) {
+          const erro = new Error(
+            `Responsavel indisponivel neste horario: ${conflitosResponsaveis[0].fun_nome}`,
+          );
+          erro.status = 400;
+          throw erro;
+        }
+
+        const conflitosMateriais = await Encontro.listarMateriaisComConflito(
+          connectionRef,
+          novaData,
+          novaHora,
+          novaHoraFim,
+          materiaisNormalizados,
+          id,
+        );
+        if (conflitosMateriais.length > 0) {
+          const erro = new Error(
+            "Um ou mais materiais ja estao reservados para outro encontro neste horario",
+          );
+          erro.status = 400;
+          throw erro;
+        }
+
         novoEncontroId = await Encontro.criarReagendamentoTransacional(
           connectionRef,
           encontro,
           novaData,
+          novaHora,
+          novaHoraFim,
+          responsaveis,
+          materiaisNormalizados,
           opcao === "transferirInscritos",
         );
       }
@@ -547,6 +609,8 @@ class Encontro {
         detalhes,
         opcao,
         novaData,
+        novaHora,
+        novaHoraFim,
         novoEncontroId,
         liberados: {
           beneficiarios: impacto.beneficiarios,
@@ -764,7 +828,16 @@ class Encontro {
     horaFim = hora,
     filtroNome = "",
     filtroUsuario = "",
+    ignorarId = null,
   ) {
+    const filtros = [];
+    const valoresExtras = [];
+
+    if (ignorarId) {
+      filtros.push(`and e.enc_id <> ?`);
+      valoresExtras.push(Number(ignorarId));
+    }
+
     let queryString = `
             select f.*
             from funcionarios f
@@ -777,9 +850,10 @@ class Encontro {
                   and e.enc_data = ?
                   and e.enc_hora < ?
                   and coalesce(e.enc_hora_fim, e.enc_hora) > ?
+                  ${filtros.join("\n")}
             )
         `;
-    const valores = [data, horaFim, hora];
+    const valores = [data, horaFim, hora, ...valoresExtras];
 
     if (filtroNome) {
       queryString += ` and f.fun_nome like ?`;
@@ -1004,7 +1078,18 @@ class Encontro {
 
   static async listarMateriaisPorEncontro(connectionRef, idEncontro) {
     const [materiais] = await connectionRef.query(
-      `select item_id as itemId, qtde from materiais where enc_id = ?`,
+      `
+        select
+          m.item_id as itemId,
+          m.qtde,
+          i.item_nome as nome,
+          i.item_tipo as tipo,
+          i.item_unidadeMedida as unidadeMedida
+        from materiais m
+        left join itens i on i.item_id = m.item_id
+        where m.enc_id = ?
+        order by i.item_nome asc, m.item_id asc
+      `,
       [idEncontro],
     );
 

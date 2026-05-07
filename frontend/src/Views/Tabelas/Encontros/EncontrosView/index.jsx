@@ -23,6 +23,7 @@ const views = {
 };
 
 const API_URL = "http://localhost:3000/api/encontros";
+const ITENS_API_URL = "http://localhost:3000/itens";
 
 function getAuthHeaders(extraHeaders = {}) {
   const token = localStorage.getItem("token");
@@ -62,6 +63,16 @@ function formatDate(value, includeTime = false) {
 function formatTime(value) {
   if (!value) return "-";
   return String(value).slice(0, 5);
+}
+
+function getDateInputValue(value) {
+  if (!value) return "";
+  if (typeof value === "string") {
+    return value.includes("T") ? value.split("T")[0] : value.slice(0, 10);
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
 function getDisponibilidadeLabel(value) {
@@ -149,6 +160,17 @@ function EncontrosView() {
   const [cancelDetails, setCancelDetails] = useState("");
   const [cancelOption, setCancelOption] = useState("semReposicao");
   const [reagendamentoDate, setReagendamentoDate] = useState("");
+  const [reagendamentoHora, setReagendamentoHora] = useState("");
+  const [reagendamentoHoraFim, setReagendamentoHoraFim] = useState("");
+  const [funcionariosReagendamento, setFuncionariosReagendamento] = useState([]);
+  const [responsaveisReagendamento, setResponsaveisReagendamento] = useState([]);
+  const [loadingFuncionariosReagendamento, setLoadingFuncionariosReagendamento] = useState(false);
+  const [itensReagendamento, setItensReagendamento] = useState([]);
+  const [materiaisReagendamento, setMateriaisReagendamento] = useState([]);
+  const [materialReagendamentoDraft, setMaterialReagendamentoDraft] = useState({
+    itemId: "",
+    qtde: 1,
+  });
   const [cancelError, setCancelError] = useState(null);
   const [listError, setListError] = useState(null);
   const [loadingImpacto, setLoadingImpacto] = useState(false);
@@ -207,6 +229,39 @@ function EncontrosView() {
     );
   }
 
+  async function fetchMateriais(id) {
+    const response = await fetch(`${API_URL}/materiais?id=${id}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    return parseResponse(response, "Erro ao carregar materiais do encontro.");
+  }
+
+  async function fetchItensReagendamento() {
+    const response = await fetch(`${ITENS_API_URL}/listar?nome=&tipo=`, {
+      method: "GET",
+    });
+
+    return parseResponse(response, "Erro ao carregar itens cadastrados.");
+  }
+
+  async function fetchFuncionariosDisponiveisReagendamento(data, hora, horaFim, ignorarId) {
+    const params = new URLSearchParams({
+      data,
+      hora,
+      horaFim,
+      ignorarId: String(ignorarId),
+    });
+
+    const response = await fetch(`${API_URL}/funcionarios-disponiveis?${params.toString()}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    return parseResponse(response, "Erro ao carregar funcionarios disponiveis.");
+  }
+
   async function fetchSubstitutos(id, funIdAtual) {
     const params = new URLSearchParams({
       id: String(id),
@@ -258,7 +313,23 @@ function EncontrosView() {
       setCancelReason("");
       setCancelDetails("");
       setCancelOption("semReposicao");
-      setReagendamentoDate("");
+      setReagendamentoDate(getDateInputValue(encontro.data));
+      setReagendamentoHora(formatTime(encontro.hora) === "-" ? "" : formatTime(encontro.hora));
+      setReagendamentoHoraFim(formatTime(encontro.horaFim || encontro.hora) === "-" ? "" : formatTime(encontro.horaFim || encontro.hora));
+      const [responsaveisAtuais, materiaisAtuais, itensCadastrados] = await Promise.all([
+        fetchResponsaveis(encontro.id),
+        fetchMateriais(encontro.id),
+        fetchItensReagendamento(),
+      ]);
+      setResponsaveisReagendamento(responsaveisAtuais.map((funcionario) => funcionario.id));
+      setMateriaisReagendamento(
+        materiaisAtuais.map((material) => ({
+          itemId: Number(material.itemId),
+          qtde: Number(material.qtde),
+        })),
+      );
+      setItensReagendamento(Array.isArray(itensCadastrados) ? itensCadastrados : []);
+      setMaterialReagendamentoDraft({ itemId: "", qtde: 1 });
     } catch (error) {
       setCancelError(error.message);
     } finally {
@@ -394,6 +465,24 @@ function EncontrosView() {
       return;
     }
 
+    if (
+      (cancelOption === "reagendar" ||
+        cancelOption === "transferirInscritos") &&
+      (!reagendamentoHora || !reagendamentoHoraFim)
+    ) {
+      setCancelError("Informe o horario de inicio e termino do reagendamento.");
+      return;
+    }
+
+    if (
+      (cancelOption === "reagendar" ||
+        cancelOption === "transferirInscritos") &&
+      responsaveisReagendamento.length === 0
+    ) {
+      setCancelError("Selecione pelo menos um responsavel para o reagendamento.");
+      return;
+    }
+
     const confirmarCancelamento = window.confirm(
       "Tem certeza de que deseja cancelar este encontro?\n\nUm encontro cancelado nao pode ser revertido.",
     );
@@ -415,6 +504,10 @@ function EncontrosView() {
           detalhes: cancelDetails,
           opcao: cancelOption,
           novaData: reagendamentoDate,
+          novaHora: reagendamentoHora,
+          novaHoraFim: reagendamentoHoraFim,
+          responsaveis: responsaveisReagendamento,
+          materiais: materiaisReagendamento,
         }),
       });
 
@@ -426,7 +519,7 @@ function EncontrosView() {
       mensagem += `Materiais liberados: ${json.liberados?.materiais ?? 0}`;
 
       if (json.reagendamento) {
-        mensagem += `\nNovo encontro criado para ${formatDate(json.reagendamento.novaData)}.`;
+        mensagem += `\nNovo encontro criado para ${formatDate(json.reagendamento.novaData)} ${formatTime(json.reagendamento.novaHora)} - ${formatTime(json.reagendamento.novaHoraFim)}.`;
         if (json.reagendamento.transferencia) {
           mensagem += " Inscritos transferidos automaticamente.";
         }
@@ -437,6 +530,10 @@ function EncontrosView() {
       setSelectedHistorico(null);
       setImpacto(null);
       setCancelError(null);
+      setFuncionariosReagendamento([]);
+      setResponsaveisReagendamento([]);
+      setMateriaisReagendamento([]);
+      setMaterialReagendamentoDraft({ itemId: "", qtde: 1 });
       setFiltro("");
       setActiveView(views.cancelados);
     } catch (error) {
@@ -450,6 +547,10 @@ function EncontrosView() {
     setSelectedEncontro(null);
     setImpacto(null);
     setCancelError(null);
+    setFuncionariosReagendamento([]);
+    setResponsaveisReagendamento([]);
+    setMateriaisReagendamento([]);
+    setMaterialReagendamentoDraft({ itemId: "", qtde: 1 });
   }
 
   function handleCloseSubstituicao() {
@@ -466,6 +567,10 @@ function EncontrosView() {
     setSelectedHistorico(null);
     setImpacto(null);
     setCancelError(null);
+    setFuncionariosReagendamento([]);
+    setResponsaveisReagendamento([]);
+    setMateriaisReagendamento([]);
+    setMaterialReagendamentoDraft({ itemId: "", qtde: 1 });
     setSelectedEncontroSubstituicao(null);
     setResponsaveis([]);
     setResponsavelSelecionado(null);
@@ -518,6 +623,117 @@ function EncontrosView() {
   useEffect(() => {
     carregarLista(filtro, activeView, dataInicial, dataFinal);
   }, [filtro, activeView, dataInicial, dataFinal]);
+
+  useEffect(() => {
+    const deveCarregar =
+      selectedEncontro &&
+      (cancelOption === "reagendar" || cancelOption === "transferirInscritos") &&
+      reagendamentoDate &&
+      reagendamentoHora &&
+      reagendamentoHoraFim;
+
+    if (!deveCarregar) {
+      setFuncionariosReagendamento([]);
+      return;
+    }
+
+    let ignorarResposta = false;
+
+    async function carregarFuncionariosReagendamento() {
+      try {
+        setLoadingFuncionariosReagendamento(true);
+        const funcionarios = await fetchFuncionariosDisponiveisReagendamento(
+          reagendamentoDate,
+          reagendamentoHora,
+          reagendamentoHoraFim,
+          selectedEncontro.id,
+        );
+
+        if (ignorarResposta) {
+          return;
+        }
+
+        const listaFuncionarios = Array.isArray(funcionarios) ? funcionarios : [];
+        setFuncionariosReagendamento(listaFuncionarios);
+        setResponsaveisReagendamento((selecionados) =>
+          selecionados.filter((id) => listaFuncionarios.some((funcionario) => funcionario.id === id)),
+        );
+      } catch (error) {
+        if (!ignorarResposta) {
+          setFuncionariosReagendamento([]);
+          setCancelError(error.message);
+        }
+      } finally {
+        if (!ignorarResposta) {
+          setLoadingFuncionariosReagendamento(false);
+        }
+      }
+    }
+
+    carregarFuncionariosReagendamento();
+
+    return () => {
+      ignorarResposta = true;
+    };
+  }, [
+    selectedEncontro,
+    cancelOption,
+    reagendamentoDate,
+    reagendamentoHora,
+    reagendamentoHoraFim,
+  ]);
+
+  function alternarResponsavelReagendamento(funcionarioId) {
+    setResponsaveisReagendamento((selecionados) =>
+      selecionados.includes(funcionarioId)
+        ? selecionados.filter((id) => id !== funcionarioId)
+        : [...selecionados, funcionarioId],
+    );
+  }
+
+  function adicionarMaterialReagendamento() {
+    const itemId = Number(materialReagendamentoDraft.itemId);
+    const qtde = Number(materialReagendamentoDraft.qtde);
+
+    if (!itemId || !Number.isInteger(qtde) || qtde <= 0 || qtde > 999) {
+      setCancelError("Selecione um material e uma quantidade entre 1 e 999.");
+      return;
+    }
+
+    setMateriaisReagendamento((materiais) => {
+      const existente = materiais.find((material) => material.itemId === itemId);
+      if (existente) {
+        return materiais.map((material) =>
+          material.itemId === itemId
+            ? { ...material, qtde: material.qtde + qtde }
+            : material,
+        );
+      }
+
+      return [...materiais, { itemId, qtde }];
+    });
+    setMaterialReagendamentoDraft({ itemId: "", qtde: 1 });
+    setCancelError(null);
+  }
+
+  function removerMaterialReagendamento(itemId) {
+    setMateriaisReagendamento((materiais) =>
+      materiais.filter((material) => material.itemId !== itemId),
+    );
+  }
+
+  function atualizarQuantidadeMaterialReagendamento(itemId, qtde) {
+    const quantidade = Math.max(Math.min(Number(qtde), 999), 1);
+    setMateriaisReagendamento((materiais) =>
+      materiais.map((material) =>
+        material.itemId === itemId ? { ...material, qtde: quantidade } : material,
+      ),
+    );
+  }
+
+  function obterItemReagendamento(itemId) {
+    return itensReagendamento.find((item) => Number(item.id) === Number(itemId));
+  }
 
   return (
     <>
@@ -733,14 +949,170 @@ function EncontrosView() {
             </Styled.OptionGroup>
             {(cancelOption === "reagendar" ||
               cancelOption === "transferirInscritos") && (
-              <label>
-                Nova data do encontro:
-                <input
-                  type="date"
-                  value={reagendamentoDate}
-                  onChange={(e) => setReagendamentoDate(e.target.value)}
-                />
-              </label>
+              <Styled.ReagendamentoPanel>
+                <h3>Dados do reagendamento</h3>
+                <Styled.ReagendamentoGrid>
+                  <label>
+                    Nova data do encontro:
+                    <input
+                      type="date"
+                      value={reagendamentoDate}
+                      onChange={(e) => setReagendamentoDate(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Horario de inicio:
+                    <input
+                      type="time"
+                      step="300"
+                      value={reagendamentoHora}
+                      onChange={(e) => setReagendamentoHora(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Horario de termino:
+                    <input
+                      type="time"
+                      step="300"
+                      value={reagendamentoHoraFim}
+                      onChange={(e) => setReagendamentoHoraFim(e.target.value)}
+                    />
+                  </label>
+                </Styled.ReagendamentoGrid>
+
+                <Styled.ReagendamentoSectionTitle>
+                  Funcionarios responsaveis
+                </Styled.ReagendamentoSectionTitle>
+                {loadingFuncionariosReagendamento ? (
+                  <Styled.EmptyState>Carregando funcionarios disponiveis...</Styled.EmptyState>
+                ) : funcionariosReagendamento.length === 0 ? (
+                  <Styled.EmptyState>
+                    Nenhum funcionario disponivel para a data e horario informados.
+                  </Styled.EmptyState>
+                ) : (
+                  <Styled.CompactTable>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>Usuario</th>
+                        <th>Cargo</th>
+                        <th>Selecionar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {funcionariosReagendamento.map((funcionario) => {
+                        const selecionado = responsaveisReagendamento.includes(funcionario.id);
+
+                        return (
+                          <tr
+                            key={funcionario.id}
+                            className={selecionado ? "selected" : ""}
+                            onClick={() => alternarResponsavelReagendamento(funcionario.id)}>
+                            <td>{funcionario.id}</td>
+                            <td>{funcionario.nome}</td>
+                            <td>{funcionario.usuario}</td>
+                            <td>{funcionario.cargo}</td>
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={selecionado}
+                                onChange={() => alternarResponsavelReagendamento(funcionario.id)}
+                                onClick={(event) => event.stopPropagation()}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Styled.CompactTable>
+                )}
+                <Styled.SelectionInfo>
+                  Responsaveis selecionados: <strong>{responsaveisReagendamento.length}</strong>
+                </Styled.SelectionInfo>
+
+                <Styled.ReagendamentoSectionTitle>
+                  Materiais reservados
+                </Styled.ReagendamentoSectionTitle>
+                <Styled.MaterialPicker>
+                  <label>
+                    Material
+                    <select
+                      value={materialReagendamentoDraft.itemId}
+                      onChange={(event) =>
+                        setMaterialReagendamentoDraft((draft) => ({
+                          ...draft,
+                          itemId: event.target.value,
+                        }))
+                      }>
+                      <option value="">Selecione um item cadastrado</option>
+                      {itensReagendamento.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.nome} {item.tipo ? `- ${item.tipo}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Quantidade
+                    <input
+                      type="number"
+                      min="1"
+                      max="999"
+                      step="1"
+                      value={materialReagendamentoDraft.qtde}
+                      onChange={(event) =>
+                        setMaterialReagendamentoDraft((draft) => ({
+                          ...draft,
+                          qtde: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                  <button type="button" onClick={adicionarMaterialReagendamento}>
+                    Adicionar
+                  </button>
+                </Styled.MaterialPicker>
+
+                {materiaisReagendamento.length === 0 ? (
+                  <Styled.EmptyState>
+                    Nenhum material reservado para o encontro reagendado.
+                  </Styled.EmptyState>
+                ) : (
+                  <Styled.MaterialList>
+                    {materiaisReagendamento.map((material) => {
+                      const item = obterItemReagendamento(material.itemId);
+
+                      return (
+                        <li key={material.itemId}>
+                          <div>
+                            <strong>{item?.nome || `Item #${material.itemId}`}</strong>
+                            <span>{item?.tipo || "Item"}</span>
+                          </div>
+                          <input
+                            type="number"
+                            min="1"
+                            max="999"
+                            step="1"
+                            value={material.qtde}
+                            onChange={(event) =>
+                              atualizarQuantidadeMaterialReagendamento(
+                                material.itemId,
+                                event.target.value,
+                              )
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removerMaterialReagendamento(material.itemId)}>
+                            Remover
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </Styled.MaterialList>
+                )}
+              </Styled.ReagendamentoPanel>
             )}
             {cancelError && (
               <Styled.InlineError>{cancelError}</Styled.InlineError>
