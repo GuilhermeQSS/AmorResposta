@@ -11,27 +11,44 @@ import SobreView from './Views/SobreView'
 import LoginView from './Views/LoginView'
 import RotasProtegidas from './components/RotasProtegidas'
 
+import ManipularEncontrosView from './Views/EncontrosView'
+import SaidaDoacao from './Views/Tabelas/SaidaDoacao'
+
 import FuncionariosView from './Views/Tabelas/Funcionarios/FuncionariosView'
 import EditarFuncionarioView from './Views/Tabelas/Funcionarios/EditarFuncionarioView'
 import CadastrarFuncionarioView from './Views/Tabelas/Funcionarios/CadastrarFuncionarioView'
+
 import EncontrosView from './Views/Tabelas/Encontros/EncontrosView'
 import EditarEncontroView from './Views/Tabelas/Encontros/EditarEncontroView'
 import CadastrarEncontroView from './Views/Tabelas/Encontros/CadastrarEncontroView'
+
 import BeneficiariosView from './Views/Tabelas/Beneficiarios/BeneficiariosView'
 import EditarBeneficiarioView from './Views/Tabelas/Beneficiarios/EditarBeneficiarioView'
 import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBeneficiarioView'
+
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
+
 import CadastrarItensView from './Views/Tabelas/Itens/CadastrarItensView'
 import EditarItensView from './Views/Tabelas/Itens/EditarItensView'
 import ItensView from './Views/Tabelas/Itens/ItensView'
+
 import DocumentosView from './Views/Tabelas/Documentos/DocumentosView'
 import EditarDocumentoView from './Views/Tabelas/Documentos/EditarDocumentoView'
 import CadastrarDocumentoView from './Views/Tabelas/Documentos/CadastrarDocumentoView'
+
 import DespesasView from './Views/Tabelas/Despesas/DespesasView'
-import EditarDespesaView from './Views/Tabelas/Despesas/EditarDespesaView'
 import CadastrarDespesaView from './Views/Tabelas/Despesas/CadastrarDespesaView'
+import EditarDespesaView from './Views/Tabelas/Despesas/EditarDespesaView'
+
+import CadastrarLotesView from './Views/Tabelas/lotes/CadastrarLotesView'
+import EditarLotesView from './Views/Tabelas/lotes/EditarLotesView'
+import LotesView from './Views/Tabelas/lotes/LotesView'
+
+import CaixasView from './Views/Tabelas/Caixas/CaixasView'
+import CadastrarCaixasView from './Views/Tabelas/Caixas/CadastrarCaixasView'
+import EditarCaixasView from './Views/Tabelas/Caixas/EditarCaixasView'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -45,13 +62,20 @@ createRoot(document.getElementById('root')).render(
         <Route path='/sobre' element={<SobreView />} />
         <Route path='/login' element={<LoginView />} />
 
+        <Route element={<RotasProtegidas perfisPermitidos={["Administrador", "Voluntario"]} />}>
+          <Route path='/tabelas/encontros' element={<EncontrosView />} />
+          <Route path="/encontros/:id" element={<EditarEncontroView />} />
+          <Route path="/encontros/cadastro" element={<CadastrarEncontroView />} />
+        </Route>
+
+        <Route element={<RotasProtegidas perfisPermitidos={["Beneficiario"]} />}>
+          <Route path='/beneficiario/encontros' element={<ManipularEncontrosView />} />
+        </Route>
+        
         <Route element={<RotasProtegidas />}>
           <Route path='/tabelas/funcionarios' element={<FuncionariosView />} />
           <Route path="/funcionarios/:id" element={<EditarFuncionarioView />} />
           <Route path="/funcionarios/cadastro" element={<CadastrarFuncionarioView />} />
-          <Route path='/tabelas/encontros' element={<EncontrosView />} />
-          <Route path="/encontros/:id" element={<EditarEncontroView />} />
-          <Route path="/encontros/cadastro" element={<CadastrarEncontroView />} />
           <Route path='/tabelas/beneficiarios' element={<BeneficiariosView />} />
           <Route path="/beneficiarios/:id" element={<EditarBeneficiarioView />} />
           <Route path="/beneficiarios/cadastro" element={<CadastrarBeneficiarioView />} />
@@ -67,6 +91,13 @@ createRoot(document.getElementById('root')).render(
           <Route path='/tabelas/despesas' element={<DespesasView />} />
           <Route path="/despesas/:id" element={<EditarDespesaView />} />
           <Route path="/despesas/cadastro" element={<CadastrarDespesaView />} />
+          <Route path='/tabelas/lotes' element={<LotesView />} />
+          <Route path="/lotes/cadastro" element={<CadastrarLotesView />}/>
+          <Route path="/lotes/:id" element={<EditarLotesView />}/>
+          <Route path="/lotes/saida-doacao" element={<SaidaDoacao />} />
+          <Route path='/tabelas/caixas' element={<CaixasView />} />
+          <Route path="/caixas/cadastro" element={<CadastrarCaixasView />} />
+          <Route path="/caixas/:id" element={<EditarCaixasView />} />
         </Route>
       </Routes>
     </BrowserRouter>

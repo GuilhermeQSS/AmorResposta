@@ -5,22 +5,26 @@ import logo from "../../assets/logo perfil oaear.png";
 import Sociais from "../Sociais";
 
 const tabelas = [
-    { label: "Funcionarios", path: "/tabelas/funcionarios" },
-    { label: "Beneficiarios", path: "/tabelas/beneficiarios" },
-    { label: "Doacoes", path: "/tabelas/doacoes" },
+    { label: "Funcionários", path: "/tabelas/funcionarios" },
+    { label: "Beneficiários", path: "/tabelas/beneficiarios" },
+    { label: "Doações", path: "/tabelas/doacoes" },
     { label: "Itens", path: "/tabelas/itens" },
     { label: "Documentos", path: "/tabelas/documentos" },
     { label: "Despesas", path: "/tabelas/despesas" },
+    { label: "Caixas", path: "/tabelas/caixas" },
+    { label: "Lotes", path: "/tabelas/lotes" },
 ];
 
 const cadastros = [
-    { label: "Funcionarios", path: "/funcionarios/cadastro" },
+    { label: "Funcionários", path: "/funcionarios/cadastro" },
     { label: "Encontros", path: "/encontros/cadastro" },
-    { label: "Beneficiarios", path: "/beneficiarios/cadastro" },
-    { label: "Doacoes", path: "/doacoes/cadastro" },
+    { label: "Beneficiários", path: "/beneficiarios/cadastro" },
+    { label: "Doações", path: "/doacoes/cadastro" },
     { label: "Itens", path: "/itens/cadastro" },
     { label: "Documentos", path: "/documentos/cadastro" },
     { label: "Despesas", path: "/despesas/cadastro" },
+    { label: "Abrir Caixa", path: "/caixas/cadastro" },
+    { label: "lotes", path: "/lotes/cadastro" },
 ];
 
 function Header(){
@@ -30,6 +34,7 @@ function Header(){
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const isAdmin = user?.perfil === "Administrador";
+    const podeGerenciarEncontros = ["Administrador", "Voluntario"].includes(user?.perfil);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -40,14 +45,20 @@ function Header(){
         <Styled.Container>
             <Link to={"/"}><img src={logo}/></Link>
             <Styled.Atalhos>
-                <li><Link to={"/"}>Pagina inicial</Link></li>
+                <li><Link to={"/"}>Página inicial</Link></li>
                 <li><Link to={"/institucional"}>Institucional</Link></li>
                 <li><Link to={"/projetos"}>Projetos</Link></li>
-                <li><Link to={"/doacao"}>Doacao</Link></li>
+                <li><Link to={"/doacao"}>Doação</Link></li>
                 <li><Link to={"/portal"}>Portal da Transparencia</Link></li>
                 <li><Link to={"/sobre"}>Sobre</Link></li>
-                {isAdmin && (
+                {podeGerenciarEncontros && (
                     <li><Link to="/tabelas/encontros">Encontros</Link></li>
+                )}
+                {isAdmin && (
+                    <li><Link to="/tabelas/caixas">Caixas</Link></li>
+                )}
+                {isAdmin && (
+                    <li><Link to={"/lotes/saida-doacao"}>Saida de Doações</Link></li>
                 )}
                 {isAdmin && (
                     <li
@@ -87,12 +98,15 @@ function Header(){
                         )}
                     </li>
                 )}
+                {user?.perfil === "Beneficiario" && (
+                    <li><Link to={'/beneficiario/encontros'}>Encontros</Link></li>
+                )}
                 {!token ? (
                     <li><Link to={"/login"}>Login</Link></li>
                 ) : (
                     <li>
                         <span className="ola-usuario">
-                            Ola, {user.nome}
+                            Olá, {user.nome}
                         </span>
                         <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sair</button>
                     </li>

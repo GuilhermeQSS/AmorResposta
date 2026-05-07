@@ -11,17 +11,8 @@ function LoginView() {
             let camposVazios = {
                 usuario: !form.usuario,
                 senha: !form.senha,
-                confirmarSenha: !form.confirmarSenha,
                 perfil: !form.perfil
             };
-            setCamposVazios(camposVazios);
-            if (Object.values(camposVazios).includes(true)) return;
-            if(form.confirmarSenha !== form.senha){
-                camposVazios = {
-                    senha: true,
-                    confirmarSenha: true
-                }
-            }
             setCamposVazios(camposVazios);
             if (Object.values(camposVazios).includes(true)) return;
             try {
@@ -63,7 +54,6 @@ function LoginView() {
         const [form, setForm] = useState({
             usuario: "",
             senha: "",
-            confirmarSenha:"",
             perfil: ""
         });
         const navigate = useNavigate();
@@ -95,17 +85,6 @@ function LoginView() {
                         </div>
 
                         <div>
-                            <label htmlFor="confirmaSenha">Confirmar senha: </label>
-                            <input
-                                type="password"
-                                name="confirmarSenha"
-                                value={form.confirmarSenha}
-                                onChange={atualizarForm}
-                                style={{ border: camposVazios.confirmarSenha ? "2px solid red" : "" }}
-                            />
-                        </div>
-
-                        <div>
                             <label htmlFor="perfil">Perfil:</label>
                             <select
                                 name="perfil"
@@ -113,8 +92,8 @@ function LoginView() {
                                 onChange={atualizarForm}
                                 style={{ border: camposVazios.perfil ? "2px solid red" : "" }}
                             >
-                                <option value="" selected disabled>Selecione</option>
-                                <option value="Beneficiario">Beneficiario</option>
+                                <option value="" disabled>Selecione</option>
+                                <option value="Beneficiario">Beneficiário</option>
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
                             </select>

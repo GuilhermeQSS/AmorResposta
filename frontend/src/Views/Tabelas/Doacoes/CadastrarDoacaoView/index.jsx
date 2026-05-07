@@ -23,11 +23,11 @@ function CadastrarDoacaoView() {
         }
 
         if (!dados.tipo) {
-            novosErros.tipo = "Selecione o tipo da doacao.";
+            novosErros.tipo = "Selecione o tipo da doação.";
         }
 
         if (!dados.origem.trim()) {
-            novosErros.origem = "Informe a origem da doacao.";
+            novosErros.origem = "Informe a origem da doação.";
         }
 
         if (!dados.formaEntrega) {
@@ -36,7 +36,7 @@ function CadastrarDoacaoView() {
 
         const quantidade = Number(dados.quantidadeItens);
         if (!dados.quantidadeItens || !Number.isInteger(quantidade) || quantidade <= 0) {
-            novosErros.quantidadeItens = "Informe uma quantidade de itens valida.";
+            novosErros.quantidadeItens = "Informe uma quantidade de itens válida.";
         }
 
         if (dados.tipo === "Alimentos") {
@@ -56,7 +56,7 @@ function CadastrarDoacaoView() {
 
         if (dados.tipo === "Roupas") {
             if (!detalhes.categoriaRoupas) {
-                novosErros.categoriaRoupas = "Escolha se a doacao e para verao ou inverno.";
+                novosErros.categoriaRoupas = "Escolha se a doação é para verão ou inverno.";
             }
 
             if (calcularQuantidadeDetalhada(dados.tipo, detalhes) <= 0) {
@@ -69,13 +69,13 @@ function CadastrarDoacaoView() {
         }
 
         if (dados.tipo === "Materiais" && !String(detalhes.materialDescricao || "").trim()) {
-            novosErros.materialDescricao = "Informe qual e o material diverso.";
+            novosErros.materialDescricao = "Informe qual é o material diverso.";
         }
 
         if (dados.tipo === "Financeira") {
             const valorFinanceiro = Number(detalhes.valorFinanceiro);
             if (!Number.isFinite(valorFinanceiro) || valorFinanceiro <= 0) {
-                novosErros.valorFinanceiro = "Informe um valor valido para a doacao.";
+                novosErros.valorFinanceiro = "Informe um valor válido para a doação.";
             }
         }
 
@@ -141,7 +141,7 @@ function CadastrarDoacaoView() {
 
             if (!response.ok) {
                 const erro = await response.json();
-                throw new Error(erro.erro || "Erro ao cadastrar doacao");
+                throw new Error(erro.erro || "Erro ao cadastrar doação");
             }
 
             navigate("/tabelas/doacoes");
@@ -483,7 +483,7 @@ function CadastrarDoacaoView() {
                             name="doadorNome"
                             value={form.doadorNome}
                             onChange={atualizarForm}
-                            placeholder="Se vazio, sera registrado como anonimo"
+                            placeholder="Se vazio, será registrado como anônimo"
                         />
                     </div>
 
@@ -599,7 +599,7 @@ function CadastrarDoacaoView() {
                                 onChange={atualizarDetalhes}
                             >
                                 <option value="">Selecione</option>
-                                <option value="verao">Roupas de verao</option>
+                                <option value="verao">Roupas de verão</option>
                                 <option value="inverno">Roupas de inverno</option>
                             </select>
 
@@ -634,7 +634,7 @@ function CadastrarDoacaoView() {
 
                             {itensDetalhados.length > 0 && (
                                 <>
-                                    <Styled.SectionTitle>Itens da doacao</Styled.SectionTitle>
+                                    <Styled.SectionTitle>Itens da doação</Styled.SectionTitle>
                                     <Styled.Grid>
                                         {itensDetalhados.map((item, index) => (
                                             <div key={item.chave}>
@@ -735,7 +735,7 @@ function CadastrarDoacaoView() {
 
                     {form.tipo === "Financeira" && (
                         <Styled.Section data-error={Boolean(erros.valorFinanceiro)}>
-                            <label htmlFor="valorFinanceiro">Valor da doacao (R$):</label>
+                            <label htmlFor="valorFinanceiro">Valor da doação (R$):</label>
                             <input
                                 ref={(elemento) => {
                                     fieldRefs.current.valorFinanceiro = elemento;
@@ -754,7 +754,7 @@ function CadastrarDoacaoView() {
 
                     {form.tipo === "Materiais" && (
                         <Styled.Section data-error={Boolean(erros.materialDescricao)}>
-                            <label htmlFor="materialDescricao">Qual e o material diverso?</label>
+                            <label htmlFor="materialDescricao">Qual é o material diverso?</label>
                             <input
                                 ref={(elemento) => {
                                     fieldRefs.current.materialDescricao = elemento;
@@ -817,14 +817,14 @@ function CadastrarDoacaoView() {
                             />
                             {quantidadeAutomatica && (
                                 <Styled.HelperText>
-                                    A quantidade total e somada automaticamente a partir dos itens acima.
+                                    A quantidade total é somada automaticamente a partir dos itens acima.
                                 </Styled.HelperText>
                             )}
                         </div>
                     )}
 
                     <div data-error={Boolean(erros.observacao)}>
-                        <label htmlFor="observacao">Observacao:</label>
+                        <label htmlFor="observacao">Observação:</label>
                         <textarea
                             ref={(elemento) => {
                                 fieldRefs.current.observacao = elemento;
@@ -833,7 +833,7 @@ function CadastrarDoacaoView() {
                             value={form.observacao}
                             onChange={atualizarForm}
                             rows="4"
-                            placeholder="Detalhes importantes da doacao"
+                            placeholder="Detalhes importantes da doação"
                         />
                     </div>
 

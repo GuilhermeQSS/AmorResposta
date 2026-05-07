@@ -5,17 +5,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function DespesasView() {
-    function formatarValor(valor) {
-        return Number(valor || 0).toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-        });
-    }
-
-    function fetchDespesaLista(filtro, valor) {
+    function fetchDespesaLista(filtro) {
         const params = new URLSearchParams({
-            filtro,
-            valor
+            filtro
         });
 
         return fetch(`http://localhost:3000/despesas/listar?${params.toString()}`, {
@@ -27,17 +19,16 @@ function DespesasView() {
 
     const [despesas, setDespesas] = useState([]);
     const [filtro, setFiltro] = useState("");
-    const [filtroValor, setFiltroValor] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const data = await fetchDespesaLista(filtro, filtroValor);
+            const data = await fetchDespesaLista(filtro);
             setDespesas(data);
         }
 
         carregar();
-    }, [filtro, filtroValor]);
+    }, [filtro]);
 
     return (
         <>
@@ -46,29 +37,22 @@ function DespesasView() {
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"
-                        placeholder="Buscar por descricao..."
+                        placeholder="Buscar por descrição..."
                         value={filtro}
                         onChange={(e) => setFiltro(e.target.value)}
-                    />
-                    <Styled.Busca
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="Buscar por valor..."
-                        value={filtroValor}
-                        onChange={(e) => setFiltroValor(e.target.value)}
                     />
                 </Styled.Filtros>
                 <Styled.Actions>
                     <button onClick={() => navigate("/despesas/cadastro")}>
-                        + Cadastrar Despesa
+                        + Cadastrar Tipo de Despesa
                     </button>
                 </Styled.Actions>
                 <Styled.Table>
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>valor</th>
                             <th>descricao</th>
+                            <th>categoria</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,8 +62,8 @@ function DespesasView() {
                                 onClick={() => navigate(`/despesas/${d.id}`)}
                             >
                                 <td>{d.id}</td>
-                                <td>{formatarValor(d.valor)}</td>
                                 <td>{d.descricao}</td>
+                                <td>{d.categoria}</td>
                             </tr>
                         ))}
                     </tbody>

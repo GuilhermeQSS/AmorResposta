@@ -179,7 +179,7 @@ function CadastrarFuncionarioView() {
                                 onChange={atualizarForm}
                                 style={{ border: camposVazios.cargo ? "2px solid red" : "" }}
                             >
-                                <option value="" selected disabled>Selecione</option>
+                                <option value="" disabled>Selecione</option>
                                 <option value="Administrador">Administrador</option>
                                 <option value="Voluntario">Voluntário</option>
                             </select>

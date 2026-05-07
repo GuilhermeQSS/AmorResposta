@@ -1,5 +1,3 @@
-import connection from "../db/connection.js";
-
 function limparTelefone(telefone = "") {
     return String(telefone).replace(/\D/g, "");
 }
@@ -21,31 +19,29 @@ function montarEnderecoResumo(estado, cidade, bairro, rua, numero) {
 }
 
 class Beneficiario {
-    constructor(id, nome, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
+    constructor(
+        id,
+        nome,
+        estado,
+        cidade,
+        bairro,
+        rua,
+        numero,
+        telefone,
+        usuario,
+        senha
+    ) {
         this.id = id;
         this.nome = nome;
 
-        if (arguments.length <= 6) {
-            this.estado = "";
-            this.cidade = "";
-            this.bairro = "";
-            this.rua = "";
-            this.numero = "";
-            this.endereco = String(arg3 || "").trim();
-            this.telefone = limparTelefone(arg4);
-            this.usuario = arg5;
-            this.senha = arg6;
-            return;
-        }
-
-        this.estado = String(arg3 || "").trim();
-        this.cidade = String(arg4 || "").trim();
-        this.bairro = String(arg5 || "").trim();
-        this.rua = String(arg6 || "").trim();
-        this.numero = limparNumero(arg7);
-        this.telefone = limparTelefone(arg8);
-        this.usuario = arg9;
-        this.senha = arg10;
+        this.estado = String(estado || "").trim();
+        this.cidade = String(cidade || "").trim();
+        this.bairro = String(bairro || "").trim();
+        this.rua = String(rua || "").trim();
+        this.numero = limparNumero(numero);
+        this.telefone = limparTelefone(telefone);
+        this.usuario = usuario;
+        this.senha = senha;
         this.endereco = montarEnderecoResumo(this.estado, this.cidade, this.bairro, this.rua, this.numero);
     }
 
@@ -56,21 +52,17 @@ class Beneficiario {
             row.ben_estado ?? "",
             row.ben_cidade ?? "",
             row.ben_bairro ?? "",
-            row.ben_rua ?? row.ben_endereco ?? "",
+            row.ben_rua ?? "",
             row.ben_numero ?? "",
             row.ben_telefone,
             row.ben_usuario,
             row.ben_senha
         );
 
-        if (!beneficiario.endereco && row.ben_endereco) {
-            beneficiario.endereco = String(row.ben_endereco).trim();
-        }
-
         return beneficiario;
     }
 
-    static async listar(filtro, telefone) {
+    static async listar(connection, filtro, telefone) {
         let queryString = `select * from beneficiarios where 1=1`;
         const valores = [];
 
@@ -91,7 +83,7 @@ class Beneficiario {
         return beneficiarios.map((b) => Beneficiario.fromRow(b));
     }
 
-    async alterar() {
+    async alterar(connection) {
         const queryString = `
             update beneficiarios set
                 ben_nome = ?,
@@ -100,7 +92,6 @@ class Beneficiario {
                 ben_bairro = ?,
                 ben_rua = ?,
                 ben_numero = ?,
-                ben_endereco = ?,
                 ben_telefone = ?,
                 ben_usuario = ?,
                 ben_senha = ?
@@ -114,7 +105,6 @@ class Beneficiario {
             this.bairro || null,
             this.rua || null,
             this.numero ? Number(this.numero) : null,
-            this.endereco || null,
             this.telefone,
             this.usuario,
             this.senha,
@@ -125,13 +115,13 @@ class Beneficiario {
         return resultado;
     }
 
-    async excluir() {
+    async excluir(connection) {
         const queryString = `delete from beneficiarios where ben_id = ?;`;
         const [resultado] = await connection.query(queryString, [this.id]);
         return resultado;
     }
 
-    static async buscarPorUsuario(usuario) {
+    static async buscarPorUsuario(connection, usuario) {
         const queryString = `select * from beneficiarios where ben_usuario = ?`;
         const [[beneficiario]] = await connection.query(queryString, [usuario]);
         if (!beneficiario) {
@@ -140,7 +130,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-    static async buscarPorId(id) {
+    static async buscarPorId(connection, id) {
         const queryString = `select * from beneficiarios where ben_id = ?`;
         const [[beneficiario]] = await connection.query(queryString, [id]);
         if (!beneficiario) {
@@ -149,7 +139,7 @@ class Beneficiario {
         return Beneficiario.fromRow(beneficiario);
     }
 
-    async gravar() {
+    async gravar(connection) {
         const queryString = `
             insert into beneficiarios(
                 ben_nome,
@@ -158,11 +148,10 @@ class Beneficiario {
                 ben_bairro,
                 ben_rua,
                 ben_numero,
-                ben_endereco,
                 ben_telefone,
                 ben_usuario,
                 ben_senha
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
 
         const valores = [
@@ -172,7 +161,6 @@ class Beneficiario {
             this.bairro || null,
             this.rua || null,
             this.numero ? Number(this.numero) : null,
-            this.endereco || null,
             this.telefone,
             this.usuario,
             this.senha
