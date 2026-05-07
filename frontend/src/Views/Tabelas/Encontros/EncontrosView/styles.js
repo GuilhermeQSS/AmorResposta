@@ -2,12 +2,57 @@ import styled from "styled-components";
 
 const Styled = {
   Busca: styled.input`
-    display: block;
-    margin: 0 auto;
     padding: 10px 15px;
-    width: 50%;
+    flex: 1 1 420px;
+    min-width: 260px;
     border-radius: 10px;
     border: 1px solid #ccc;
+  `,
+
+  FilterBar: styled.div`
+    width: 70%;
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    @media (max-width: 900px) {
+      width: 90%;
+    }
+  `,
+
+  DateFilterGroup: styled.div`
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #333;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input {
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 10px;
+      background: #eee;
+      color: #333;
+      cursor: pointer;
+    }
   `,
 
   PageHeader: styled.div`

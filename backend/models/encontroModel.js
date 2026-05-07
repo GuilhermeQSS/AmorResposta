@@ -101,7 +101,7 @@ class Encontro {
     );
   }
 
-  static async listar(connectionRef, filtro, status = "ativos") {
+  static async listar(connectionRef, filtro, status = "ativos", dataInicial = null, dataFinal = null) {
     let queryString = `
       select
         e.*,
@@ -123,6 +123,17 @@ class Encontro {
                 )
             `;
       params.push(termo, termo, termo);
+    }
+
+    if (dataInicial && dataFinal) {
+      queryString += " and e.enc_data between ? and ?";
+      params.push(dataInicial, dataFinal);
+    } else if (dataInicial) {
+      queryString += " and e.enc_data >= ?";
+      params.push(dataInicial);
+    } else if (dataFinal) {
+      queryString += " and e.enc_data <= ?";
+      params.push(dataFinal);
     }
 
     queryString +=

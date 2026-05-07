@@ -25,6 +25,8 @@ class EncontroController {
         connection,
         req.query.filtro,
         req.query.status,
+        req.query.dataInicial,
+        req.query.dataFinal,
       );
       return res.status(200).json(resp);
     } catch (err) {

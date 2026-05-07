@@ -139,6 +139,8 @@ async function parseResponse(response, fallbackMessage) {
 function EncontrosView() {
   const [encontros, setEncontros] = useState([]);
   const [filtro, setFiltro] = useState("");
+  const [dataInicial, setDataInicial] = useState("");
+  const [dataFinal, setDataFinal] = useState("");
   const [activeView, setActiveView] = useState(views.encontros);
   const [selectedEncontro, setSelectedEncontro] = useState(null);
   const [selectedHistorico, setSelectedHistorico] = useState(null);
@@ -159,9 +161,22 @@ function EncontrosView() {
   const [substituicaoError, setSubstituicaoError] = useState(null);
   const navigate = useNavigate();
 
-  async function fetchEncontroLista(filtroAtual, status = "ativos") {
+  async function fetchEncontroLista(filtroAtual, status = "ativos", dataInicialAtual = "", dataFinalAtual = "") {
+    const params = new URLSearchParams({
+      status,
+      filtro: filtroAtual || "",
+    });
+
+    if (dataInicialAtual) {
+      params.set("dataInicial", dataInicialAtual);
+    }
+
+    if (dataFinalAtual) {
+      params.set("dataFinal", dataFinalAtual);
+    }
+
     const response = await fetch(
-      `${API_URL}/listar?status=${status}&filtro=${encodeURIComponent(filtroAtual || "")}`,
+      `${API_URL}/listar?${params.toString()}`,
       {
         method: "GET",
         headers: getAuthHeaders(),
@@ -209,11 +224,17 @@ function EncontrosView() {
     return parseResponse(response, "Erro ao carregar substitutos.");
   }
 
-  async function carregarLista(filtroAtual, viewAtual) {
+  async function carregarLista(filtroAtual, viewAtual, dataInicialAtual = "", dataFinalAtual = "") {
     try {
       setListError(null);
       const status = viewAtual === views.cancelados ? "cancelados" : "ativos";
-      const info = await fetchEncontroLista(filtroAtual, status);
+      const usarPeriodo = viewAtual === views.cancelar;
+      const info = await fetchEncontroLista(
+        filtroAtual,
+        status,
+        usarPeriodo ? dataInicialAtual : "",
+        usarPeriodo ? dataFinalAtual : "",
+      );
       setEncontros(info);
     } catch (error) {
       setEncontros([]);
@@ -451,6 +472,8 @@ function EncontrosView() {
     setSubstitutos([]);
     setSubstituicaoError(null);
     setFiltro("");
+    setDataInicial("");
+    setDataFinal("");
   }
 
   function handleRowClick(encontro) {
@@ -486,15 +509,15 @@ function EncontrosView() {
 
       alert("Encontro finalizado com sucesso");
 
-      carregarLista(filtro, activeView);
+      carregarLista(filtro, activeView, dataInicial, dataFinal);
     } catch (error) {
       alert(error.message || "Erro ao finalizar encontro.");
     }
   }
 
   useEffect(() => {
-    carregarLista(filtro, activeView);
-  }, [filtro, activeView]);
+    carregarLista(filtro, activeView, dataInicial, dataFinal);
+  }, [filtro, activeView, dataInicial, dataFinal]);
 
   return (
     <>
@@ -539,16 +562,49 @@ function EncontrosView() {
         </Styled.EncontroOptions>
       </Styled.PageHeader>
       <main>
-        <Styled.Busca
-          type="text"
-          placeholder={
-            activeView === views.cancelados
-              ? "Buscar por local, id ou motivo..."
-              : "Buscar encontros..."
-          }
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-        />
+        <Styled.FilterBar>
+          <Styled.Busca
+            type="text"
+            placeholder={
+              activeView === views.cancelados
+                ? "Buscar por local, id ou motivo..."
+                : "Buscar encontros..."
+            }
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+          />
+
+          {activeView === views.cancelar && (
+            <Styled.DateFilterGroup>
+              <label>
+                De
+                <input
+                  type="date"
+                  value={dataInicial}
+                  onChange={(e) => setDataInicial(e.target.value)}
+                />
+              </label>
+              <label>
+                Ate
+                <input
+                  type="date"
+                  value={dataFinal}
+                  onChange={(e) => setDataFinal(e.target.value)}
+                />
+              </label>
+              {(dataInicial || dataFinal) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDataInicial("");
+                    setDataFinal("");
+                  }}>
+                  Limpar
+                </button>
+              )}
+            </Styled.DateFilterGroup>
+          )}
+        </Styled.FilterBar>
         <Styled.Actions>
           {activeView !== views.cancelados && (
             <button onClick={() => navigate("/encontros/cadastro")}>
