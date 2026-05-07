@@ -54,6 +54,7 @@ function LotesView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Lotes</Styled.PageTitle>
                 <Styled.Busca
                     type="text"
                     placeholder="Buscar por nome do item..."

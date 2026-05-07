@@ -47,6 +47,7 @@ function CaixasView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Caixas</Styled.PageTitle>
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"

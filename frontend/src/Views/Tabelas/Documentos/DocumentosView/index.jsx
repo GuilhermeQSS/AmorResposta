@@ -108,9 +108,9 @@ function DocumentosView() {
             <Header />
             <main>
                 <Styled.Page>
+                    <Styled.PageTitle>Gerenciamento de Documentos</Styled.PageTitle>
                     <Styled.HeaderRow>
                         <div>
-                            <h1>Documentos</h1>
                             <p>Organize registros, termos, comprovantes e arquivos externos da instituicao.</p>
                         </div>
                         <button type="button" onClick={() => navigate("/documentos/cadastro")}>

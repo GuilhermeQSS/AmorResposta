@@ -34,6 +34,7 @@ function DespesasView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Despesas</Styled.PageTitle>
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"

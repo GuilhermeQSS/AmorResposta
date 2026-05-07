@@ -523,7 +523,7 @@ function EncontrosView() {
     <>
       <Header />
       <Styled.PageHeader>
-        <Styled.PageTitle>Encontros</Styled.PageTitle>
+        <Styled.PageTitle>Gerenciamento de Encontros</Styled.PageTitle>
         <Styled.EncontroOptions>
           <button
             type="button"

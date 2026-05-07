@@ -100,6 +100,7 @@ function DoacoesView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Doações</Styled.PageTitle>
                 <Styled.Filters>
                     <Styled.FilterSelect
                         value={tipoFiltro}

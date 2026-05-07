@@ -67,8 +67,20 @@ const Styled = {
 
   PageTitle: styled.h1`
     margin: 0;
-    font-size: 24px;
-    color: #333;
+    color: #2b2b2b;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+
+    &::after {
+      content: "";
+      display: block;
+      width: 72px;
+      height: 3px;
+      margin: 10px auto 0;
+      border-radius: 999px;
+      background: #e60000;
+    }
   `,
 
   EncontroOptions: styled.div`

@@ -84,6 +84,7 @@ function FuncionariosView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Funcionários</Styled.PageTitle>
                 <Styled.Busca type="text"
                     placeholder="Buscar nome funcionário..."
                     value={filtroNome}

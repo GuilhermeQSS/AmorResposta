@@ -53,6 +53,7 @@ function ItensView() {
         <>
             <Header/>
             <main>
+                <Styled.PageTitle>Gerenciamento de Itens</Styled.PageTitle>
                 <Styled.Busca type="text"
                     placeholder="Buscar por nome..."
                     value={nome}

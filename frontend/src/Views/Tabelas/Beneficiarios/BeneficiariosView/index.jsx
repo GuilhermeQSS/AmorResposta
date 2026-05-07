@@ -66,6 +66,7 @@ function BeneficiariosView() {
         <>
             <Header/>
             <main>
+                <Styled.PageTitle>Gerenciamento de Beneficiários</Styled.PageTitle>
                 <Styled.Filtros>
                     <Styled.Busca
                         type="text"
