@@ -5,11 +5,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const motivos = [
-  { value: "falta de beneficiarios minimos", label: "Falta de beneficiários mínimos" },
-  { value: "ausencia de tutor/funcionario responsavel", label: "Ausência de tutor/funcionário responsável" },
+  {
+    value: "falta de beneficiarios minimos",
+    label: "Falta de beneficiários mínimos",
+  },
+  {
+    value: "ausencia de tutor/funcionario responsavel",
+    label: "Ausência de tutor/funcionário responsável",
+  },
   { value: "indisponibilidade do local", label: "Indisponibilidade do local" },
   { value: "problema climatico", label: "Problema climático" },
-  { value: "falta de materiais/itens necessarios", label: "Falta de materiais/itens necessários" },
+  {
+    value: "falta de materiais/itens necessarios",
+    label: "Falta de materiais/itens necessários",
+  },
   { value: "conflito de agenda", label: "Conflito de agenda" },
   { value: "motivo emergencial/outros", label: "Motivo emergencial/outros" },
 ];
@@ -131,7 +140,9 @@ function buildAlertas(impacto) {
 async function parseResponse(response, fallbackMessage) {
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(json.err || json.Erro || json.erro || json.message || fallbackMessage);
+    throw new Error(
+      json.err || json.Erro || json.erro || json.message || fallbackMessage,
+    );
   }
   return json;
 }
@@ -322,7 +333,9 @@ function EncontrosView() {
   async function handleExcluirEncontro(event, encontro) {
     event.stopPropagation();
 
-    const confirmar = window.confirm(`Deseja excluir o encontro #${encontro.id} em ${encontro.local}?`);
+    const confirmar = window.confirm(
+      `Deseja excluir o encontro #${encontro.id} em ${encontro.local}?`,
+    );
     if (!confirmar) {
       return;
     }
@@ -851,7 +864,9 @@ function EncontrosView() {
                 <strong>Motivo:</strong>
                 <div>
                   {selectedHistorico.motivoCancelamento
-                    ? getMotivoCancelamentoLabel(selectedHistorico.motivoCancelamento)
+                    ? getMotivoCancelamentoLabel(
+                        selectedHistorico.motivoCancelamento,
+                      )
                     : "Não informado"}
                 </div>
               </div>
@@ -933,102 +948,121 @@ function EncontrosView() {
               </tr>
             </thead>
             <tbody>
-              {encontros.map((encontro) => (
-                <tr key={encontro.id} onClick={() => handleRowClick(encontro)}>
-                  <td>{encontro.id}</td>
-                  <td>{encontro.local}</td>
-                  <td>{formatDate(encontro.data)}</td>
-                  <td>
-                    {formatTime(encontro.hora)}
-                    {encontro.horaFim
-                      ? ` - ${formatTime(encontro.horaFim)}`
-                      : ""}
-                  </td>
-                  {activeView === views.cancelados ? (
-                    <>
-                      <td>{formatDate(encontro.dataCancelamento, true)}</td>
-                      <td>
-                        {encontro.motivoCancelamento
-                          ? getMotivoCancelamentoLabel(encontro.motivoCancelamento)
-                          : "-"}
-                      </td>
-                      <td>
-                        {getAcaoCancelamentoLabel(encontro.acaoCancelamento)}
-                      </td>
-                      <td>
-                        <Styled.TableSecondaryButton
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedHistorico(encontro);
-                          }}>
-                          Ver histórico
-                        </Styled.TableSecondaryButton>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{encontro.qtdeMax}</td>
-                      <td>{encontro.qtde}</td>
-                      <td>
-                        {getDisponibilidadeLabel(encontro.disponibilidade)}
-                      </td>
-                      {activeView === views.encontros && (
+              {encontros
+                .filter((encontro) => {
+                  if (
+                    activeView === views.finalizar &&
+                    encontro.disponibilidade === "F"
+                  ) {
+                    return false;
+                  }
+
+                  return true;
+                })
+                .map((encontro) => (
+                  <tr
+                    key={encontro.id}
+                    onClick={() => handleRowClick(encontro)}>
+                    <td>{encontro.id}</td>
+                    <td>{encontro.local}</td>
+                    <td>{formatDate(encontro.data)}</td>
+                    <td>
+                      {formatTime(encontro.hora)}
+                      {encontro.horaFim
+                        ? ` - ${formatTime(encontro.horaFim)}`
+                        : ""}
+                    </td>
+                    {activeView === views.cancelados ? (
+                      <>
+                        <td>{formatDate(encontro.dataCancelamento, true)}</td>
                         <td>
-                          <Styled.TableActionGroup>
-                            <Styled.TableSelectButton
-                              type="button"
-                              onClick={(event) => handleEditarEncontro(event, encontro)}>
-                              Editar
-                            </Styled.TableSelectButton>
+                          {encontro.motivoCancelamento
+                            ? getMotivoCancelamentoLabel(
+                                encontro.motivoCancelamento,
+                              )
+                            : "-"}
+                        </td>
+                        <td>
+                          {getAcaoCancelamentoLabel(encontro.acaoCancelamento)}
+                        </td>
+                        <td>
+                          <Styled.TableSecondaryButton
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedHistorico(encontro);
+                            }}>
+                            Ver histórico
+                          </Styled.TableSecondaryButton>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{encontro.qtdeMax}</td>
+                        <td>{encontro.qtde}</td>
+                        <td>
+                          {getDisponibilidadeLabel(encontro.disponibilidade)}
+                        </td>
+                        {activeView === views.encontros && (
+                          <td>
+                            <Styled.TableActionGroup>
+                              <Styled.TableSelectButton
+                                type="button"
+                                onClick={(event) =>
+                                  handleEditarEncontro(event, encontro)
+                                }>
+                                Editar
+                              </Styled.TableSelectButton>
+                              <Styled.TableCancelButton
+                                type="button"
+                                onClick={(event) =>
+                                  handleExcluirEncontro(event, encontro)
+                                }>
+                                Excluir
+                              </Styled.TableCancelButton>
+                            </Styled.TableActionGroup>
+                          </td>
+                        )}
+                        {activeView === views.cancelar && (
+                          <td>
                             <Styled.TableCancelButton
                               type="button"
-                              onClick={(event) => handleExcluirEncontro(event, encontro)}>
-                              Excluir
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenCancelar(encontro);
+                              }}>
+                              Cancelar
                             </Styled.TableCancelButton>
-                          </Styled.TableActionGroup>
-                        </td>
-                      )}
-                      {activeView === views.cancelar && (
-                        <td>
-                          <Styled.TableCancelButton
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleOpenCancelar(encontro);
-                            }}>
-                            Cancelar
-                          </Styled.TableCancelButton>
-                        </td>
-                      )}
-                      {activeView === views.substituir && (
-                        <td>
-                          <Styled.TableSelectButton
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleOpenSubstituir(encontro);
-                            }}>
-                            Selecionar
-                          </Styled.TableSelectButton>
-                        </td>
-                      )}
-                      {activeView === views.finalizar && (
-                        <td>
-                          <Styled.TableSelectButton
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleFinalizar(encontro);
-                            }}>
-                            Finalizar
-                          </Styled.TableSelectButton>
-                        </td>
-                      )}
-                    </>
-                  )}
-                </tr>
-              ))}
+                          </td>
+                        )}
+                        {activeView === views.substituir && (
+                          <td>
+                            <Styled.TableSelectButton
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenSubstituir(encontro);
+                              }}>
+                              Selecionar
+                            </Styled.TableSelectButton>
+                          </td>
+                        )}
+                        {activeView === views.finalizar && (
+                          <td>
+                            <Styled.TableSelectButton
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleFinalizar(encontro);
+                              }}>
+                              Finalizar
+                            </Styled.TableSelectButton>
+                          </td>
+                        )}
+                      </>
+                    )}
+                  </tr>
+                ))}
             </tbody>
           </Styled.Table>
         )}
