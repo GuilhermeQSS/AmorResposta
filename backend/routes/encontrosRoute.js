@@ -11,11 +11,14 @@ router.get("/impacto", EncontroController.impacto);
 router.get("/responsaveis", EncontroController.listarResponsaveis);
 router.get("/materiais", EncontroController.listarMateriais);
 router.get("/substitutos", EncontroController.listarSubstitutos);
+router.get("/modificacoes-tutores", EncontroController.listarModificacoesTutores);
 router.get("/funcionarios-disponiveis", EncontroController.listarFuncionariosDisponiveis);
 router.post("/gravar",EncontroController.cadastrar);
 router.post("/cancelar",autenticarAdminOuVoluntario, EncontroController.cancelar);
 router.post("/finalizar", EncontroController.finalizar);
 router.post("/substituir-tutor", EncontroController.substituirTutor);
+router.post("/adicionar-tutor", EncontroController.adicionarTutor);
+router.delete("/remover-tutor", EncontroController.removerTutor);
 router.put("/alterar", EncontroController.alterar);
 router.delete("/excluir", EncontroController.excluir);
 router.post("/cadastrar-beneficiario",autenticarBeneficiario,EncontroControl.cadastrarBeneficiario);//

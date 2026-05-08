@@ -27,6 +27,11 @@ class EncontroController {
         req.query.status,
         req.query.dataInicial,
         req.query.dataFinal,
+        {
+          data: req.query.data,
+          local: req.query.local,
+          disponibilidade: req.query.disponibilidade,
+        },
       );
       return res.status(200).json(resp);
     } catch (err) {
@@ -188,10 +193,22 @@ class EncontroController {
     }
   }
 
+  static async listarModificacoesTutores(req, res) {
+    try {
+      const connection = await SingletonDB.getConnection();
+      const resp = await Encontro.listarModificacoesTutores(connection);
+      return res.status(200).json(resp);
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ err: "Aconteceu um erro na hora de listar modificacoes" });
+    }
+  }
+
   static async substituirTutor(req, res) {
     try {
       const connection = await SingletonDB.getConnection();
-      const { encId, funIdAtual, funIdNovo } = req.body;
+      const { encId, funIdAtual, funIdNovo, justificativa } = req.body;
       if (!encId || !funIdAtual || !funIdNovo) {
         return res
           .status(400)
@@ -200,17 +217,78 @@ class EncontroController {
           });
       }
 
+      if (!String(justificativa || "").trim()) {
+        return res.status(400).json({ err: "Justificativa obrigatoria" });
+      }
+
       const resp = await Encontro.substituirTutor(
         connection,
         encId,
         funIdAtual,
         funIdNovo,
+        justificativa,
       );
       return res.status(200).json(resp);
     } catch (err) {
       return res
         .status(err.status || 500)
         .json({ err: err.message || "Erro ao substituir tutor" });
+    }
+  }
+
+  static async adicionarTutor(req, res) {
+    try {
+      const connection = await SingletonDB.getConnection();
+      const { encId, funId, justificativa } = req.body;
+      if (!encId || !funId) {
+        return res
+          .status(400)
+          .json({ err: "Encontro e tutor sao obrigatorios" });
+      }
+
+      if (!String(justificativa || "").trim()) {
+        return res.status(400).json({ err: "Justificativa obrigatoria" });
+      }
+
+      const resp = await Encontro.adicionarTutor(
+        connection,
+        encId,
+        funId,
+        justificativa,
+      );
+      return res.status(200).json(resp);
+    } catch (err) {
+      return res
+        .status(err.status || 500)
+        .json({ err: err.message || "Erro ao adicionar tutor" });
+    }
+  }
+
+  static async removerTutor(req, res) {
+    try {
+      const connection = await SingletonDB.getConnection();
+      const { encId, funId, justificativa } = req.body;
+      if (!encId || !funId) {
+        return res
+          .status(400)
+          .json({ err: "Encontro e tutor sao obrigatorios" });
+      }
+
+      if (!String(justificativa || "").trim()) {
+        return res.status(400).json({ err: "Justificativa obrigatoria" });
+      }
+
+      const resp = await Encontro.removerTutor(
+        connection,
+        encId,
+        funId,
+        justificativa,
+      );
+      return res.status(200).json(resp);
+    } catch (err) {
+      return res
+        .status(err.status || 500)
+        .json({ err: err.message || "Erro ao remover tutor" });
     }
   }
 

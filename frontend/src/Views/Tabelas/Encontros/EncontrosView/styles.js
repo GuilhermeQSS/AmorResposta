@@ -15,6 +15,7 @@ const Styled = {
     margin: 0 auto;
     display: flex;
     align-items: flex-end;
+    justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
 
@@ -26,8 +27,10 @@ const Styled = {
   DateFilterGroup: styled.div`
     display: flex;
     align-items: flex-end;
+    justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
+    flex: 1 1 100%;
 
     label {
       display: flex;
@@ -45,6 +48,14 @@ const Styled = {
       font-size: 14px;
     }
 
+    select {
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 14px;
+    }
+
     button {
       padding: 10px 12px;
       border: none;
@@ -59,10 +70,10 @@ const Styled = {
     width: 90%;
     margin: 30px auto 20px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 20px;
-    flex-wrap: wrap;
   `,
 
   PageTitle: styled.h1`
@@ -85,8 +96,10 @@ const Styled = {
 
   EncontroOptions: styled.div`
     display: flex;
+    justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
+    width: 100%;
 
     button {
       padding: 10px 16px;
@@ -431,7 +444,13 @@ const Styled = {
       transition: 0.2s;
     }
 
-    button:first-child {
+    button.active {
+      background: #1565c0;
+      color: white;
+    }
+
+    button.danger,
+    button:first-child:not(.active):not(.secondary) {
       background: #d32f2f;
       color: white;
     }
@@ -479,6 +498,79 @@ const Styled = {
     }
   `,
 
+  MiniFilter: styled.div`
+    max-width: 360px;
+    margin: 12px 0 4px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+  `,
+
+  JustificationBox: styled.div`
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    textarea {
+      min-height: 88px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      resize: vertical;
+    }
+  `,
+
+  JustificationActions: styled.div`
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+
+    button {
+      padding: 9px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #d32f2f;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    button.success {
+      background: #2e7d32;
+      color: #fff;
+    }
+  `,
+
   MiniTable: styled.table`
     width: 100%;
     margin-top: 14px;
@@ -510,10 +602,18 @@ const Styled = {
     }
 
     tbody tr.selected {
-      background: #e0f2fe;
+      background: #bbd9ff;
     }
 
     tbody tr.selected td {
+      font-weight: 600;
+    }
+
+    tbody tr.selected-neutral {
+      background: #bbd9ff;
+    }
+
+    tbody tr.selected-neutral td {
       font-weight: 600;
     }
   `,
@@ -522,7 +622,27 @@ const Styled = {
     padding: 8px 14px;
     border: none;
     border-radius: 8px;
-    background: #2563eb;
+    background: #1976d2;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    &.neutral {
+      background: #dae9f1;
+      color: #222;
+    }
+  `,
+
+  DeleteButton: styled.button`
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #d32f2f;
     color: #fff;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.2s;

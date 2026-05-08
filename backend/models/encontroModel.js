@@ -101,7 +101,14 @@ class Encontro {
     );
   }
 
-  static async listar(connectionRef, filtro, status = "ativos", dataInicial = null, dataFinal = null) {
+  static async listar(
+    connectionRef,
+    filtro,
+    status = "ativos",
+    dataInicial = null,
+    dataFinal = null,
+    filtrosEspecificos = {},
+  ) {
     let queryString = `
       select
         e.*,
@@ -134,6 +141,22 @@ class Encontro {
     } else if (dataFinal) {
       queryString += " and e.enc_data <= ?";
       params.push(dataFinal);
+    }
+
+    if (filtrosEspecificos.data) {
+      queryString += " and e.enc_data = ?";
+      params.push(filtrosEspecificos.data);
+    }
+
+    const localFiltro = String(filtrosEspecificos.local || "").trim();
+    if (localFiltro) {
+      queryString += " and e.enc_local like ?";
+      params.push(`%${localFiltro}%`);
+    }
+
+    if (["A", "E", "F", "C"].includes(filtrosEspecificos.disponibilidade)) {
+      queryString += " and e.enc_disponibilidade = ?";
+      params.push(filtrosEspecificos.disponibilidade);
     }
 
     queryString +=
@@ -718,11 +741,82 @@ class Encontro {
     );
   }
 
+  static async garantirTabelaModificacoesTutores(connectionRef) {
+    await connectionRef.query(`
+      create table if not exists tutoresModificacoes (
+        mod_id int not null auto_increment,
+        enc_id int not null,
+        fun_id int not null,
+        fun_anterior_id int null,
+        mod_acao varchar(20) not null,
+        mod_justificativa text not null,
+        mod_data datetime not null default current_timestamp,
+        primary key (mod_id)
+      )
+    `);
+  }
+
+  static async registrarModificacaoTutor(
+    connectionRef,
+    idEncontro,
+    idFuncionario,
+    acao,
+    justificativa,
+    idFuncionarioAnterior = null,
+  ) {
+    await Encontro.garantirTabelaModificacoesTutores(connectionRef);
+    await connectionRef.query(
+      `
+        insert into tutoresModificacoes (
+          enc_id,
+          fun_id,
+          fun_anterior_id,
+          mod_acao,
+          mod_justificativa,
+          mod_data
+        ) values (?, ?, ?, ?, ?, now())
+      `,
+      [
+        idEncontro,
+        idFuncionario,
+        idFuncionarioAnterior,
+        acao,
+        String(justificativa || "").trim(),
+      ],
+    );
+  }
+
+  static async listarModificacoesTutores(connectionRef) {
+    await Encontro.garantirTabelaModificacoesTutores(connectionRef);
+
+    const [rows] = await connectionRef.query(`
+      select
+        m.mod_id as id,
+        m.enc_id as encontroId,
+        m.mod_acao as acao,
+        m.mod_data as dataModificacao,
+        m.mod_justificativa as justificativa,
+        f.fun_id as funcionarioId,
+        f.fun_nome as nome,
+        f.fun_usuario as usuario,
+        fa.fun_id as funcionarioAnteriorId,
+        fa.fun_nome as funcionarioAnteriorNome,
+        fa.fun_usuario as funcionarioAnteriorUsuario
+      from tutoresModificacoes m
+      inner join funcionarios f on f.fun_id = m.fun_id
+      left join funcionarios fa on fa.fun_id = m.fun_anterior_id
+      order by m.mod_data desc, m.mod_id desc
+    `);
+
+    return rows;
+  }
+
   static async substituirTutor(
     connectionRef,
     idEncontro,
     idFuncionarioAtual,
     idFuncionarioNovo,
+    justificativa,
   ) {
     const encontro = await Encontro.buscarPorId(connectionRef, idEncontro);
     if (!encontro) {
@@ -814,10 +908,182 @@ class Encontro {
       });
     }
 
+    await Encontro.registrarModificacaoTutor(
+      connectionRef,
+      idEncontro,
+      idFuncionarioNovo,
+      "substituido",
+      justificativa,
+      idFuncionarioAtual,
+    );
+
     return {
       encontroId: Number(idEncontro),
       tutorAnteriorId: Number(idFuncionarioAtual),
       tutorNovoId: Number(idFuncionarioNovo),
+    };
+  }
+
+  static async adicionarTutor(
+    connectionRef,
+    idEncontro,
+    idFuncionario,
+    justificativa,
+  ) {
+    const encontro = await Encontro.buscarPorId(connectionRef, idEncontro);
+    if (!encontro) {
+      throw Object.assign(new Error("Encontro nao encontrado"), {
+        status: 404,
+      });
+    }
+
+    if (encontro.cancelado === "S") {
+      throw Object.assign(
+        new Error("Nao e possivel adicionar tutor em encontro cancelado"),
+        { status: 400 },
+      );
+    }
+
+    const [[funcionario]] = await connectionRef.query(
+      `select * from funcionarios where fun_id = ?`,
+      [idFuncionario],
+    );
+
+    if (!funcionario) {
+      throw Object.assign(new Error("Funcionario nao encontrado"), {
+        status: 404,
+      });
+    }
+
+    const [[jaResponsavel]] = await connectionRef.query(
+      `select * from responsaveis where enc_id = ? and fun_id = ?`,
+      [idEncontro, idFuncionario],
+    );
+
+    if (jaResponsavel) {
+      throw Object.assign(
+        new Error("Funcionario ja esta vinculado a este encontro"),
+        { status: 400 },
+      );
+    }
+
+    const [[conflito]] = await connectionRef.query(
+      `
+                select outro.enc_id, outro.enc_local, outro.enc_data
+                from responsaveis conflito
+                inner join encontros outro on outro.enc_id = conflito.enc_id
+                inner join encontros atual on atual.enc_id = ?
+                where conflito.fun_id = ?
+                  and conflito.enc_id <> atual.enc_id
+                  and outro.enc_cancelado = 'N'
+                  and outro.enc_data = atual.enc_data
+                  and outro.enc_hora < coalesce(atual.enc_hora_fim, atual.enc_hora)
+                  and coalesce(outro.enc_hora_fim, outro.enc_hora) > atual.enc_hora
+                limit 1
+            `,
+      [idEncontro, idFuncionario],
+    );
+
+    if (conflito) {
+      throw Object.assign(
+        new Error(
+          `Funcionario ja esta vinculado ao encontro ${conflito.enc_id} na mesma data`,
+        ),
+        { status: 400 },
+      );
+    }
+
+    const [resultado] = await connectionRef.query(
+      `insert into responsaveis (fun_id, enc_id, participou) values (?, ?, null)`,
+      [idFuncionario, idEncontro],
+    );
+
+    if (!resultado.affectedRows) {
+      throw Object.assign(new Error("Nao foi possivel adicionar o tutor"), {
+        status: 400,
+      });
+    }
+
+    await Encontro.registrarModificacaoTutor(
+      connectionRef,
+      idEncontro,
+      idFuncionario,
+      "adicionado",
+      justificativa,
+    );
+
+    return {
+      encontroId: Number(idEncontro),
+      tutorAdicionadoId: Number(idFuncionario),
+    };
+  }
+
+  static async removerTutor(
+    connectionRef,
+    idEncontro,
+    idFuncionario,
+    justificativa,
+  ) {
+    const encontro = await Encontro.buscarPorId(connectionRef, idEncontro);
+    if (!encontro) {
+      throw Object.assign(new Error("Encontro nao encontrado"), {
+        status: 404,
+      });
+    }
+
+    if (encontro.cancelado === "S") {
+      throw Object.assign(
+        new Error("Nao e possivel remover tutor de encontro cancelado"),
+        { status: 400 },
+      );
+    }
+
+    const [[responsavel]] = await connectionRef.query(
+      `select * from responsaveis where enc_id = ? and fun_id = ?`,
+      [idEncontro, idFuncionario],
+    );
+
+    if (!responsavel) {
+      throw Object.assign(
+        new Error("Funcionario nao esta vinculado a este encontro"),
+        { status: 404 },
+      );
+    }
+
+    const [[{ total }]] = await connectionRef.query(
+      `select count(*) as total from responsaveis where enc_id = ?`,
+      [idEncontro],
+    );
+
+    if (Number(total) <= 1) {
+      throw Object.assign(
+        new Error("O encontro precisa manter pelo menos um tutor"),
+        { status: 400 },
+      );
+    }
+
+    const [resultado] = await connectionRef.query(
+      `delete from responsaveis where enc_id = ? and fun_id = ?`,
+      [idEncontro, idFuncionario],
+    );
+
+    if (!resultado.affectedRows) {
+      throw Object.assign(new Error("Nao foi possivel remover o tutor"), {
+        status: 400,
+      });
+    }
+
+    await Encontro.registrarModificacaoTutor(
+      connectionRef,
+      idEncontro,
+      idFuncionario,
+      "excluido",
+      justificativa,
+    );
+
+    return {
+      encontroId: Number(idEncontro),
+      tutorRemovidoId: Number(idFuncionario),
     };
   }
 

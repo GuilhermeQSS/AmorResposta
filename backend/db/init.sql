@@ -178,6 +178,17 @@ CREATE TABLE IF NOT EXISTS `responsaveis` (
   PRIMARY KEY (`fun_id`, `enc_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `tutoresModificacoes` (
+  `mod_id` INT NOT NULL AUTO_INCREMENT,
+  `enc_id` INT NOT NULL,
+  `fun_id` INT NOT NULL,
+  `fun_anterior_id` INT NULL,
+  `mod_acao` VARCHAR(20) NOT NULL,
+  `mod_justificativa` TEXT NOT NULL,
+  `mod_data` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`mod_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `materiais` (
   `enc_id` INT NOT NULL,
   `item_id` INT NOT NULL,

@@ -19,8 +19,17 @@ const views = {
   cancelar: "cancelar",
   substituir: "substituir",
   cancelados: "cancelados",
+  tutoresModificados: "tutoresModificados",
   finalizar: "finalizar",
 };
+
+const disponibilidades = [
+  { value: "", label: "Todas" },
+  { value: "A", label: "Ativo" },
+  { value: "E", label: "Em andamento" },
+  { value: "F", label: "Finalizado" },
+  { value: "C", label: "Cancelado" },
+];
 
 const API_URL = "http://localhost:3000/api/encontros";
 const ITENS_API_URL = "http://localhost:3000/itens";
@@ -89,6 +98,13 @@ function getAcaoCancelamentoLabel(value) {
   return "Cancelar sem reposição";
 }
 
+function getAcaoTutorLabel(value) {
+  if (value === "excluido") return "excluido";
+  if (value === "substituido") return "substituido";
+  if (value === "adicionado") return "adicionado";
+  return value || "-";
+}
+
 function getMotivoCancelamentoLabel(value) {
   return motivos.find((motivo) => motivo.value === value)?.label || value;
 }
@@ -140,10 +156,28 @@ function buildAlertas(impacto) {
 }
 
 async function parseResponse(response, fallbackMessage) {
-  const json = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(json.err || json.Erro || json.erro || json.message || fallbackMessage);
+  const text = await response.text();
+  let json = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = {};
+    }
   }
+
+  if (!response.ok) {
+    throw new Error(
+      json.err ||
+        json.Erro ||
+        json.erro ||
+        json.message ||
+        text ||
+        `${fallbackMessage} HTTP ${response.status}`,
+    );
+  }
+
   return json;
 }
 
@@ -152,9 +186,16 @@ function EncontrosView() {
   const [filtro, setFiltro] = useState("");
   const [dataInicial, setDataInicial] = useState("");
   const [dataFinal, setDataFinal] = useState("");
+  const [filtrosSubstituir, setFiltrosSubstituir] = useState({
+    data: "",
+    local: "",
+    disponibilidade: "",
+  });
   const [activeView, setActiveView] = useState(views.encontros);
   const [selectedEncontro, setSelectedEncontro] = useState(null);
   const [selectedHistorico, setSelectedHistorico] = useState(null);
+  const [historicoTutores, setHistoricoTutores] = useState([]);
+  const [selectedHistoricoTutor, setSelectedHistoricoTutor] = useState(null);
   const [impacto, setImpacto] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelDetails, setCancelDetails] = useState("");
@@ -180,10 +221,27 @@ function EncontrosView() {
   const [responsaveis, setResponsaveis] = useState([]);
   const [responsavelSelecionado, setResponsavelSelecionado] = useState(null);
   const [substitutos, setSubstitutos] = useState([]);
+  const [substituicaoModo, setSubstituicaoModo] = useState(null);
+  const [filtroFuncionariosDisponiveis, setFiltroFuncionariosDisponiveis] =
+    useState("");
+  const [acaoJustificativaTutor, setAcaoJustificativaTutor] = useState(null);
+  const [justificativaTutor, setJustificativaTutor] = useState("");
+  const [funcionarioExclusaoPendente, setFuncionarioExclusaoPendente] =
+    useState(null);
+  const [funcionarioAdicaoSelecionado, setFuncionarioAdicaoSelecionado] =
+    useState(null);
+  const [funcionarioSubstitutoSelecionado, setFuncionarioSubstitutoSelecionado] =
+    useState(null);
   const [substituicaoError, setSubstituicaoError] = useState(null);
   const navigate = useNavigate();
 
-  async function fetchEncontroLista(filtroAtual, status = "ativos", dataInicialAtual = "", dataFinalAtual = "") {
+  async function fetchEncontroLista(
+    filtroAtual,
+    status = "ativos",
+    dataInicialAtual = "",
+    dataFinalAtual = "",
+    filtrosEspecificos = {},
+  ) {
     const params = new URLSearchParams({
       status,
       filtro: filtroAtual || "",
@@ -195,6 +253,18 @@ function EncontrosView() {
 
     if (dataFinalAtual) {
       params.set("dataFinal", dataFinalAtual);
+    }
+
+    if (filtrosEspecificos.data) {
+      params.set("data", filtrosEspecificos.data);
+    }
+
+    if (filtrosEspecificos.local) {
+      params.set("local", filtrosEspecificos.local);
+    }
+
+    if (filtrosEspecificos.disponibilidade) {
+      params.set("disponibilidade", filtrosEspecificos.disponibilidade);
     }
 
     const response = await fetch(
@@ -279,16 +349,74 @@ function EncontrosView() {
     return parseResponse(response, "Erro ao carregar substitutos.");
   }
 
-  async function carregarLista(filtroAtual, viewAtual, dataInicialAtual = "", dataFinalAtual = "") {
+  async function fetchFuncionariosDisponiveisParaEncontro(encontro) {
+    return fetchFuncionariosDisponiveisReagendamento(
+      getDateInputValue(encontro.data),
+      formatTime(encontro.hora),
+      formatTime(encontro.horaFim || encontro.hora),
+      encontro.id,
+    );
+  }
+
+  async function fetchModificacoesTutores() {
+    const response = await fetch(`${API_URL}/modificacoes-tutores`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    return parseResponse(response, "Erro ao carregar modificacoes de tutores.");
+  }
+
+  function limparJustificativaTutor() {
+    setAcaoJustificativaTutor(null);
+    setJustificativaTutor("");
+    setFuncionarioExclusaoPendente(null);
+    setFuncionarioAdicaoSelecionado(null);
+    setFuncionarioSubstitutoSelecionado(null);
+  }
+
+  function getMensagemJustificativaTutor(acao) {
+    if (acao === "substituicao") return "Explique o porque da substituição";
+    if (acao === "adicao") return "Explique o porque da adição";
+    if (acao === "exclusao") return "Explique o porque da exclusão";
+    return "";
+  }
+
+  function validarJustificativaTutor() {
+    if (justificativaTutor.trim()) {
+      return true;
+    }
+
+    setSubstituicaoError("Informe a justificativa antes de enviar.");
+    return false;
+  }
+
+  async function carregarLista(
+    filtroAtual,
+    viewAtual,
+    dataInicialAtual = "",
+    dataFinalAtual = "",
+    filtrosEspecificos = {},
+  ) {
     try {
       setListError(null);
+      if (viewAtual === views.tutoresModificados) {
+        const info = await fetchModificacoesTutores();
+        setHistoricoTutores(Array.isArray(info) ? info : []);
+        setEncontros([]);
+        return;
+      }
+
+      setHistoricoTutores([]);
       const status = viewAtual === views.cancelados ? "cancelados" : "ativos";
       const usarPeriodo = viewAtual === views.cancelar;
+      const usarFiltrosSubstituir = viewAtual === views.substituir;
       const info = await fetchEncontroLista(
-        filtroAtual,
+        usarFiltrosSubstituir ? "" : filtroAtual,
         status,
         usarPeriodo ? dataInicialAtual : "",
         usarPeriodo ? dataFinalAtual : "",
+        usarFiltrosSubstituir ? filtrosEspecificos : {},
       );
       setEncontros(info);
     } catch (error) {
@@ -344,6 +472,9 @@ function EncontrosView() {
       setResponsaveis(listaResponsaveis);
       setResponsavelSelecionado(null);
       setSubstitutos([]);
+      setSubstituicaoModo(null);
+      setFiltroFuncionariosDisponiveis("");
+      limparJustificativaTutor();
       setSubstituicaoError(null);
     } catch (error) {
       setSubstituicaoError(error.message);
@@ -363,19 +494,73 @@ function EncontrosView() {
 
       setResponsavelSelecionado(funcionario);
       setSubstitutos(listaSubstitutos);
+      setSubstituicaoModo("substituir");
+      setFiltroFuncionariosDisponiveis("");
+      setAcaoJustificativaTutor("substituicao");
+      setJustificativaTutor("");
+      setFuncionarioExclusaoPendente(null);
+      setFuncionarioAdicaoSelecionado(null);
+      setFuncionarioSubstitutoSelecionado(null);
       setSubstituicaoError(null);
     } catch (error) {
       setSubstituicaoError(error.message);
     }
   }
 
-  async function handleConfirmarSubstituicao(substituto) {
-    if (!selectedEncontroSubstituicao || !responsavelSelecionado) {
+  async function handleOpenAdicionarTutor() {
+    if (!selectedEncontroSubstituicao) {
+      return;
+    }
+
+    try {
+      const funcionarios = await fetchFuncionariosDisponiveisParaEncontro(
+        selectedEncontroSubstituicao,
+      );
+      const responsaveisIds = new Set(
+        responsaveis.map((funcionario) => Number(funcionario.id)),
+      );
+      const funcionariosParaAdicionar = Array.isArray(funcionarios)
+        ? funcionarios.filter(
+            (funcionario) => !responsaveisIds.has(Number(funcionario.id)),
+          )
+        : [];
+
+      setResponsavelSelecionado(null);
+      setSubstitutos(funcionariosParaAdicionar);
+      setSubstituicaoModo("adicionar");
+      setFiltroFuncionariosDisponiveis("");
+      setAcaoJustificativaTutor("adicao");
+      setJustificativaTutor("");
+      setFuncionarioExclusaoPendente(null);
+      setFuncionarioAdicaoSelecionado(null);
+      setFuncionarioSubstitutoSelecionado(null);
+      setSubstituicaoError(null);
+    } catch (error) {
+      setSubstituicaoError(error.message);
+    }
+  }
+
+  function handleSelecionarSubstituto(funcionario) {
+    setFuncionarioSubstitutoSelecionado(funcionario);
+    setSubstituicaoError(null);
+  }
+
+  async function handleConfirmarSubstituicao() {
+    if (
+      !selectedEncontroSubstituicao ||
+      !responsavelSelecionado ||
+      !funcionarioSubstitutoSelecionado
+    ) {
+      setSubstituicaoError("Selecione um funcionario para substituir.");
+      return;
+    }
+
+    if (!validarJustificativaTutor()) {
       return;
     }
 
     const confirmar = confirm(
-      `Substituir ${responsavelSelecionado.nome} por ${substituto.nome} neste encontro?`,
+      `Substituir ${responsavelSelecionado.nome} por ${funcionarioSubstitutoSelecionado.nome} neste encontro?`,
     );
     if (!confirmar) {
       return;
@@ -390,7 +575,8 @@ function EncontrosView() {
         body: JSON.stringify({
           encId: selectedEncontroSubstituicao.id,
           funIdAtual: responsavelSelecionado.id,
-          funIdNovo: substituto.id,
+          funIdNovo: funcionarioSubstitutoSelecionado.id,
+          justificativa: justificativaTutor.trim(),
         }),
       });
 
@@ -403,11 +589,141 @@ function EncontrosView() {
       setResponsaveis(listaResponsaveis);
       setResponsavelSelecionado(null);
       setSubstitutos([]);
+      setSubstituicaoModo(null);
+      setFiltroFuncionariosDisponiveis("");
+      limparJustificativaTutor();
       setSubstituicaoError(null);
     } catch (error) {
       setSubstituicaoError(
         error.message || "Erro de rede ao substituir tutor.",
       );
+    }
+  }
+
+  function handleSelecionarAdicaoTutor(funcionario) {
+    setFuncionarioAdicaoSelecionado(funcionario);
+    setSubstituicaoError(null);
+  }
+
+  async function handleConfirmarAdicaoTutor() {
+    if (!selectedEncontroSubstituicao || !funcionarioAdicaoSelecionado) {
+      setSubstituicaoError("Selecione um funcionario para adicionar.");
+      return;
+    }
+
+    if (!validarJustificativaTutor()) {
+      return;
+    }
+
+    const confirmar = confirm(
+      `Adicionar ${funcionarioAdicaoSelecionado.nome} como tutor neste encontro?`,
+    );
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/adicionar-tutor`, {
+        method: "POST",
+        headers: getAuthHeaders({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          encId: selectedEncontroSubstituicao.id,
+          funId: funcionarioAdicaoSelecionado.id,
+          justificativa: justificativaTutor.trim(),
+        }),
+      });
+
+      await parseResponse(response, "Não foi possível adicionar o tutor.");
+      alert("Tutor adicionado com sucesso.");
+
+      const listaResponsaveis = await fetchResponsaveis(
+        selectedEncontroSubstituicao.id,
+      );
+      setResponsaveis(listaResponsaveis);
+      setSubstitutos((lista) =>
+        lista.filter(
+          (item) =>
+            Number(item.id) !== Number(funcionarioAdicaoSelecionado.id),
+        ),
+      );
+      setSubstituicaoModo("adicionar");
+      setFuncionarioAdicaoSelecionado(null);
+      setJustificativaTutor("");
+      setSubstituicaoError(null);
+    } catch (error) {
+      setSubstituicaoError(error.message || "Erro de rede ao adicionar tutor.");
+    }
+  }
+
+  function handleSolicitarRemocaoTutor(event, funcionario) {
+    event.stopPropagation();
+
+    if (!selectedEncontroSubstituicao) {
+      return;
+    }
+
+    setFuncionarioExclusaoPendente(funcionario);
+    setResponsavelSelecionado(null);
+    setSubstitutos([]);
+    setSubstituicaoModo(null);
+    setFiltroFuncionariosDisponiveis("");
+    setFuncionarioAdicaoSelecionado(null);
+    setFuncionarioSubstitutoSelecionado(null);
+    setAcaoJustificativaTutor("exclusao");
+    setJustificativaTutor("");
+    setSubstituicaoError(null);
+  }
+
+  async function handleConfirmarRemocaoTutor() {
+    if (!selectedEncontroSubstituicao || !funcionarioExclusaoPendente) {
+      return;
+    }
+
+    if (!validarJustificativaTutor()) {
+      return;
+    }
+
+    const confirmar = confirm(
+      `Excluir ${funcionarioExclusaoPendente.nome} dos tutores deste encontro?`,
+    );
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/remover-tutor`, {
+        method: "DELETE",
+        headers: getAuthHeaders({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          encId: selectedEncontroSubstituicao.id,
+          funId: funcionarioExclusaoPendente.id,
+          justificativa: justificativaTutor.trim(),
+        }),
+      });
+
+      await parseResponse(response, "Nao foi possivel remover o tutor.");
+      alert("Tutor removido com sucesso.");
+
+      const listaResponsaveis = await fetchResponsaveis(
+        selectedEncontroSubstituicao.id,
+      );
+      setResponsaveis(listaResponsaveis);
+
+      if (responsavelSelecionado?.id === funcionarioExclusaoPendente.id) {
+        setResponsavelSelecionado(null);
+        setSubstitutos([]);
+        setSubstituicaoModo(null);
+        setFiltroFuncionariosDisponiveis("");
+      }
+
+      limparJustificativaTutor();
+      setSubstituicaoError(null);
+    } catch (error) {
+      setSubstituicaoError(error.message || "Erro de rede ao remover tutor.");
     }
   }
 
@@ -558,6 +874,9 @@ function EncontrosView() {
     setResponsaveis([]);
     setResponsavelSelecionado(null);
     setSubstitutos([]);
+    setSubstituicaoModo(null);
+    setFiltroFuncionariosDisponiveis("");
+    limparJustificativaTutor();
     setSubstituicaoError(null);
   }
 
@@ -565,6 +884,7 @@ function EncontrosView() {
     setActiveView(nextView);
     setSelectedEncontro(null);
     setSelectedHistorico(null);
+    setSelectedHistoricoTutor(null);
     setImpacto(null);
     setCancelError(null);
     setFuncionariosReagendamento([]);
@@ -575,10 +895,18 @@ function EncontrosView() {
     setResponsaveis([]);
     setResponsavelSelecionado(null);
     setSubstitutos([]);
+    setSubstituicaoModo(null);
+    setFiltroFuncionariosDisponiveis("");
+    limparJustificativaTutor();
     setSubstituicaoError(null);
     setFiltro("");
     setDataInicial("");
     setDataFinal("");
+    setFiltrosSubstituir({
+      data: "",
+      local: "",
+      disponibilidade: "",
+    });
   }
 
   function handleRowClick(encontro) {
@@ -620,9 +948,36 @@ function EncontrosView() {
     }
   }
 
+  function handleChangeFiltroSubstituir(campo, valor) {
+    setFiltrosSubstituir((filtrosAtuais) => ({
+      ...filtrosAtuais,
+      [campo]: valor,
+    }));
+  }
+
+  function limparFiltrosSubstituir() {
+    setFiltrosSubstituir({
+      data: "",
+      local: "",
+      disponibilidade: "",
+    });
+  }
+
   useEffect(() => {
-    carregarLista(filtro, activeView, dataInicial, dataFinal);
-  }, [filtro, activeView, dataInicial, dataFinal]);
+    carregarLista(filtro, activeView, dataInicial, dataFinal, {
+      data: filtrosSubstituir.data,
+      local: filtrosSubstituir.local.trim(),
+      disponibilidade: filtrosSubstituir.disponibilidade,
+    });
+  }, [
+    filtro,
+    activeView,
+    dataInicial,
+    dataFinal,
+    filtrosSubstituir.data,
+    filtrosSubstituir.local,
+    filtrosSubstituir.disponibilidade,
+  ]);
 
   useEffect(() => {
     const deveCarregar =
@@ -735,6 +1090,209 @@ function EncontrosView() {
     return itensReagendamento.find((item) => Number(item.id) === Number(itemId));
   }
 
+  const encontrosExibidos =
+    activeView === views.substituir
+      ? encontros.filter((encontro) => {
+          const filtroDataOk =
+            !filtrosSubstituir.data ||
+            getDateInputValue(encontro.data) === filtrosSubstituir.data;
+          const filtroLocalOk =
+            !filtrosSubstituir.local.trim() ||
+            String(encontro.local || "")
+              .toLowerCase()
+              .includes(filtrosSubstituir.local.trim().toLowerCase());
+          const filtroDisponibilidadeOk =
+            !filtrosSubstituir.disponibilidade ||
+            encontro.disponibilidade === filtrosSubstituir.disponibilidade;
+
+          return filtroDataOk && filtroLocalOk && filtroDisponibilidadeOk;
+        })
+      : encontros;
+
+  const substitutosExibidos = substitutos.filter((funcionario) => {
+    const termo = filtroFuncionariosDisponiveis.trim().toLowerCase();
+    if (!termo) {
+      return true;
+    }
+
+    return (
+      String(funcionario.nome || "").toLowerCase().includes(termo) ||
+      String(funcionario.usuario || "").toLowerCase().includes(termo)
+    );
+  });
+
+  function renderFiltroListaEncontros() {
+    return (
+      <Styled.FilterBar>
+        {activeView === views.substituir ? (
+          <Styled.DateFilterGroup>
+            <label>
+              Data
+              <input
+                type="date"
+                value={filtrosSubstituir.data}
+                onChange={(e) =>
+                  handleChangeFiltroSubstituir("data", e.target.value)
+                }
+              />
+            </label>
+            <label>
+              Local
+              <input
+                type="text"
+                placeholder="Digite o local"
+                value={filtrosSubstituir.local}
+                onChange={(e) =>
+                  handleChangeFiltroSubstituir("local", e.target.value)
+                }
+              />
+            </label>
+            <label>
+              Disponibilidade
+              <select
+                value={filtrosSubstituir.disponibilidade}
+                onChange={(e) =>
+                  handleChangeFiltroSubstituir(
+                    "disponibilidade",
+                    e.target.value,
+                  )
+                }>
+                {disponibilidades.map((disponibilidade) => (
+                  <option
+                    key={disponibilidade.value}
+                    value={disponibilidade.value}>
+                    {disponibilidade.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {(filtrosSubstituir.data ||
+              filtrosSubstituir.local ||
+              filtrosSubstituir.disponibilidade) && (
+              <button type="button" onClick={limparFiltrosSubstituir}>
+                Limpar
+              </button>
+            )}
+          </Styled.DateFilterGroup>
+        ) : (
+          <Styled.Busca
+            type="text"
+            placeholder={
+              activeView === views.cancelados
+                ? "Buscar por local, id ou motivo..."
+                : "Buscar encontros..."
+            }
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+          />
+        )}
+
+        {activeView === views.cancelar && (
+          <Styled.DateFilterGroup>
+            <label>
+              De
+              <input
+                type="date"
+                value={dataInicial}
+                onChange={(e) => setDataInicial(e.target.value)}
+              />
+            </label>
+            <label>
+              Ate
+              <input
+                type="date"
+                value={dataFinal}
+                onChange={(e) => setDataFinal(e.target.value)}
+              />
+            </label>
+            {(dataInicial || dataFinal) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDataInicial("");
+                  setDataFinal("");
+                }}>
+                Limpar
+              </button>
+            )}
+          </Styled.DateFilterGroup>
+        )}
+      </Styled.FilterBar>
+    );
+  }
+
+  function renderJustificativaTutor(mostrarAcoesExclusao = false) {
+    if (!acaoJustificativaTutor) {
+      return null;
+    }
+
+    return (
+      <Styled.JustificationBox>
+        <label>
+          {getMensagemJustificativaTutor(acaoJustificativaTutor)}
+          <textarea
+            value={justificativaTutor}
+            onChange={(event) => {
+              setJustificativaTutor(event.target.value);
+              if (event.target.value.trim()) {
+                setSubstituicaoError(null);
+              }
+            }}
+          />
+        </label>
+        {acaoJustificativaTutor === "adicao" && (
+          <Styled.JustificationActions>
+            <button
+              type="button"
+              className="success"
+              onClick={handleConfirmarAdicaoTutor}>
+              Confirmar adição
+            </button>
+          </Styled.JustificationActions>
+        )}
+        {acaoJustificativaTutor === "substituicao" && (
+          <Styled.JustificationActions>
+            <button
+              type="button"
+              className="success"
+              onClick={handleConfirmarSubstituicao}>
+              Confirmar substituição
+            </button>
+          </Styled.JustificationActions>
+        )}
+        {acaoJustificativaTutor === "exclusao" && mostrarAcoesExclusao && (
+          <Styled.JustificationActions>
+            <button type="button" onClick={handleConfirmarRemocaoTutor}>
+              Confirmar exclusao
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              onClick={limparJustificativaTutor}>
+              Cancelar
+            </button>
+          </Styled.JustificationActions>
+        )}
+      </Styled.JustificationBox>
+    );
+  }
+
+  function getTituloSubstituicaoTutor() {
+    if (!selectedEncontroSubstituicao) {
+      return "";
+    }
+
+    if (substituicaoModo === "adicionar") {
+      return `Adicionar tutor do encontro #${selectedEncontroSubstituicao.id}`;
+    }
+
+    if (substituicaoModo === "substituir") {
+      return `Substituir tutor do encontro #${selectedEncontroSubstituicao.id}`;
+    }
+
+    return `Substituir/adicionar tutor do encontro #${selectedEncontroSubstituicao.id}`;
+  }
+
   return (
     <>
       <Header />
@@ -766,7 +1324,7 @@ function EncontrosView() {
             type="button"
             className={activeView === views.substituir ? "active" : ""}
             onClick={() => handleChangeView(views.substituir)}>
-            Substituir Tutor
+            Substituir/adicionar Tutores
           </button>
 
           <button
@@ -775,54 +1333,22 @@ function EncontrosView() {
             onClick={() => handleChangeView(views.cancelados)}>
             Encontros Cancelados
           </button>
+
+          <button
+            type="button"
+            className={activeView === views.tutoresModificados ? "active" : ""}
+            onClick={() => handleChangeView(views.tutoresModificados)}>
+            Tutores substituidos/adicionados
+          </button>
         </Styled.EncontroOptions>
       </Styled.PageHeader>
       <main>
-        <Styled.FilterBar>
-          <Styled.Busca
-            type="text"
-            placeholder={
-              activeView === views.cancelados
-                ? "Buscar por local, id ou motivo..."
-                : "Buscar encontros..."
-            }
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-          />
-
-          {activeView === views.cancelar && (
-            <Styled.DateFilterGroup>
-              <label>
-                De
-                <input
-                  type="date"
-                  value={dataInicial}
-                  onChange={(e) => setDataInicial(e.target.value)}
-                />
-              </label>
-              <label>
-                Ate
-                <input
-                  type="date"
-                  value={dataFinal}
-                  onChange={(e) => setDataFinal(e.target.value)}
-                />
-              </label>
-              {(dataInicial || dataFinal) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDataInicial("");
-                    setDataFinal("");
-                  }}>
-                  Limpar
-                </button>
-              )}
-            </Styled.DateFilterGroup>
-          )}
-        </Styled.FilterBar>
+        {activeView !== views.tutoresModificados &&
+          !(activeView === views.substituir && selectedEncontroSubstituicao) &&
+          renderFiltroListaEncontros()}
         <Styled.Actions>
-          {activeView !== views.cancelados && (
+          {activeView !== views.cancelados &&
+            activeView !== views.tutoresModificados && (
             <button onClick={() => navigate("/encontros/cadastro")}>
               + Cadastrar Encontro
             </button>
@@ -842,7 +1368,7 @@ function EncontrosView() {
           </Styled.ModeMessage>
         )}
 
-        {activeView === views.substituir && (
+        {activeView === views.substituir && !selectedEncontroSubstituicao && (
           <Styled.ModeMessage>
             Selecione abaixo o encontro para substituir tutor.
           </Styled.ModeMessage>
@@ -852,6 +1378,12 @@ function EncontrosView() {
           <Styled.ModeMessage>
             Consulte o histórico de cancelamentos, o motivo registrado e a ação
             tomada após cada evento.
+          </Styled.ModeMessage>
+        )}
+
+        {activeView === views.tutoresModificados && !selectedHistoricoTutor && (
+          <Styled.ModeMessage>
+            Consulte as substituicoes, adicoes e exclusoes de tutores.
           </Styled.ModeMessage>
         )}
 
@@ -1136,9 +1668,7 @@ function EncontrosView() {
 
         {selectedEncontroSubstituicao && (
           <Styled.SubstituteCard>
-            <h2>
-              Substituir tutor do encontro #{selectedEncontroSubstituicao.id}
-            </h2>
+            <h2>{getTituloSubstituicaoTutor()}</h2>
             <p>
               Local: <strong>{selectedEncontroSubstituicao.local}</strong>
             </p>
@@ -1149,10 +1679,12 @@ function EncontrosView() {
 
             <Styled.SubstituteSection>
               <h3>Funcionários responsáveis atuais</h3>
-              <p>
-                Selecione um funcionário abaixo para listar os substitutos
-                disponíveis.
-              </p>
+              {!responsavelSelecionado && (
+                <p>
+                  Selecione um funcionário abaixo para listar os substitutos
+                  disponíveis.
+                </p>
+              )}
               {responsaveis.length === 0 ? (
                 <Styled.EmptyState>
                   Nenhum funcionário responsável esta vinculado a este encontro.
@@ -1167,6 +1699,7 @@ function EncontrosView() {
                       <th>cargo</th>
                       <th>cpf</th>
                       <th>telefone</th>
+                      <th>ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1185,26 +1718,74 @@ function EncontrosView() {
                         <td>{funcionario.cargo}</td>
                         <td>{funcionario.cpf}</td>
                         <td>{funcionario.telefone}</td>
+                        <td>
+                          <Styled.TableActionGroup>
+                            <Styled.SelectButton
+                              type="button"
+                              className={
+                                responsavelSelecionado?.id === funcionario.id
+                                  ? "neutral"
+                                  : ""
+                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleSelectResponsavel(funcionario);
+                              }}>
+                              Substituir
+                            </Styled.SelectButton>
+                            <Styled.DeleteButton
+                              type="button"
+                              onClick={(event) =>
+                                handleSolicitarRemocaoTutor(event, funcionario)
+                              }>
+                              Excluir
+                            </Styled.DeleteButton>
+                          </Styled.TableActionGroup>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </Styled.MiniTable>
               )}
+              {acaoJustificativaTutor === "exclusao" &&
+                renderJustificativaTutor(true)}
             </Styled.SubstituteSection>
 
-            {responsavelSelecionado && (
+            {(responsavelSelecionado || substituicaoModo === "adicionar") && (
               <Styled.SubstituteSection>
                 <h3>
-                  Substitutos disponíveis para {responsavelSelecionado.nome}
+                  {substituicaoModo === "adicionar"
+                    ? "Funcionários disponíveis para adicionar"
+                    : `Substitutos disponíveis para ${responsavelSelecionado.nome}`}
                 </h3>
-                <p>
-                  A lista abaixo exclui funcionários já vinculados a outro
-                  encontro ativo na mesma data.
-                </p>
-                {substitutos.length === 0 ? (
+                {substituicaoModo !== "adicionar" && (
+                  <p>
+                    A lista abaixo exclui funcionários já vinculados a outro
+                    encontro ativo na mesma data.
+                  </p>
+                )}
+                {substitutos.length > 0 && (
+                  <Styled.MiniFilter>
+                    <label>
+                      Buscar por nome ou usuario
+                      <input
+                        type="text"
+                        placeholder="Digite nome ou usuario"
+                        value={filtroFuncionariosDisponiveis}
+                        onChange={(event) =>
+                          setFiltroFuncionariosDisponiveis(event.target.value)
+                        }
+                      />
+                    </label>
+                  </Styled.MiniFilter>
+                )}
+                {substitutosExibidos.length === 0 ? (
                   <Styled.EmptyState>
-                    Nenhum funcionário disponível foi encontrado para substituir
-                    este tutor.
+                    {filtroFuncionariosDisponiveis.trim()
+                      ? "Nenhum funcionario encontrado para o filtro atual."
+                      : substituicaoModo === "adicionar"
+                      ? "Nenhum funcionário disponível foi encontrado para adicionar."
+                      : "Nenhum funcionário disponível foi encontrado para substituir este tutor."}
                   </Styled.EmptyState>
                 ) : (
                   <Styled.MiniTable>
@@ -1220,8 +1801,19 @@ function EncontrosView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {substitutos.map((funcionario) => (
-                        <tr key={funcionario.id}>
+                      {substitutosExibidos.map((funcionario) => (
+                        <tr
+                          key={funcionario.id}
+                          className={
+                            (substituicaoModo === "adicionar" &&
+                              funcionarioAdicaoSelecionado?.id ===
+                                funcionario.id) ||
+                            (substituicaoModo === "substituir" &&
+                              funcionarioSubstitutoSelecionado?.id ===
+                                funcionario.id)
+                              ? "selected-neutral"
+                              : ""
+                          }>
                           <td>{funcionario.id}</td>
                           <td>{funcionario.nome}</td>
                           <td>{funcionario.usuario}</td>
@@ -1231,10 +1823,25 @@ function EncontrosView() {
                           <td>
                             <Styled.SelectButton
                               type="button"
-                              onClick={() =>
-                                handleConfirmarSubstituicao(funcionario)
-                              }>
-                              Substituir
+                              className={
+                                (substituicaoModo === "adicionar" &&
+                                  funcionarioAdicaoSelecionado?.id ===
+                                    funcionario.id) ||
+                                (substituicaoModo === "substituir" &&
+                                  funcionarioSubstitutoSelecionado?.id ===
+                                    funcionario.id)
+                                  ? "neutral"
+                                  : ""
+                              }
+                              onClick={() => {
+                                if (substituicaoModo === "adicionar") {
+                                  handleSelecionarAdicaoTutor(funcionario);
+                                  return;
+                                }
+
+                                handleSelecionarSubstituto(funcionario);
+                              }}>
+                              Selecionar
                             </Styled.SelectButton>
                           </td>
                         </tr>
@@ -1242,6 +1849,8 @@ function EncontrosView() {
                     </tbody>
                   </Styled.MiniTable>
                 )}
+                {acaoJustificativaTutor !== "exclusao" &&
+                  renderJustificativaTutor()}
               </Styled.SubstituteSection>
             )}
 
@@ -1252,6 +1861,12 @@ function EncontrosView() {
             <Styled.CancelActions>
               <button
                 type="button"
+                className={substituicaoModo === "adicionar" ? "active" : "secondary"}
+                onClick={handleOpenAdicionarTutor}>
+                Adicionar
+              </button>
+              <button
+                type="button"
                 className="secondary"
                 onClick={handleCloseSubstituicao}>
                 Fechar
@@ -1259,6 +1874,10 @@ function EncontrosView() {
             </Styled.CancelActions>
           </Styled.SubstituteCard>
         )}
+
+        {activeView === views.substituir &&
+          selectedEncontroSubstituicao &&
+          renderFiltroListaEncontros()}
 
         {selectedHistorico && activeView === views.cancelados && (
           <Styled.CancelCard>
@@ -1332,7 +1951,88 @@ function EncontrosView() {
           </Styled.ModeMessage>
         )}
 
-        {encontros.length === 0 ? (
+        {selectedHistoricoTutor && activeView === views.tutoresModificados && (
+          <Styled.CancelCard>
+            <h2>Detalhes da modificacao #{selectedHistoricoTutor.id}</h2>
+            <Styled.HistoryGrid>
+              <div>
+                <strong>Acao:</strong>
+                <div>{getAcaoTutorLabel(selectedHistoricoTutor.acao)}</div>
+              </div>
+              <div>
+                <strong>Data de modificacao:</strong>
+                <div>{formatDate(selectedHistoricoTutor.dataModificacao, true)}</div>
+              </div>
+              <div>
+                <strong>Funcionario:</strong>
+                <div>
+                  {selectedHistoricoTutor.nome} ({selectedHistoricoTutor.usuario})
+                </div>
+              </div>
+              {selectedHistoricoTutor.funcionarioAnteriorNome && (
+                <div>
+                  <strong>Funcionario substituido:</strong>
+                  <div>
+                    {selectedHistoricoTutor.funcionarioAnteriorNome} (
+                    {selectedHistoricoTutor.funcionarioAnteriorUsuario})
+                  </div>
+                </div>
+              )}
+            </Styled.HistoryGrid>
+            <label>
+              Descricao:
+              <textarea
+                value={selectedHistoricoTutor.justificativa || ""}
+                readOnly
+              />
+            </label>
+            <Styled.CancelActions>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setSelectedHistoricoTutor(null)}>
+                Fechar
+              </button>
+            </Styled.CancelActions>
+          </Styled.CancelCard>
+        )}
+
+        {activeView === views.tutoresModificados ? (
+          historicoTutores.length === 0 ? (
+            <Styled.EmptyState>
+              Nenhuma modificacao de tutor encontrada.
+            </Styled.EmptyState>
+          ) : (
+            <Styled.Table>
+              <thead>
+                <tr>
+                  <th>Acao</th>
+                  <th>Data de modificacao</th>
+                  <th>Nome</th>
+                  <th>Usuario</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historicoTutores.map((item) => (
+                  <tr key={item.id}>
+                    <td>{getAcaoTutorLabel(item.acao)}</td>
+                    <td>{formatDate(item.dataModificacao, true)}</td>
+                    <td>{item.nome}</td>
+                    <td>{item.usuario}</td>
+                    <td>
+                      <Styled.TableSecondaryButton
+                        type="button"
+                        onClick={() => setSelectedHistoricoTutor(item)}>
+                        Detalhes
+                      </Styled.TableSecondaryButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Styled.Table>
+          )
+        ) : encontrosExibidos.length === 0 ? (
           <Styled.EmptyState>
             Nenhum encontro encontrado para o filtro atual.
           </Styled.EmptyState>
@@ -1367,7 +2067,7 @@ function EncontrosView() {
               </tr>
             </thead>
             <tbody>
-              {encontros.map((encontro) => (
+              {encontrosExibidos.map((encontro) => (
                 <tr key={encontro.id} onClick={() => handleRowClick(encontro)}>
                   <td>{encontro.id}</td>
                   <td>{encontro.local}</td>
