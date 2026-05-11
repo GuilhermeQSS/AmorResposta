@@ -1,14 +1,33 @@
 import Funcionario from "../models/funcionarioModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 
+const CARGO_ADMIN = "Administrador";
+
+const ERROS_VALIDACAO = [
+    "Todos os campos são obrigatórios",
+    "CPF inválido",
+    "Telefone inválido (deve conter 10 ou 11 dígitos numéricos)"
+];
+
+function isErroValidacao(message) {
+    return ERROS_VALIDACAO.some(e => message?.includes(e));
+}
+
+function isErroDuplicado(errno) {
+    return errno === 1062;
+}
+
 class FuncionarioControl {
     static async listar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let resp = await Funcionario.listar(connection, req.query.filtroNome, req.query.filtroUsuario);
+            let resp = await Funcionario.listar(connection, req.query.nome, req.query.usuario);
             return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            return res.status(500).json({
+                errno: err.errno,
+                message: err.message
+            });
         }
     }
 
@@ -18,67 +37,98 @@ class FuncionarioControl {
             let resp = await Funcionario.buscarPorId(connection, req.query.id);
             if (!resp) {
                 return res.status(404).json({ err: `Não existe funcionario com id = ${req.query.id}` });
-            } else {
-                return res.status(200).json(resp);
             }
+            return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            return res.status(500).json({
+                errno: err.errno,
+                message: err.message
+            });
         }
     }
 
     static async alterar(req, res) {
+        const connection = await SingletonDB.getConnection();
         try {
-            const connection = await SingletonDB.getConnection();
+            await connection.beginTransaction();
+
             const { id, nome, usuario, senha, cargo, cpf, telefone } = req.body;
-            const funcionarioOriginal = await Funcionario.buscarPorId(connection, id);
-            
-            if (!funcionarioOriginal) {
-                return res.status(404).json({ err: "Id não existe" });
-            }
-            
-            if (funcionarioOriginal.usuario !== usuario &&
-                await Funcionario.buscarPorUsuario(connection, usuario)) {
-                return res.status(409).json({ err: "Usuario já exite" });
-            }
-            
-            const funcionario = new Funcionario(id, nome, usuario, senha, cargo, cpf, telefone);
-            const resultado = await funcionario.alterar(connection);
-            return res.status(200).json(resultado);
+            const funcionario = new Funcionario(id, nome, cargo, cpf, telefone, usuario, senha);
+            const resp = await funcionario.alterar(connection);
+
+            await connection.commit();
+            return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            await connection.rollback();
+            if (isErroValidacao(err.message)) {
+                return res.status(400).json({ err: err.message });
+            }
+            if (isErroDuplicado(err.errno)) {
+                return res.status(400).json({ err: "CPF ou usuário já cadastrado no sistema." });
+            }
+            return res.status(500).json({
+                errno: err.errno,
+                message: err.message
+            });
         }
     }
 
     static async excluir(req, res) {
+        const connection = await SingletonDB.getConnection();
         try {
-            const connection = await SingletonDB.getConnection();
+            await connection.beginTransaction();
+
             let funcionario = await Funcionario.buscarPorId(connection, req.query.id);
-            
             if (!funcionario) {
+                await connection.rollback();
                 return res.status(404).json({ err: `Não existe funcionario com id = ${req.query.id}` });
             }
-            
-            const resultado = await funcionario.excluir(connection);
-            return res.status(200).json(resultado);
+
+            if (funcionario.cargo === CARGO_ADMIN) {
+                const todosAdmins = await Funcionario.listar(connection, null, null);
+                const qtdAdmins = todosAdmins.filter(f => f.cargo === CARGO_ADMIN).length;
+                if (qtdAdmins <= 1) {
+                    await connection.rollback();
+                    return res.status(400).json({ err: "Não é possível excluir o único administrador do sistema." });
+                }
+            }
+
+            const resp = await funcionario.excluir(connection);
+
+            await connection.commit();
+            return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            await connection.rollback();
+            return res.status(500).json({
+                errno: err.errno,
+                message: err.message
+            });
         }
     }
 
     static async cadastrar(req, res) {
+        const connection = await SingletonDB.getConnection();
         try {
-            const connection = await SingletonDB.getConnection();
+            await connection.beginTransaction();
+
             const { nome, usuario, senha, cargo, cpf, telefone } = req.body;
-            
-            if (await Funcionario.buscarPorUsuario(connection, usuario)) {
-                return res.status(409).json({ err: "Usuario já existe" });
-            }
-            
-            let funcionario = new Funcionario(-1, nome, usuario, senha, cargo, cpf, telefone);
-            let resp = await funcionario.gravar(connection);
+            let funcionario = new Funcionario(-1, nome, cargo, cpf, telefone, usuario, senha);
+            const resp = await funcionario.gravar(connection);
+
+            await connection.commit();
             return res.status(201).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            await connection.rollback();
+            if (isErroValidacao(err.message)) {
+                return res.status(400).json({ err: err.message });
+            }
+            if (isErroDuplicado(err.errno)) {
+                return res.status(400).json({ err: "CPF ou usuário já cadastrado no sistema." });
+            }
+            return res.status(500).json({
+                errno: err.errno,
+                message: err.message
+            });
         }
     }
 }

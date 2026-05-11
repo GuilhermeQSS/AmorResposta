@@ -1,12 +1,9 @@
-import Beneficiario from "../models/beneficiarioModel.js";
+import Local from "../models/localModel.js";
 import SingletonDB from "../db/SingletonDB.js";
 
 const ERROS_VALIDACAO = [
     "Todos os campos são obrigatórios",
-    "CPF inválido",
-    "Telefone inválido (deve conter 10 ou 11 dígitos numéricos)",
-    "Estado inválido (deve conter exatamente 2 caracteres, ex: SP)",
-    "Número do endereço inválido"
+    "Nome do local deve ter no máximo 100 caracteres"
 ];
 
 function isErroValidacao(message) {
@@ -17,11 +14,11 @@ function isErroDuplicado(errno) {
     return errno === 1062;
 }
 
-class BeneficiarioControl {
+class LocalControl {
     static async listar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let resp = await Beneficiario.listar(connection, req.query.nome, req.query.usuario);
+            let resp = await Local.listar(connection, req.query.nome);
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({
@@ -34,9 +31,9 @@ class BeneficiarioControl {
     static async buscarPorId(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let resp = await Beneficiario.buscarPorId(connection, req.query.id);
+            let resp = await Local.buscarPorId(connection, req.query.id);
             if (!resp) {
-                return res.status(404).json({ err: `Não existe beneficiário com id = ${req.query.id}` });
+                return res.status(404).json({ err: `Não existe local com id = ${req.query.id}` });
             }
             return res.status(200).json(resp);
         } catch (err) {
@@ -52,9 +49,9 @@ class BeneficiarioControl {
         try {
             await connection.beginTransaction();
 
-            const { nome, cpf, telefone, estado, cidade, bairro, rua, numero, usuario, senha } = req.body;
-            let beneficiario = new Beneficiario(-1, nome, cpf, telefone, estado, cidade, bairro, rua, numero, usuario, senha);
-            const resp = await beneficiario.gravar(connection);
+            const { nome } = req.body;
+            let local = new Local(-1, nome);
+            const resp = await local.gravar(connection);
 
             await connection.commit();
             return res.status(201).json(resp);
@@ -64,7 +61,7 @@ class BeneficiarioControl {
                 return res.status(400).json({ err: err.message });
             }
             if (isErroDuplicado(err.errno)) {
-                return res.status(400).json({ err: "CPF ou usuário já cadastrado no sistema." });
+                return res.status(400).json({ err: "Já existe um local com esse nome." });
             }
             return res.status(500).json({
                 errno: err.errno,
@@ -78,9 +75,9 @@ class BeneficiarioControl {
         try {
             await connection.beginTransaction();
 
-            const { id, nome, cpf, telefone, estado, cidade, bairro, rua, numero, usuario, senha } = req.body;
-            const beneficiario = new Beneficiario(id, nome, cpf, telefone, estado, cidade, bairro, rua, numero, usuario, senha);
-            const resp = await beneficiario.alterar(connection);
+            const { id, nome } = req.body;
+            const local = new Local(id, nome);
+            const resp = await local.alterar(connection);
 
             await connection.commit();
             return res.status(200).json(resp);
@@ -90,7 +87,7 @@ class BeneficiarioControl {
                 return res.status(400).json({ err: err.message });
             }
             if (isErroDuplicado(err.errno)) {
-                return res.status(400).json({ err: "CPF ou usuário já cadastrado no sistema." });
+                return res.status(400).json({ err: "Já existe um local com esse nome." });
             }
             return res.status(500).json({
                 errno: err.errno,
@@ -104,13 +101,13 @@ class BeneficiarioControl {
         try {
             await connection.beginTransaction();
 
-            let beneficiario = await Beneficiario.buscarPorId(connection, req.query.id);
-            if (!beneficiario) {
+            let local = await Local.buscarPorId(connection, req.query.id);
+            if (!local) {
                 await connection.rollback();
-                return res.status(404).json({ err: `Não existe beneficiário com id = ${req.query.id}` });
+                return res.status(404).json({ err: `Não existe local com id = ${req.query.id}` });
             }
 
-            const resp = await beneficiario.excluir(connection);
+            const resp = await local.excluir(connection);
 
             await connection.commit();
             return res.status(200).json(resp);
@@ -124,4 +121,4 @@ class BeneficiarioControl {
     }
 }
 
-export default BeneficiarioControl;
+export default LocalControl;

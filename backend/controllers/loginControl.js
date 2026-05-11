@@ -19,15 +19,20 @@ class LoginControl {
                     usuarioEncontrado = await Beneficiario.buscarPorUsuario(connection, usuario);
                     break;
                 case "Administrador": 
-                case "Voluntario":
+                case "Funcionario":
                     usuarioEncontrado = await Funcionario.buscarPorUsuario(connection, usuario);
                     break;
                 default:
+                    console.log(perfil);
                     return res.status(400).json({ message: "Perfil inválido." });
             }
 
 
             if (!usuarioEncontrado){
+                return res.status(401).json({ message: "Usuário não encontrado." });
+            }
+
+            if(perfil === "Administrador" && usuarioEncontrado.cargo !== "Administrador"){
                 return res.status(401).json({ message: "Usuário não encontrado." });
             }
 

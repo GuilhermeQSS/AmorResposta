@@ -1,34 +1,14 @@
 import Encontro from "../models/encontroModel.js";
 import SingletonDB from "../db/SingletonDB.js";
-import Beneficiario from "../models/beneficiarioModel.js";
 
 class EncontroControl {
     static async listar(req, res) {
         try {
             const connection = await SingletonDB.getConnection();
-            let resp = await Encontro.listar(connection, req.query.titulo, req.query.dataInicio, req.query.dataFim);
+            let resp = await Encontro.listar(connection, req.query.titulo, req.query.status, req.query.data);
             return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
-        }
-    }
-
-    static async listarComoBeneficiario(req, res) {
-        try {
-            const connection = await SingletonDB.getConnection();
-            const idBeneficiario = req.usuarioLogado.id;
-            
-            let resp = await Encontro.listarComoBeneficiario(
-                connection,
-                req.query.titulo,
-                req.query.dataInicio,
-                req.query.dataFim,
-                idBeneficiario
-            );
-            
-            return res.status(200).json(resp);
-        } catch (err) {
-            return res.status(500).json({ err: err.message });
+            return res.status(500).json({ errno: err.errno, message: err.message });
         }
     }
 
@@ -38,61 +18,137 @@ class EncontroControl {
             let resp = await Encontro.buscarPorId(connection, req.query.id);
             if (!resp) {
                 return res.status(404).json({ err: `Não existe encontro com id = ${req.query.id}` });
-            } else {
-                return res.status(200).json(resp);
             }
+            return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            return res.status(500).json({ errno: err.errno, message: err.message });
+        }
+    }
+
+    static async cadastrar(req, res) {
+        const connection = await SingletonDB.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            const {
+                data, horaInicio, horaFim, status, qtdeMax, qtde,
+                titulo, descricao, motivoCancelamento, voluntariosAfetados,
+                lotesAfetados, beneficiariosAfetados, locId
+            } = req.body;
+
+            let encontro = new Encontro(
+                -1, data, horaInicio, horaFim, status ?? "a", qtdeMax, qtde ?? 0,
+                titulo, descricao, motivoCancelamento, voluntariosAfetados,
+                lotesAfetados, beneficiariosAfetados, locId
+            );
+            
+            const resp = await encontro.gravar(connection);
+            
+            await connection.commit();
+            return res.status(201).json(resp);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(500).json({ errno: err.errno, message: err.message });
+        }
+    }
+
+    static async alterar(req, res) {
+        const connection = await SingletonDB.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            const {
+                id, data, horaInicio, horaFim, status, qtdeMax, qtde,
+                titulo, descricao, motivoCancelamento, voluntariosAfetados,
+                lotesAfetados, beneficiariosAfetados, locId
+            } = req.body;
+
+            const encontro = new Encontro(
+                id, data, horaInicio, horaFim, status, qtdeMax, qtde,
+                titulo, descricao, motivoCancelamento, voluntariosAfetados,
+                lotesAfetados, beneficiariosAfetados, locId
+            );
+            
+            const resp = await encontro.alterar(connection);
+            
+            await connection.commit();
+            return res.status(200).json(resp);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(500).json({ errno: err.errno, message: err.message });
+        }
+    }
+
+    static async excluir(req, res) {
+        const connection = await SingletonDB.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            let encontro = await Encontro.buscarPorId(connection, req.query.id);
+            if (!encontro) {
+                await connection.rollback();
+                return res.status(404).json({ err: `Não existe encontro com id = ${req.query.id}` });
+            }
+            
+            const resp = await encontro.excluir(connection);
+            
+            await connection.commit();
+            return res.status(200).json(resp);
+        } catch (err) {
+            await connection.rollback();
+            return res.status(500).json({ errno: err.errno, message: err.message });
+        }
+    }
+
+    static async listarComoBeneficiario(req, res) {
+        try {
+            const connection = await SingletonDB.getConnection();
+            // CORRIGIDO: usando req.usuarioLogado
+            const benId = req.usuarioLogado.id; 
+            const { titulo, dataInicio, dataFim } = req.query;
+
+            let resp = await Encontro.listarComoBeneficiario(connection, benId, titulo, dataInicio, dataFim);
+            return res.status(200).json(resp);
+        } catch (err) {
+            return res.status(500).json({ errno: err.errno, message: err.message });
         }
     }
 
     static async cadastrarBeneficiario(req, res) {
+        const connection = await SingletonDB.getConnection();
         try {
-            const connection = await SingletonDB.getConnection();
+            await connection.beginTransaction(); 
             
-            const idBeneficiario = req.usuarioLogado.id;
-            const idEncontro = req.query.idEncontro;
+            // CORRIGIDO: usando req.usuarioLogado
+            const benId = req.usuarioLogado.id; 
+            const encId = req.query.idEncontro;
 
-            let beneficiario = await Beneficiario.buscarPorId(connection, idBeneficiario);
-            if (!beneficiario) {
-                return res.status(404).json({ err: `Beneficiário não encontrado.` });
-            }
-
-            let encontro = await Encontro.buscarPorId(connection, idEncontro);
-            if (!encontro) {
-                return res.status(404).json({ err: `Encontro não encontrado.` });
-            }
-
-            const resultado = await encontro.cadastrarBeneficiario(connection, beneficiario);
-            await encontro.incrementarParticipantes(connection);
-            return res.status(200).json(resultado);
+            await Encontro.inscreverBeneficiario(connection, encId, benId);
+            
+            await connection.commit();
+            return res.status(200).json({ message: "Inscrição realizada com sucesso." });
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            await connection.rollback();
+            return res.status(400).json({ err: err.message });
         }
     }
 
     static async retirarBeneficiario(req, res) {
+        const connection = await SingletonDB.getConnection();
         try {
-            const connection = await SingletonDB.getConnection();
+            await connection.beginTransaction(); 
             
-            const idBeneficiario = req.usuarioLogado.id;
-            const idEncontro = req.query.idEncontro;
+            // CORRIGIDO: usando req.usuarioLogado
+            const benId = req.usuarioLogado.id; 
+            const encId = req.query.idEncontro;
 
-            let beneficiario = await Beneficiario.buscarPorId(connection, idBeneficiario);
-            if (!beneficiario) {
-                return res.status(404).json({ err: `Beneficiário não encontrado.` });
-            }
-
-            let encontro = await Encontro.buscarPorId(connection, idEncontro);
-            if (!encontro) {
-                return res.status(404).json({ err: `Encontro não encontrado.` });
-            }
+            await Encontro.cancelarInscricaoBeneficiario(connection, encId, benId);
             
-            const resultado = await encontro.retirarBeneficiario(connection, beneficiario);
-            await encontro.decrementarParticipantes(connection);
-            return res.status(200).json(resultado);
+            await connection.commit();
+            return res.status(200).json({ message: "Inscrição cancelada com sucesso." });
         } catch (err) {
-            return res.status(500).json({ err: err.message });
+            await connection.rollback();
+            return res.status(400).json({ err: err.message });
         }
     }
 }

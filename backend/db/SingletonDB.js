@@ -11,7 +11,6 @@ class SingletonDB {
           password: '',
           database: 'amorresposta'
         });
-
         console.log('Conectado ao MySQL com sucesso!');
       } catch (err) {
         console.log("Erro:", err.message);
