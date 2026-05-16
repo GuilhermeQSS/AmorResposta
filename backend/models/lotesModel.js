@@ -50,7 +50,7 @@ class Lotes{
         return lotesList;
     }
 
-    static async listarComItens(connection, nome, data) {
+    static async listarComItens(connection, nome, data, zerado/*booleano*/) {
         let queryString = `
             SELECT * FROM lotes
             NATURAL JOIN itens
@@ -65,6 +65,9 @@ class Lotes{
         if (data) {
             queryString += ` AND lot_validade BETWEEN CURDATE() AND ?`;
             valores.push(data);
+        }
+        if (!zerado) {
+            queryString += ` AND lot_qtde > 0`;
         }
 
         queryString += ` ORDER BY item_nome ASC`;
@@ -174,31 +177,20 @@ class Lotes{
         return resultado;
     }
 
-    static async saidaDoacao(connection, benId, listaLotes, data){
-        const beneficiario = await Ben.buscarPorId(benId);
-        if(beneficiario == null)
-            throw new Error("Beneficiario não encontrado");
-
-        await connection.beginTransaction();
-
-        const [resultado] = await connection.query(`
-            INSERT INTO lotesDoados(ben_id,data)
-            VALUES (?, ?);` ,[benId,data]);
-        let i = 0;
+    //precisa iniciar uma transação antes de chamar!!!
+    static async atualizarEstoque(connection, listaLotes){
         for(let lItem of listaLotes){
-            if(lItem.qtd <= 0)
-                throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.qtd+": quantidade invalida");
+            const lote = await this.buscarPorId(connection, lItem.id);
+            lote.quantidade -= lItem.qtd;
+            if(lote.quantidade < 0)
+                throw new Error("[AT_ESTQ]:lote:"+lote.id+"quantidade negativa");
             else{
-                const lote = await this.buscarPorId(connection, lItem.id);
-                if(lote == null)
-                    throw new Error("index["+listaLotes.indexOf(lItem)+"]"+lItem.id+": id não encontrado");
-                else
-                    await connection.query(`
-                        INSERT INTO lotesDoadosLotes(lotd_id,lot_id,qtde)
-                        VALUES (?, ?, ?);`,[resultado.insertId,lote.id,lItem.qtd]);
+                await connection.query(`
+                    UPDATE lotes SET
+                        lot_qtde = ?
+                    WHERE lot_id = ?;`,[lote.quantidade,lote.id]);
             }
         }
-        await connection.commit();
     }
 }
 

@@ -2,6 +2,25 @@ import styled from "styled-components";
 
 const Styled = {
 
+    CheckboxLabel: styled.label`
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 0 auto 10px;
+        width: 50%;
+        font-size: 14px;
+        color: #444;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #ff9a9e;
+        }
+    `,
+
     Busca: styled.input`
     display: block;
         margin: 0 auto 10px;

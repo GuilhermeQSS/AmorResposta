@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function LotesView() {
-    async function fetchLotesLista(nome, filtroData) {
+    async function fetchLotesLista(nome, filtroData, zerado) {
         const response = await fetch(
-            `http://localhost:3000/lotes/listarComItens?nome=${nome}&data=${filtroData}`,
+            `http://localhost:3000/lotes/listarComItens?nome=${nome}&data=${filtroData}&zerado=${zerado}`,
             { method: "GET" }
         );
         const resultado = await response.json();
@@ -40,15 +40,16 @@ function LotesView() {
     const [lotes, setLotes] = useState([]);
     const [nome, setNome] = useState("");
     const [data, setData] = useState("");
+    const [zerado, setZerado] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const resultado = await fetchLotesLista(nome, data);
+            const resultado = await fetchLotesLista(nome, data, zerado);
             setLotes(resultado);
         }
         carregar();
-    }, [nome, data]);
+    }, [nome, data, zerado]);
 
     return (
         <>
@@ -65,6 +66,14 @@ function LotesView() {
                     value={data}
                     onChange={(e) => setData(e.target.value)}
                 />
+                <Styled.CheckboxLabel>
+                    <input
+                        type="checkbox"
+                        checked={zerado}
+                        onChange={(e) => setZerado(e.target.checked)}
+                    />
+                    Mostrar lotes zerados
+                </Styled.CheckboxLabel>
                 <Styled.Actions>
                     <button onClick={() => navigate("/lotes/cadastro")}>
                         + Cadastrar Lote

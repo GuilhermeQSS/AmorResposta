@@ -14,8 +14,9 @@ class lotesControl {
 
     static async listarComItens(req, res) {
         try {
+            console.log(req.query);
             const connection = await SingletonDB.getConnection();
-            const resp = await Lotes.listarComItens(connection, req.query.nome, req.query.data);
+            const resp = await Lotes.listarComItens(connection, req.query.nome, req.query.data, req.query.zerado === "true");
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ err: err.message });
@@ -75,21 +76,6 @@ class lotesControl {
             const resp = await lote.gravar(connection);
             return res.status(200).json(resp);
         } catch (err) {
-            return res.status(500).json({ err: err.message });
-        }
-    }
-
-    static async sairDoacao(req, res) {
-        let connection = null;
-        try {
-            const { benId, listaLotes, data } = req.body;
-
-            connection = await SingletonDB.getConnection();
-            const resp = await Lotes.saidaDoacao(connection, benId, listaLotes, data);
-
-            return res.status(200).json(resp);
-        } catch(err) {
-            await connection.rollback();
             return res.status(500).json({ err: err.message });
         }
     }

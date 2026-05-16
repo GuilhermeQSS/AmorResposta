@@ -199,6 +199,7 @@ alter table `lotesDoados`
 alter table `lotesDoadosLotes`
   add CONSTRAINT `fk_lotesDoadosLotes_lotesDoados`
     FOREIGN KEY (`lotd_id`) REFERENCES `lotesDoados` (`lotd_id`),
+    ON DELETE CASCADE,
   add CONSTRAINT `fk_lotesDoadosLotes_lotes`
     FOREIGN KEY (`lot_id`) REFERENCES `lotes` (`lot_id`);
 

@@ -1,11 +1,12 @@
-import itensRoutes from "./routes/itensRoute.js"
-import lotesRoute from "./routes/lotesRoute.js"
-import doacaoRoutes from "./routes/doacoesRoute.js"
-import beneficiarioRoutes from "./routes/beneficiariosRoute.js"
+import itensRoutes from "./routes/itensRoute.js";
+import lotesRoute from "./routes/lotesRoute.js";
+import doacaoRoutes from "./routes/doacoesRoute.js";
+import beneficiarioRoutes from "./routes/beneficiariosRoute.js";
+import saidaDoacao from "./routes/saidaDoacaoRoutes.js";
 import e from "express";
 import cors from "cors";
 const app = e();
-const port = 3000
+const port = 3000;
 
 app.use(cors());
 app.use(e.json());
@@ -15,6 +16,7 @@ app.use("/itens",itensRoutes);
 app.use("/lotes",lotesRoute);
 app.use("/doacoes", doacaoRoutes);
 app.use("/beneficiarios", beneficiarioRoutes);
+app.use("/saidaDoacao", saidaDoacao);
 
 app.get("/",(req,res)=>{    
     res.redirect("index.html");

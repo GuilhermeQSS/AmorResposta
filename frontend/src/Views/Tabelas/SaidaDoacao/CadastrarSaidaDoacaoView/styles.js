@@ -1,6 +1,21 @@
 import styled from "styled-components";
 
 const Styled = {
+    Tags: styled.div`
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+    `,
+
+    Tag: styled.span`
+        display: inline-block;
+        background: #ffe4ec;
+        border-radius: 8px;
+        padding: 2px 8px;
+        font-size: 13px;
+        color: black;
+    `,
     Form: styled.form`
         width: 400px;
         margin: 0 auto;
