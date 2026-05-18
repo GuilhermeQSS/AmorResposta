@@ -3,8 +3,8 @@ import Footer from "../../../../components/Footer";
 import Styled from "./styles";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import AutocompleteBen from "../autoCompleteBen/autoCompleteBen";
-import ModalLotes from "../ModalLotes/ModalLotes";
+import AutocompleteBen from "../autoCompleteBen";
+import ModalLotes from "../ModalLotes";
 
 function SaidaDoacaoView() {
     const [beneficiarios, setBeneficiarios] = useState([]);
@@ -46,6 +46,12 @@ function SaidaDoacaoView() {
 
     async function fetchSaidaDoacao() {
         // Validação
+        console.log("form.benId:", form.benId);
+        console.log("body:", {
+            benId: form.benId,
+            data: form.data || null,
+            listaLotes: listaLotes.map(l => ({ id: l.id, qtd: Number(l.qtd) }))
+        });
         const vazios = {
             benId: !form.benId,
             listaLotes: listaLotes.some((l) => !l.id || !l.qtd || Number(l.qtd) <= 0),
@@ -90,7 +96,7 @@ function SaidaDoacaoView() {
             <Header />
             <main>
                 <Styled.BackBtn>
-                    <Link to={"/tabelas/lotes"}>
+                    <Link to={"/tabelas/saidaDoacao"}>
                         <div>Voltar</div>
                     </Link>
                 </Styled.BackBtn>
@@ -129,7 +135,10 @@ function SaidaDoacaoView() {
                                 <Styled.Tags>
                                     {listaLotes.map(s => (
                                         <Styled.Tag key={s.id}>
-                                            {s.loteInfo?.item_nome ?? `Lote #${s.id}`} — {s.qtd} {s.loteInfo?.item_unidadeMedida ?? ""}
+                                            #{s.id} — {s.loteInfo?.item_nome ?? `Lote #${s.id}`} — {s.qtd ?? s.qtde} {s.loteInfo?.item_unidadeMedida ?? ""}
+                                            {s.loteInfo?.lot_validade
+                                                ? ` — Val: ${new Date(s.loteInfo.lot_validade).toLocaleDateString("pt-BR")}`
+                                                : " — Sem validade"}
                                         </Styled.Tag>
                                     ))}
                                 </Styled.Tags>

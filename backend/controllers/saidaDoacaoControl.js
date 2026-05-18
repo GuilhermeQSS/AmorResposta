@@ -6,7 +6,6 @@ class SaidaDoacaoControl {
     static async cadastrar(req, res) {
         let connection = null;
         try {
-            console.log(req.body);
             const { benId, listaLotes, data } = req.body;
             connection = await SingletonDB.getConnection();
             await SaidaDoacao.sdCadastro(connection, benId, listaLotes, data);
@@ -30,7 +29,7 @@ class SaidaDoacaoControl {
 
     static async buscarPorId(req, res) {
         try {
-            const { id } = req.params;
+            const { id } = req.query; // ← req.query
             const connection = await SingletonDB.getConnection();
             const resp = await SaidaDoacao.buscarPorId(connection, id);
             if (!resp)
@@ -44,7 +43,7 @@ class SaidaDoacaoControl {
     static async excluir(req, res) {
         let connection = null;
         try {
-            const { id } = req.params;
+            const { id } = req.query;
             connection = await SingletonDB.getConnection();
             const saidaDoacao = await SaidaDoacao.buscarPorId(connection, id);
             if (!saidaDoacao)
@@ -60,15 +59,13 @@ class SaidaDoacaoControl {
     static async alterar(req, res) {
         let connection = null;
         try {
-            const { id } = req.params;
-            const { benId, data, listaOld, listaNew } = req.body;
+            const { id, benId, data, listaOld, listaNew } = req.body;
             connection = await SingletonDB.getConnection();
 
             const saidaDoacao = await SaidaDoacao.buscarPorId(connection, id);
             if (!saidaDoacao)
                 return res.status(404).json({ err: "Saída de doação não encontrada" });
 
-            // Atualiza os campos do objeto antes de alterar
             saidaDoacao.benId = benId;
             saidaDoacao.data = data;
 
@@ -76,6 +73,17 @@ class SaidaDoacaoControl {
             return res.status(200).json({ msg: "Saída de doação alterada com sucesso!" });
         } catch (err) {
             if (connection) await connection.rollback();
+            return res.status(500).json({ err: err.message });
+        }
+    }
+
+    static async buscarLotesPorSaida(req, res) {
+        try {
+            const { id } = req.params;
+            const connection = await SingletonDB.getConnection();
+            const resp = await SaidaDoacao.buscarLotesPorSaida(connection, id);
+            return res.status(200).json(resp);
+        } catch (err) {
             return res.status(500).json({ err: err.message });
         }
     }

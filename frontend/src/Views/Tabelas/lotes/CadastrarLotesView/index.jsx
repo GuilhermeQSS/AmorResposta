@@ -23,7 +23,6 @@ function CadastrarLotesView() {
             quantidade: !form.quantidade,
         };
         setCamposVazios(camposVazios);
-        console.log(camposVazios);
         if (Object.values(camposVazios).includes(true)) {
             alert("Preencha todos os campos!");
             return;
@@ -85,8 +84,6 @@ function CadastrarLotesView() {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    console.log(data);
-                    console.log(data.unidadeMedida);
                     if (data.length === 0)
                         alert("Nenhum item cadastrado!");
                     else

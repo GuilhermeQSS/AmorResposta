@@ -19,7 +19,7 @@ function ehAnteriorHoje(dataStr) {
 class Lotes{
     constructor(id, idItem, data, quantidade) {
         if (!idItem || !quantidade)
-            throw new Error("Todos os campos devem ser preenchidos");
+            throw new Error("[LotesModel]:Todos os campos devem ser preenchidos");
 
         this.id = id;
         this.idItem = idItem;
@@ -50,7 +50,7 @@ class Lotes{
         return lotesList;
     }
 
-    static async listarComItens(connection, nome, data, zerado/*booleano*/) {
+    static async listarComItens(connection, nome, data, zerado, vencidos) {
         let queryString = `
             SELECT * FROM lotes
             NATURAL JOIN itens
@@ -68,6 +68,9 @@ class Lotes{
         }
         if (!zerado) {
             queryString += ` AND lot_qtde > 0`;
+        }
+        if (!vencidos) {
+            queryString += ` AND (lot_validade IS NULL OR lot_validade >= CURDATE())`;
         }
 
         queryString += ` ORDER BY item_nome ASC`;
@@ -135,8 +138,6 @@ class Lotes{
         if (!lote)
             return null;
 
-        //console.log(lote);
-
         return new Lotes(
             lote.lot_id,
             lote.item_id,
@@ -178,18 +179,24 @@ class Lotes{
     }
 
     //precisa iniciar uma transação antes de chamar!!!
-    static async atualizarEstoque(connection, listaLotes){
-        for(let lItem of listaLotes){
-            const lote = await this.buscarPorId(connection, lItem.id);
-            lote.quantidade -= lItem.qtd;
-            if(lote.quantidade < 0)
-                throw new Error("[AT_ESTQ]:lote:"+lote.id+"quantidade negativa");
-            else{
-                await connection.query(`
-                    UPDATE lotes SET
-                        lot_qtde = ?
-                    WHERE lot_id = ?;`,[lote.quantidade,lote.id]);
-            }
+    static async atualizarEstoque(connection, listaLotes) {
+        for (let lItem of listaLotes) {
+            const [[lote]] = await connection.query(
+                `SELECT lot_qtde FROM lotes WHERE lot_id = ?`, [lItem.id]
+            );
+
+            if (!lote)
+                throw new Error("[AT_ESTQ] lote " + lItem.id + " não encontrado");
+
+            const novaQtd = lote.lot_qtde - lItem.quantidade;
+
+            if (novaQtd < 0)
+                throw new Error("[AT_ESTQ] lote " + lItem.id + ": quantidade negativa");
+
+            await connection.query(
+                `UPDATE lotes SET lot_qtde = ? WHERE lot_id = ?`,
+                [novaQtd, lItem.id]
+            );
         }
     }
 }

@@ -34,7 +34,9 @@ class SaidaDoacao {
                 VALUES (?, ?, ?);`, [resultado.insertId, lote.id, lItem.qtd]);
         }
 
-        await Lotes.atualizarEstoque(connection, listaLotes);
+        await Lotes.atualizarEstoque(connection,
+            listaLotes.map(l => ({ id: l.id, quantidade: l.qtd })) // ← mapeia qtd para quantidade
+        );
         await connection.commit();
     }
 
@@ -49,7 +51,10 @@ class SaidaDoacao {
     }
 
     static async sdListar(connection, benNome, data) {
-        let queryString = `SELECT * FROM lotesDoados NATURAL JOIN beneficiarios WHERE 1=1`;
+        let queryString = `
+            SELECT lotd_id,ben_id,data,ben_nome,ben_cpf
+            FROM lotesDoados NATURAL JOIN 
+            beneficiarios WHERE 1=1`;
         const valores = [];
 
         if (benNome) {
@@ -64,7 +69,13 @@ class SaidaDoacao {
         queryString += ` ORDER BY ben_nome ASC`;
 
         const [saidas] = await connection.query(queryString, valores);
-        return saidas.map(e => new SaidaDoacao(e.lotd_id, e.ben_id, e.data));
+        return saidas.map(e => ({
+            lotd_id: e.lotd_id,
+            ben_id: e.ben_id,
+            data: e.data,
+            ben_nome: e.ben_nome,
+            ben_cpf: e.ben_cpf
+        }));
     }
 
     async sdExclui(connection) {
@@ -88,7 +99,7 @@ class SaidaDoacao {
         return resultado;
     }
 
-    // listas: {id(lote), qtde}
+    // listas: {id(lote), qtd}
     async sdAlterar(connection, listaOld, listaNew) {
         await connection.beginTransaction();
 
@@ -148,6 +159,29 @@ class SaidaDoacao {
             }
         }
         await connection.commit();
+    }
+
+    static async buscarLotesPorSaida(connection, lotdId) {
+        const [lotes] = await connection.query(`
+            SELECT ldl.lot_id, ldl.qtde, i.item_nome, i.item_unidadeMedida, l.lot_validade, l.lot_qtde
+            FROM lotesDoadosLotes ldl
+            NATURAL JOIN lotes l
+            NATURAL JOIN itens i
+            WHERE ldl.lotd_id = ?
+            AND (l.lot_validade IS NULL OR l.lot_validade >= CURDATE())
+        `, [lotdId]);
+
+        return lotes.map(e => ({
+            id: e.lot_id,
+            qtde: e.qtde,
+            loteInfo: {
+                lot_id: e.lot_id,
+                item_nome: e.item_nome,
+                item_unidadeMedida: e.item_unidadeMedida,
+                lot_validade: e.lot_validade,
+                lot_qtde: e.lot_qtde
+            }
+        }));
     }
 }
 

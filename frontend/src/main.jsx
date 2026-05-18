@@ -18,6 +18,9 @@ import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
 import CadastrarSaidaDoacaoView from './Views/Tabelas/SaidaDoacao/CadastrarSaidaDoacaoView'
+import EditarSaidaDoacaoView from './Views/Tabelas/SaidaDoacao/EditarSaidaDoacaoView'
+import SaidaDoacaoListaView from './Views/Tabelas/SaidaDoacao/SaidaDoacaoView'
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -38,7 +41,9 @@ createRoot(document.getElementById('root')).render(
         <Route path='/tabelas/doacoes' element={<DoacoesView />} />
         <Route path="/doacoes/cadastro" element={<CadastrarDoacaoView />} />
         <Route path="/doacoes/:id" element={<EditarDoacaoView />} />
+        <Route path="/tabelas/saidaDoacao" element={<SaidaDoacaoListaView />} />
         <Route path="/saidaDoacao/cadastro" element={<CadastrarSaidaDoacaoView />} />
+        <Route path="/saidaDoacao/:id" element={<EditarSaidaDoacaoView />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

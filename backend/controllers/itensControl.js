@@ -18,7 +18,6 @@ class itensControl{
             if(!resp){
                 throw new Error(`Não existe item com id = ${req.query.id}`);
             }else{
-                console.log(resp);
                 return res.status(200).json(resp);
             }
         }catch(err){
@@ -56,7 +55,6 @@ class itensControl{
             const resultado = await item.excluir(connection);
             res.status(200).json(resultado);
         } catch (err) {
-            console.log(err);
             return res.status(500).json({err: err.message});
         }
     }

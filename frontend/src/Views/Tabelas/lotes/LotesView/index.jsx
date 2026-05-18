@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function LotesView() {
-    async function fetchLotesLista(nome, filtroData, zerado) {
+    async function fetchLotesLista(nome, filtroData, zerado,vencidos) {
         const response = await fetch(
-            `http://localhost:3000/lotes/listarComItens?nome=${nome}&data=${filtroData}&zerado=${zerado}`,
+            `http://localhost:3000/lotes/listarComItens?nome=${nome}&data=${filtroData}&zerado=${zerado}&vencidos=${vencidos}`,
             { method: "GET" }
         );
         const resultado = await response.json();
@@ -41,15 +41,16 @@ function LotesView() {
     const [nome, setNome] = useState("");
     const [data, setData] = useState("");
     const [zerado, setZerado] = useState(false);
+    const [vencidos, setVencidos] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         async function carregar() {
-            const resultado = await fetchLotesLista(nome, data, zerado);
+            const resultado = await fetchLotesLista(nome, data, zerado, vencidos);
             setLotes(resultado);
         }
         carregar();
-    }, [nome, data, zerado]);
+    }, [nome, data, zerado, vencidos]);
 
     return (
         <>
@@ -73,6 +74,14 @@ function LotesView() {
                         onChange={(e) => setZerado(e.target.checked)}
                     />
                     Mostrar lotes zerados
+                </Styled.CheckboxLabel>
+                <Styled.CheckboxLabel>
+                    <input
+                        type="checkbox"
+                        checked={vencidos}
+                        onChange={(e) => setVencidos(e.target.checked)}
+                    />
+                    Mostrar lotes vencidos
                 </Styled.CheckboxLabel>
                 <Styled.Actions>
                     <button onClick={() => navigate("/lotes/cadastro")}>

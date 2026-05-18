@@ -89,7 +89,6 @@ function EditarLotesView() {
         async function carregar() {
             await fetchItens();
             const data = await fetchLoteId(id);
-            //console.log(data); // veja o que vem aqui
 
             const dataFormatada = data.data
                 ? new Date(data.data).toISOString().split("T")[0]

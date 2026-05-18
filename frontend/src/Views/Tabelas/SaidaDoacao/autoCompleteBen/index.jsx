@@ -16,6 +16,13 @@ function AutocompleteBen({ beneficiarios, value, onChange, erro }) {
         return () => document.removeEventListener("mousedown", handleClickFora);
     }, []);
 
+    useEffect(() => {
+        if (value && beneficiarios.length > 0) {
+            const ben = beneficiarios.find(b => b.id === value || b.id === Number(value));
+            if (ben) setSelecionado(ben);
+        }
+    }, [value, beneficiarios]);
+
     const filtrados = beneficiarios.filter(b =>
         (b.nome ?? "").toLowerCase().includes(busca.toLowerCase())
     );

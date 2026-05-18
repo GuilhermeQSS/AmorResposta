@@ -42,7 +42,6 @@ function CadastrarItensView() {
                     });
             }else{
                 const json = await response.json(); 
-                console.log(json);
                 alert(json.err || 'Erro desconhecido no servidor');
             }
         } catch (error) {

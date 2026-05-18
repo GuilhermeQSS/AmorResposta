@@ -14,9 +14,14 @@ class lotesControl {
 
     static async listarComItens(req, res) {
         try {
-            console.log(req.query);
             const connection = await SingletonDB.getConnection();
-            const resp = await Lotes.listarComItens(connection, req.query.nome, req.query.data, req.query.zerado === "true");
+            const resp = await Lotes.listarComItens(
+                connection,
+                req.query.nome,
+                req.query.data,
+                req.query.zerado === "true",
+                req.query.vencidos === "true"
+            );
             return res.status(200).json(resp);
         } catch (err) {
             return res.status(500).json({ err: err.message });
