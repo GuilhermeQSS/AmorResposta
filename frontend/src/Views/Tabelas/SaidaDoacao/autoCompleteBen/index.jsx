@@ -64,7 +64,7 @@ function AutocompleteBen({ beneficiarios, value, onChange, erro }) {
                         ? <Styled.Vazio>Nenhum resultado</Styled.Vazio>
                         : filtrados.map(b => (
                             <Styled.Item key={`ben-${b.id}`} onClick={() => selecionar(b)}>
-                            {b.nome} — {b.cpf} {/* ← nome, não ben_nome */}
+                            {b.nome} — {b.usuario} {/* ← nome, não ben_nome */}
                             
                         </Styled.Item>
                         ))

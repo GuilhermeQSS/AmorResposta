@@ -8,18 +8,26 @@ import ProjetosView from './Views/ProjetosView'
 import DoacaoView from './Views/DoacaoView'
 import PortalView from './Views/PortalView'
 import SobreView from './Views/SobreView'
+
 import CadastrarItensView from './Views/Tabelas/Itens/CadastrarItensView'
 import EditarItensView from './Views/Tabelas/Itens/EditarItensView'
 import ItensView from './Views/Tabelas/Itens/ItensView'
+
 import CadastrarLotesView from './Views/Tabelas/Lotes/CadastrarLotesView'
 import EditarLotesView from './Views/Tabelas/Lotes/EditarLotesView'
 import LotesView from './Views/Tabelas/Lotes/LotesView'
+
 import DoacoesView from './Views/Tabelas/Doacoes/DoacoesView'
 import CadastrarDoacaoView from './Views/Tabelas/Doacoes/CadastrarDoacaoView'
 import EditarDoacaoView from './Views/Tabelas/Doacoes/EditarDoacaoView'
+
 import CadastrarSaidaDoacaoView from './Views/Tabelas/SaidaDoacao/CadastrarSaidaDoacaoView'
 import EditarSaidaDoacaoView from './Views/Tabelas/SaidaDoacao/EditarSaidaDoacaoView'
 import SaidaDoacaoListaView from './Views/Tabelas/SaidaDoacao/SaidaDoacaoView'
+
+import BeneficiariosView from './Views/Tabelas/Beneficiarios/BeneficiariosView'
+import EditarBeneficiarioView from './Views/Tabelas/Beneficiarios/EditarBeneficiarioView'
+import CadastrarBeneficiarioView from './Views/Tabelas/Beneficiarios/CadastrarBeneficiarioView'
 
 
 createRoot(document.getElementById('root')).render(
@@ -44,6 +52,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/tabelas/saidaDoacao" element={<SaidaDoacaoListaView />} />
         <Route path="/saidaDoacao/cadastro" element={<CadastrarSaidaDoacaoView />} />
         <Route path="/saidaDoacao/:id" element={<EditarSaidaDoacaoView />} />
+        <Route path='/tabelas/beneficiarios' element={<BeneficiariosView />} />
+        <Route path="/beneficiarios/:id" element={<EditarBeneficiarioView />} />
+        <Route path="/beneficiarios/cadastro" element={<CadastrarBeneficiarioView />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

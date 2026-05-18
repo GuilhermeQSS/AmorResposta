@@ -31,6 +31,7 @@ function Header(){
                             <Link to="/tabelas/lotes">Lotes</Link>
                             <Link to="/tabelas/doacoes">Doações</Link>
                             <Link to="/tabelas/saidaDoacao">Saida de Doacao</Link>
+                            <Link to="/tabelas/beneficiarios">Beneficiarios</Link>
                         </div>
                     )}
                 </li>

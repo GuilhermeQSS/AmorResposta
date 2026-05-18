@@ -73,6 +73,7 @@ function SaidaDoacaoListaView() {
         <>
             <Header />
             <main>
+                <Styled.PageTitle>Gerenciamento de Saida de Doação</Styled.PageTitle>
                 <Styled.Busca
                     type="text"
                     placeholder="Buscar por beneficiário..."
